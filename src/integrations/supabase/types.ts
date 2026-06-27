@@ -14,7 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      loads: {
+        Row: {
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          comments: string | null
+          created_at: string
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          has_sweep: boolean | null
+          id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          schedule_date: string | null
+          schedule_id: string
+          status: Database["public"]["Enums"]["load_status"] | null
+          str_name: string | null
+          str_number: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          yard_arrival_at: string | null
+        }
+        Insert: {
+          arrival_date?: string | null
+          arrival_day?: string | null
+          arrival_time?: string | null
+          comments?: string | null
+          created_at?: string
+          cutoff_date?: string | null
+          cutoff_day?: string | null
+          cutoff_time?: string | null
+          delivery_sequence?: number | null
+          driver?: string | null
+          has_sweep?: boolean | null
+          id?: string
+          origin_id?: string | null
+          origin_name?: string | null
+          outbound_trailer?: string | null
+          return_trailer?: string | null
+          return_trailer_location?:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          schedule_date?: string | null
+          schedule_id: string
+          status?: Database["public"]["Enums"]["load_status"] | null
+          str_name?: string | null
+          str_number?: string | null
+          unload_date?: string | null
+          unload_day?: string | null
+          unload_time?: string | null
+          unload_type?: string | null
+          updated_at?: string
+          yard_arrival_at?: string | null
+        }
+        Update: {
+          arrival_date?: string | null
+          arrival_day?: string | null
+          arrival_time?: string | null
+          comments?: string | null
+          created_at?: string
+          cutoff_date?: string | null
+          cutoff_day?: string | null
+          cutoff_time?: string | null
+          delivery_sequence?: number | null
+          driver?: string | null
+          has_sweep?: boolean | null
+          id?: string
+          origin_id?: string | null
+          origin_name?: string | null
+          outbound_trailer?: string | null
+          return_trailer?: string | null
+          return_trailer_location?:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          schedule_date?: string | null
+          schedule_id?: string
+          status?: Database["public"]["Enums"]["load_status"] | null
+          str_name?: string | null
+          str_number?: string | null
+          unload_date?: string | null
+          unload_day?: string | null
+          unload_time?: string | null
+          unload_type?: string | null
+          updated_at?: string
+          yard_arrival_at?: string | null
+        }
+        Relationships: []
+      }
+      trailer_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          load_id: string | null
+          notes: string | null
+          trailer_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          load_id?: string | null
+          notes?: string | null
+          trailer_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          load_id?: string | null
+          notes?: string | null
+          trailer_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trailer_events_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +156,20 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      load_status:
+        | "Assigned"
+        | "Heading To DC"
+        | "Loaded"
+        | "En Route"
+        | "Delivered"
+        | "Picked Up Return Trailer"
+        | "Returning"
+        | "At Yard"
+        | "Returned To DC"
+        | "Completed"
+        | "Delayed"
+        | "Exception"
+      trailer_location: "DC" | "Store" | "Returning" | "Yard" | "Returned To DC"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +296,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      load_status: [
+        "Assigned",
+        "Heading To DC",
+        "Loaded",
+        "En Route",
+        "Delivered",
+        "Picked Up Return Trailer",
+        "Returning",
+        "At Yard",
+        "Returned To DC",
+        "Completed",
+        "Delayed",
+        "Exception",
+      ],
+      trailer_location: ["DC", "Store", "Returning", "Yard", "Returned To DC"],
+    },
   },
 } as const
