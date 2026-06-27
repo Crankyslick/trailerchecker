@@ -9,38 +9,188 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YardRouteImport } from './routes/yard'
+import { Route as StoresRouteImport } from './routes/stores'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as LoadsRouteImport } from './routes/loads'
+import { Route as DriversRouteImport } from './routes/drivers'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HistoryIndexRouteImport } from './routes/history.index'
+import { Route as HistoryLoadIdRouteImport } from './routes/history.$loadId'
 
+const YardRoute = YardRouteImport.update({
+  id: '/yard',
+  path: '/yard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoresRoute = StoresRouteImport.update({
+  id: '/stores',
+  path: '/stores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoadsRoute = LoadsRouteImport.update({
+  id: '/loads',
+  path: '/loads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriversRoute = DriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryIndexRoute = HistoryIndexRouteImport.update({
+  id: '/history/',
+  path: '/history/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryLoadIdRoute = HistoryLoadIdRouteImport.update({
+  id: '/history/$loadId',
+  path: '/history/$loadId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/drivers': typeof DriversRoute
+  '/loads': typeof LoadsRoute
+  '/reports': typeof ReportsRoute
+  '/search': typeof SearchRoute
+  '/stores': typeof StoresRoute
+  '/yard': typeof YardRoute
+  '/history/$loadId': typeof HistoryLoadIdRoute
+  '/history/': typeof HistoryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/drivers': typeof DriversRoute
+  '/loads': typeof LoadsRoute
+  '/reports': typeof ReportsRoute
+  '/search': typeof SearchRoute
+  '/stores': typeof StoresRoute
+  '/yard': typeof YardRoute
+  '/history/$loadId': typeof HistoryLoadIdRoute
+  '/history': typeof HistoryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/drivers': typeof DriversRoute
+  '/loads': typeof LoadsRoute
+  '/reports': typeof ReportsRoute
+  '/search': typeof SearchRoute
+  '/stores': typeof StoresRoute
+  '/yard': typeof YardRoute
+  '/history/$loadId': typeof HistoryLoadIdRoute
+  '/history/': typeof HistoryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/drivers'
+    | '/loads'
+    | '/reports'
+    | '/search'
+    | '/stores'
+    | '/yard'
+    | '/history/$loadId'
+    | '/history/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/drivers'
+    | '/loads'
+    | '/reports'
+    | '/search'
+    | '/stores'
+    | '/yard'
+    | '/history/$loadId'
+    | '/history'
+  id:
+    | '__root__'
+    | '/'
+    | '/drivers'
+    | '/loads'
+    | '/reports'
+    | '/search'
+    | '/stores'
+    | '/yard'
+    | '/history/$loadId'
+    | '/history/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DriversRoute: typeof DriversRoute
+  LoadsRoute: typeof LoadsRoute
+  ReportsRoute: typeof ReportsRoute
+  SearchRoute: typeof SearchRoute
+  StoresRoute: typeof StoresRoute
+  YardRoute: typeof YardRoute
+  HistoryLoadIdRoute: typeof HistoryLoadIdRoute
+  HistoryIndexRoute: typeof HistoryIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/yard': {
+      id: '/yard'
+      path: '/yard'
+      fullPath: '/yard'
+      preLoaderRoute: typeof YardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stores': {
+      id: '/stores'
+      path: '/stores'
+      fullPath: '/stores'
+      preLoaderRoute: typeof StoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loads': {
+      id: '/loads'
+      path: '/loads'
+      fullPath: '/loads'
+      preLoaderRoute: typeof LoadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drivers': {
+      id: '/drivers'
+      path: '/drivers'
+      fullPath: '/drivers'
+      preLoaderRoute: typeof DriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +198,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history/': {
+      id: '/history/'
+      path: '/history'
+      fullPath: '/history/'
+      preLoaderRoute: typeof HistoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history/$loadId': {
+      id: '/history/$loadId'
+      path: '/history/$loadId'
+      fullPath: '/history/$loadId'
+      preLoaderRoute: typeof HistoryLoadIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DriversRoute: DriversRoute,
+  LoadsRoute: LoadsRoute,
+  ReportsRoute: ReportsRoute,
+  SearchRoute: SearchRoute,
+  StoresRoute: StoresRoute,
+  YardRoute: YardRoute,
+  HistoryLoadIdRoute: HistoryLoadIdRoute,
+  HistoryIndexRoute: HistoryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
