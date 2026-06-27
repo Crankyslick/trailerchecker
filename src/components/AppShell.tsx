@@ -81,7 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {NAV.slice(0, 6).map((item) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
             return (
-              <Link key={item.to} to={item.to}
+              <Link key={item.to} to={item.to as never}
                 className={cn(
                   "flex-1 min-w-[72px] flex flex-col items-center gap-1 py-2 text-[10px]",
                   active ? "text-primary" : "text-muted-foreground"
