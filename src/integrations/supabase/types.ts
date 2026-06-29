@@ -31,6 +31,7 @@ export type Database = {
           origin_id: string | null
           origin_name: string | null
           outbound_trailer: string | null
+          pro_number: string | null
           return_trailer: string | null
           return_trailer_location:
             | Database["public"]["Enums"]["trailer_location"]
@@ -40,6 +41,8 @@ export type Database = {
           status: Database["public"]["Enums"]["load_status"] | null
           str_name: string | null
           str_number: string | null
+          target_load_id: string | null
+          trip_id: string | null
           unload_date: string | null
           unload_day: string | null
           unload_time: string | null
@@ -63,6 +66,7 @@ export type Database = {
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
+          pro_number?: string | null
           return_trailer?: string | null
           return_trailer_location?:
             | Database["public"]["Enums"]["trailer_location"]
@@ -72,6 +76,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["load_status"] | null
           str_name?: string | null
           str_number?: string | null
+          target_load_id?: string | null
+          trip_id?: string | null
           unload_date?: string | null
           unload_day?: string | null
           unload_time?: string | null
@@ -95,6 +101,7 @@ export type Database = {
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
+          pro_number?: string | null
           return_trailer?: string | null
           return_trailer_location?:
             | Database["public"]["Enums"]["trailer_location"]
@@ -104,12 +111,35 @@ export type Database = {
           status?: Database["public"]["Enums"]["load_status"] | null
           str_name?: string | null
           str_number?: string | null
+          target_load_id?: string | null
+          trip_id?: string | null
           unload_date?: string | null
           unload_day?: string | null
           unload_time?: string | null
           unload_type?: string | null
           updated_at?: string
           yard_arrival_at?: string | null
+        }
+        Relationships: []
+      }
+      sync_config: {
+        Row: {
+          endpoint_url: string | null
+          id: number
+          last_synced_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          endpoint_url?: string | null
+          id?: number
+          last_synced_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          endpoint_url?: string | null
+          id?: number
+          last_synced_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -147,6 +177,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      yard_check_ins: {
+        Row: {
+          arrival_at: string
+          checked_out_at: string | null
+          created_at: string
+          id: string
+          inbound_load_id: string | null
+          note: string | null
+          trailer_number: string
+        }
+        Insert: {
+          arrival_at?: string
+          checked_out_at?: string | null
+          created_at?: string
+          id?: string
+          inbound_load_id?: string | null
+          note?: string | null
+          trailer_number: string
+        }
+        Update: {
+          arrival_at?: string
+          checked_out_at?: string | null
+          created_at?: string
+          id?: string
+          inbound_load_id?: string | null
+          note?: string | null
+          trailer_number?: string
+        }
+        Relationships: []
       }
     }
     Views: {
