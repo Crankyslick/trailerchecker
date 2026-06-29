@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { useLoads, useNowTick, useYardCheckIns, type YardCheckIn } from "@/hooks/use-loads";
+import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { supabase } from "@/integrations/supabase/client";
 import type { LoadRow } from "@/lib/loads";
 import { toast } from "sonner";
