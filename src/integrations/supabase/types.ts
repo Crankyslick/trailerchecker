@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      drivers: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       loads: {
         Row: {
           arrival_date: string | null
@@ -41,6 +68,7 @@ export type Database = {
           status: Database["public"]["Enums"]["load_status"] | null
           str_name: string | null
           str_number: string | null
+          str_return_trailer_started_at: string | null
           target_load_id: string | null
           trip_id: string | null
           unload_date: string | null
@@ -76,6 +104,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["load_status"] | null
           str_name?: string | null
           str_number?: string | null
+          str_return_trailer_started_at?: string | null
           target_load_id?: string | null
           trip_id?: string | null
           unload_date?: string | null
@@ -111,6 +140,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["load_status"] | null
           str_name?: string | null
           str_number?: string | null
+          str_return_trailer_started_at?: string | null
           target_load_id?: string | null
           trip_id?: string | null
           unload_date?: string | null
@@ -128,18 +158,21 @@ export type Database = {
           id: number
           last_synced_at: string | null
           updated_at: string
+          webhook_url: string | null
         }
         Insert: {
           endpoint_url?: string | null
           id?: number
           last_synced_at?: string | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Update: {
           endpoint_url?: string | null
           id?: number
           last_synced_at?: string | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }
