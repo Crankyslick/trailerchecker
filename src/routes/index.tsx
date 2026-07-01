@@ -619,7 +619,7 @@ function IngestionTool() {
       if (row.trip_id) patch.trip_id = row.trip_id;
       if (row.trailer) patch.outbound_trailer = row.trailer;
       if (Object.keys(patch).length === 0) continue;
-      const { error } = await supabase.from("loads").update(patch).eq("id", target.id);
+      const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", target.id);
       if (!error) { matched++; fireWebhook("load.update", { id: target.id, patch }); }
     }
     setBusy(false);
