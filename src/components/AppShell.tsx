@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Truck as TruckIcon, Wifi, WifiOff } from "lucide-react";
+import { Wifi, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AppSidebar } from "@/components/AppSidebar";
 
 function timeAgo(iso: string | null) {
   if (!iso) return "never";
@@ -32,26 +33,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const connected = Boolean(sync.url);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-surface/70 backdrop-blur sticky top-0 z-20">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-md bg-primary text-primary-foreground grid place-items-center">
-            <TruckIcon className="h-5 w-5" />
+    <div className="min-h-screen flex bg-background text-foreground">
+      <AppSidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-border bg-surface/70 backdrop-blur sticky top-0 z-20">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold tracking-tight truncate">Trailer Compliance Control Tower</div>
+            <div className="text-[11px] text-muted-foreground">Chambersburg PA DC · 24h Yard Turnaround Enforcement</div>
           </div>
-          <div className="min-w-0 leading-tight">
-            <div className="text-sm font-bold tracking-tight truncate">Trailer Checker</div>
-            <div className="text-[11px] text-muted-foreground">Yard 589 · Chambersburg PA DC · Ahmed Beshir</div>
+          <div className="flex items-center gap-2">
+            <div className={`chip border ${connected ? "bg-success/15 text-success border-success/30" : "bg-muted text-muted-foreground border-border"}`} title={sync.url ?? "Not configured"}>
+              {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+              <span className="hidden sm:inline">{connected ? "Connected to Sheet API" : "Sheet API not configured"}</span>
+              <span className="hidden md:inline opacity-70">· Last: {timeAgo(sync.last)}</span>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className={`chip border ${connected ? "bg-success/15 text-success border-success/30" : "bg-muted text-muted-foreground border-border"}`} title={sync.url ?? "Not configured"}>
-            {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-            <span className="hidden sm:inline">{connected ? "Connected to Sheet API" : "Sheet API not configured"}</span>
-            <span className="hidden md:inline opacity-70">· Last Auto-Fetch: {timeAgo(sync.last)}</span>
-          </div>
-        </div>
-      </header>
-      <main className="flex-1 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        </header>
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">{children}</main>
+      </div>
     </div>
   );
 }

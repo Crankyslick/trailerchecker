@@ -1,749 +1,361 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
-import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
-import { useDrivers, type Driver } from "@/hooks/use-drivers";
-import { supabase } from "@/integrations/supabase/client";
-import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
-import type { LoadRow } from "@/lib/loads";
-import { TRAILER_LOCATIONS } from "@/lib/loads";
-import { toast } from "sonner";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
-  RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin,
+  Truck, Warehouse, AlertTriangle, Clock, Activity, ShieldCheck,
+  CalendarDays, Users, PackageX, Gauge, MapPin, Send,
 } from "lucide-react";
+import { useLoads } from "@/hooks/use-loads";
+import { useDrivers } from "@/hooks/use-drivers";
+import type { LoadRow } from "@/lib/loads";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "VTC Dispatch Control — Yard 589" },
-      { name: "description", content: "Vital Transportation dispatch board, 24-hour STR RTRN TRL# ticker, driver assignment, and Google Sheet sync." },
+      { title: "Control Tower — Trailer Checker" },
+      { name: "description", content: "Real-time yard compliance, 24h turnaround enforcement, and live trailer dispatch control." },
     ],
   }),
-  component: DispatchControl,
+  component: ControlTower,
 });
 
-type Tab = "dispatch" | "yard" | "drivers" | "ingest";
+/* -------------------- Types & seed -------------------- */
 
-function DispatchControl() {
-  const [tab, setTab] = useState<Tab>("dispatch");
-  const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: "dispatch", label: "Daily Dispatch Board", icon: Truck },
-    { id: "yard",     label: "24-Hour Yard Ticker",  icon: Warehouse },
-    { id: "drivers",  label: "Drivers",              icon: Users },
-    { id: "ingest",   label: "Ingestion & Sync",     icon: ClipboardPaste },
-  ];
+type ActiveTrailer = {
+  id: string;
+  trailer: string;
+  store: string;
+  destination: string;
+  yard: "Yard 91" | "Yard 301" | "Paterson Yard";
+  returnTime: number; // epoch ms
+  nextDriver: string | null;
+  nextRdcTrailer: string | null;
+  nextSchedule: string | null;
+  pickupCutoff: string | null; // HH:MM
+  source: "live" | "seed";
+};
 
-  return (
-    <div className="space-y-5">
-      <div className="flex items-end justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dispatch Control</h1>
-          <p className="text-sm text-muted-foreground">Live STR RTRN TRL# timers · next-day driver deadline (16:00 EST) · Google Sheet auto-sync.</p>
-        </div>
-      </div>
+const YARDS: ActiveTrailer["yard"][] = ["Yard 91", "Yard 301", "Paterson Yard"];
+const COMPLIANCE_HOURS = 24;
+const WARN_HOURS = 18;
 
-      <div className="border-b border-border flex gap-1 overflow-x-auto">
-        {tabs.map((t) => {
-          const active = tab === t.id;
-          return (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition ${
-                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-              }`}>
-              <t.icon className="h-4 w-4" />
-              {t.label}
-              {active && <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-primary" />}
-            </button>
-          );
-        })}
-      </div>
+function hoursAgo(h: number) { return Date.now() - h * 3_600_000; }
 
-      {tab === "dispatch" && <DispatchBoard />}
-      {tab === "yard" && <YardTicker />}
-      {tab === "drivers" && <DriversTab />}
-      {tab === "ingest" && <IngestionTool />}
-    </div>
-  );
+const SEED: ActiveTrailer[] = [
+  { id: "s1", trailer: "482917", store: "2247", destination: "Riverdale Rt 23", yard: "Yard 91",
+    returnTime: hoursAgo(4.9), nextDriver: "Ahmed Beshir", nextRdcTrailer: "551204", nextSchedule: "SCH-2181", pickupCutoff: "14:30", source: "seed" },
+  { id: "s2", trailer: "553108", store: "1888", destination: "Bethlehem PA", yard: "Yard 301",
+    returnTime: hoursAgo(14.25), nextDriver: null, nextRdcTrailer: "480127", nextSchedule: "SCH-2189", pickupCutoff: "16:00", source: "seed" },
+  { id: "s3", trailer: "617502", store: "3391", destination: "Paterson NJ", yard: "Paterson Yard",
+    returnTime: hoursAgo(19.7), nextDriver: "Miguel Ortiz", nextRdcTrailer: null, nextSchedule: "SCH-2192", pickupCutoff: "12:15", source: "seed" },
+  { id: "s4", trailer: "701845", store: "1120", destination: "Wilkes-Barre PA", yard: "Yard 91",
+    returnTime: hoursAgo(24.8), nextDriver: null, nextRdcTrailer: "552901", nextSchedule: "SCH-2198", pickupCutoff: "10:45", source: "seed" },
+];
+
+/* -------------------- 1s ticker -------------------- */
+
+function useSecondTick() {
+  const [, set] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => set((n) => (n + 1) % 1_000_000), 1000);
+    return () => clearInterval(t);
+  }, []);
 }
 
-/* ---------------- Shared mutation helpers ---------------- */
-
-async function updateLoad(id: string, patch: Partial<LoadRow>) {
-  const { data, error } = await supabase.from("loads").update(patch).eq("id", id).select().single();
-  if (error) { toast.error(error.message); return; }
-  toast.success("Saved");
-  fireWebhook("load.update", { id, patch, row: data });
+function fmtHMS(totalSec: number): string {
+  const sign = totalSec < 0 ? "-" : "";
+  const s = Math.abs(Math.floor(totalSec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${sign}${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m ${sec.toString().padStart(2, "0")}s`;
 }
-
-/* ---------------- EST helpers ---------------- */
-
-// Get "today" and "tomorrow" as YYYY-MM-DD strings in America/New_York.
+function fmtHM(totalSec: number): string {
+  const s = Math.abs(Math.floor(totalSec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return `${h}h ${m.toString().padStart(2, "0")}m`;
+}
 function estDateParts(offsetDays = 0): string {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + offsetDays);
-  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" });
-  return fmt.format(d); // YYYY-MM-DD
-}
-// Current hour in EST (0-23)
-function estHour(): number {
-  const fmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hour12: false });
-  const parts = fmt.formatToParts(new Date());
-  const h = parts.find((p) => p.type === "hour")?.value ?? "0";
-  return parseInt(h, 10) % 24;
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
 }
 
-/* ---------------- Editable cells ---------------- */
+/* -------------------- Component -------------------- */
 
-function EditCell({ value, onSave, placeholder, mono, className }: {
-  value: string | null; onSave: (v: string | null) => void;
-  placeholder?: string; mono?: boolean; className?: string;
-}) {
-  const [v, setV] = useState(value ?? "");
-  const [editing, setEditing] = useState(false);
-  useEffect(() => { setV(value ?? ""); }, [value]);
-  if (!editing) {
-    return (
-      <button onClick={() => setEditing(true)}
-        className={`text-left w-full hover:bg-surface-2 rounded px-1.5 py-1 ${mono ? "font-mono text-xs" : "text-sm"} ${className ?? ""}`}>
-        {value ?? <span className="text-muted-foreground/60">{placeholder ?? "—"}</span>}
-      </button>
-    );
-  }
-  return (
-    <input autoFocus value={v} onChange={(e) => setV(e.target.value)}
-      onBlur={() => { setEditing(false); if ((v || null) !== value) onSave(v || null); }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-        if (e.key === "Escape") { setV(value ?? ""); setEditing(false); }
-      }}
-      className={`w-full bg-surface-2 border border-primary/40 rounded px-1.5 py-1 outline-none ${mono ? "font-mono text-xs" : "text-sm"} ${className ?? ""}`}
-    />
-  );
-}
-
-function DriverSelect({ value, drivers, onSave, danger }: {
-  value: string | null; drivers: Driver[]; onSave: (v: string | null) => void; danger?: boolean;
-}) {
-  return (
-    <select
-      value={value ?? ""}
-      onChange={(e) => onSave(e.target.value || null)}
-      className={`w-full rounded px-1.5 py-1 text-sm outline-none border ${
-        danger
-          ? "bg-danger/20 border-danger/60 text-danger font-semibold"
-          : value
-            ? "bg-surface-2 border-border"
-            : "bg-surface-2 border-warning/40 text-warning"
-      }`}
-    >
-      <option value="">— Unassigned —</option>
-      {drivers.filter((d) => d.active || d.name === value).map((d) => (
-        <option key={d.id} value={d.name}>{d.name}</option>
-      ))}
-    </select>
-  );
-}
-
-function LocationSelect({ value, onSave }: { value: string | null; onSave: (v: string) => void; }) {
-  return (
-    <select
-      value={value ?? "DC"}
-      onChange={(e) => onSave(e.target.value)}
-      className="w-full bg-surface-2 border border-border rounded px-1.5 py-1 text-sm outline-none"
-    >
-      {TRAILER_LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
-    </select>
-  );
-}
-
-/* ---------------- Dispatch Board ---------------- */
-
-function fmtDate(date: string | null) {
-  if (!date) return "—";
-  return new Date(date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-}
-
-function fmtElapsed(startedAt: string): string {
-  const ms = Date.now() - new Date(startedAt).getTime();
-  const totalMin = Math.max(0, Math.floor(ms / 60000));
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m`;
-}
-
-function DispatchBoard() {
-  useNowTick(30_000);
-  const { data: loads = [], isLoading } = useLoads();
+function ControlTower() {
+  useSecondTick();
+  const { data: loads = [] } = useLoads();
   const { data: drivers = [] } = useDrivers();
+  const [dispatched, setDispatched] = useState<Set<string>>(new Set());
+
+  // Merge live loads with return_trailer_location = "Yard" alongside seed mocks.
+  const activeTrailers = useMemo<ActiveTrailer[]>(() => {
+    const live: ActiveTrailer[] = loads
+      .filter((l) => {
+        const t = l as LoadRow & { str_return_trailer_started_at: string | null };
+        return l.return_trailer && t.str_return_trailer_started_at && l.return_trailer_location === "Yard";
+      })
+      .map((l, i) => {
+        const t = l as LoadRow & { str_return_trailer_started_at: string | null };
+        return {
+          id: l.id,
+          trailer: l.return_trailer!,
+          store: l.str_number ?? "—",
+          destination: l.str_name ?? "—",
+          yard: YARDS[i % YARDS.length],
+          returnTime: new Date(t.str_return_trailer_started_at!).getTime(),
+          nextDriver: l.driver,
+          nextRdcTrailer: l.outbound_trailer,
+          nextSchedule: l.schedule_id,
+          pickupCutoff: l.cutoff_time,
+          source: "live" as const,
+        };
+      });
+    return [...live, ...SEED].filter((t) => !dispatched.has(t.id));
+  }, [loads, dispatched]);
 
   const tomorrow = estDateParts(1);
-  const pastDeadline = estHour() >= 16;
+  const today = estDateParts(0);
+  const todaysLoads = loads.filter((l) => (l.schedule_date ?? l.cutoff_date) === today).length;
+  const tomorrowsLoads = loads.filter((l) => (l.schedule_date ?? l.cutoff_date) === tomorrow);
+  const driversMissing = tomorrowsLoads.filter((l) => !l.driver).length;
+  const trailersMissing = tomorrowsLoads.filter((l) => !l.outbound_trailer).length;
+  const coveragePct = tomorrowsLoads.length === 0
+    ? 100
+    : Math.round(((tomorrowsLoads.length - Math.max(driversMissing, trailersMissing)) / tomorrowsLoads.length) * 100);
+
+  // Compute per-trailer status (recomputes each tick because component re-renders)
+  const now = Date.now();
+  const enriched = activeTrailers.map((t) => {
+    const elapsedSec = Math.floor((now - t.returnTime) / 1000);
+    const remainingSec = COMPLIANCE_HOURS * 3600 - elapsedSec;
+    const elapsedH = elapsedSec / 3600;
+    return { ...t, elapsedSec, remainingSec, elapsedH };
+  });
+
+  const returnedTotal = enriched.length;
+  const yardCount = (name: ActiveTrailer["yard"]) => enriched.filter((t) => t.yard === name).length;
+  const over18 = enriched.filter((t) => t.elapsedH >= WARN_HOURS && t.elapsedH < COMPLIANCE_HOURS).length;
+  const over24 = enriched.filter((t) => t.elapsedH >= COMPLIANCE_HOURS);
+  const avgSec = enriched.length ? enriched.reduce((s, t) => s + t.elapsedSec, 0) / enriched.length : 0;
+  const compliancePct = enriched.length === 0 ? 100 : Math.round(((enriched.length - over24.length) / enriched.length) * 100);
+
+  const dispatch = (id: string, trailer: string) => {
+    setDispatched((prev) => new Set(prev).add(id));
+    toast.success(`Trailer ${trailer} dispatched out of yard`);
+  };
 
   return (
-    <div className="kpi-card overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between flex-wrap gap-2">
+    <div className="space-y-5">
+      {/* Page header */}
+      <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-sm font-semibold">Daily Dispatch Board</h2>
-          <p className="text-xs text-muted-foreground">
-            Type a trailer # into <strong>STR RTRN TRL#</strong> — the live 24-hour timer starts the instant you save.
-            {pastDeadline && <span className="text-danger ml-2">· Past 16:00 EST — tomorrow&apos;s unassigned loads shown in red.</span>}
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Activity className="h-6 w-6 text-primary" /> Control Tower
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Live yard compliance · {COMPLIANCE_HOURS}h turnaround enforced · {enriched.length} active trailers
           </p>
         </div>
-        <span className="text-xs text-muted-foreground">{loads.length} loads</span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Ticking every 1s
+        </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-surface-2/40">
-            <tr className="border-b border-border">
-              <th className="text-left font-medium py-3 px-3">Schedule Date</th>
-              <th className="text-left font-medium py-3 px-3">Schedule ID</th>
-              <th className="text-left font-medium py-3 px-3 min-w-[160px]">Driver Assigned</th>
-              <th className="text-left font-medium py-3 px-3">RDC Trailer</th>
-              <th className="text-left font-medium py-3 px-3">Origin</th>
-              <th className="text-left font-medium py-3 px-3">Destination</th>
-              <th className="text-left font-medium py-3 px-3 min-w-[140px]">STR RTRN TRL# (T)</th>
-              <th className="text-left font-medium py-3 px-3">TRL Location (U)</th>
-              <th className="text-left font-medium py-3 px-3 min-w-[130px]">Active Timer</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loads.map((l) => {
-              const started = (l as LoadRow & { str_return_trailer_started_at: string | null }).str_return_trailer_started_at;
-              const hours = started ? (Date.now() - new Date(started).getTime()) / 3_600_000 : null;
-              const timerOverdue = hours !== null && hours >= 24;
-              const scheduleDate = l.schedule_date ?? l.cutoff_date;
-              const isTomorrow = scheduleDate === tomorrow;
-              const driverMissing = !l.driver;
-              const driverOverdue = isTomorrow && driverMissing && pastDeadline;
-              const rowRed = timerOverdue || driverOverdue;
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Kpi icon={Truck} label="Returned Trailers" value={returnedTotal} />
+        <Kpi icon={Warehouse} label="Yard 91" value={yardCount("Yard 91")} />
+        <Kpi icon={Warehouse} label="Yard 301" value={yardCount("Yard 301")} />
+        <Kpi icon={Warehouse} label="Paterson Yard" value={yardCount("Paterson Yard")} />
+        <Kpi icon={Clock} label="Over 18h" value={over18} tone={over18 > 0 ? "warn" : "ok"} />
+        <Kpi icon={AlertTriangle} label="Over 24h" value={over24.length} tone={over24.length > 0 ? "danger" : "ok"} />
+        <Kpi icon={Gauge} label="Avg Yard Duration" value={enriched.length ? fmtHM(avgSec) : "—"} />
+        <Kpi icon={CalendarDays} label="Today's Loads" value={todaysLoads} />
+        <Kpi icon={CalendarDays} label="Tomorrow's Loads" value={tomorrowsLoads.length} />
+        <Kpi icon={Users} label="Drivers Missing" value={driversMissing} tone={driversMissing > 0 ? "danger" : "ok"} />
+        <Kpi icon={PackageX} label="Trailers Missing" value={trailersMissing} tone={trailersMissing > 0 ? "danger" : "ok"} />
+        <Kpi icon={ShieldCheck} label="Compliance %" value={`${compliancePct}%`} tone={compliancePct === 100 ? "ok" : "warn"} />
+      </div>
+
+      {/* Yard utilization + critical alerts */}
+      <div className="grid md:grid-cols-3 gap-3">
+        <div className="kpi-card p-4 md:col-span-1">
+          <h2 className="text-sm font-semibold flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Yard Utilization</h2>
+          <div className="mt-3 space-y-2.5">
+            {YARDS.map((y) => {
+              const c = yardCount(y);
+              const pct = Math.min(100, (c / 6) * 100);
               return (
-                <tr key={l.id}
-                  className={`border-b border-border/40 last:border-0 transition-colors ${
-                    rowRed ? "bg-danger/15 hover:bg-danger/20 animate-pulse" : "hover:bg-surface-2/30"
-                  }`}>
-                  <td className="py-2 px-3 text-xs tabular-nums whitespace-nowrap">
-                    {fmtDate(scheduleDate)}
-                    {isTomorrow && <span className="ml-1 text-[10px] uppercase text-warning">tmrw</span>}
-                  </td>
-                  <td className="py-2 px-3 font-mono text-xs">{l.schedule_id}</td>
-                  <td className="py-2 px-3">
-                    <DriverSelect value={l.driver} drivers={drivers} danger={driverOverdue}
-                      onSave={(v) => updateLoad(l.id, { driver: v })} />
-                  </td>
-                  <td className="py-2 px-3"><EditCell mono value={l.outbound_trailer} placeholder="Trailer #"
-                    onSave={(v) => updateLoad(l.id, { outbound_trailer: v })} /></td>
-                  <td className="py-2 px-3 text-xs"><span className="font-mono">{l.origin_id}</span> · <span className="text-muted-foreground">{l.origin_name}</span></td>
-                  <td className="py-2 px-3 text-xs"><span className="font-mono">{l.str_number}</span> · <span className="text-muted-foreground">{l.str_name}</span></td>
-                  <td className="py-2 px-3">
-                    <EditCell mono value={l.return_trailer} placeholder="Type trailer #"
-                      className={l.return_trailer ? "text-primary font-semibold" : ""}
-                      onSave={(v) => updateLoad(l.id, { return_trailer: v })} />
-                  </td>
-                  <td className="py-2 px-3">
-                    <LocationSelect value={l.return_trailer_location}
-                      onSave={(v) => updateLoad(l.id, { return_trailer_location: v as LoadRow["return_trailer_location"] })} />
-                  </td>
-                  <td className="py-2 px-3">
-                    {started ? (
-                      <span className={`chip border tabular-nums font-mono text-xs ${
-                        timerOverdue
-                          ? "bg-danger/25 text-danger border-danger/50"
-                          : hours! >= 18
-                            ? "bg-warning/20 text-warning border-warning/40"
-                            : "bg-success/15 text-success border-success/30"
-                      }`}>
-                        <Clock className="h-3 w-3" /> {fmtElapsed(started)}
-                      </span>
-                    ) : <span className="text-muted-foreground/60 text-xs">—</span>}
-                  </td>
-                </tr>
+                <div key={y}>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">{y}</span>
+                    <span className="tabular-nums font-mono">{c} active</span>
+                  </div>
+                  <div className="mt-1 h-1.5 rounded-full bg-surface-2 overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
               );
             })}
-            {!isLoading && loads.length === 0 && (
-              <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">No loads scheduled yet.</td></tr>
-            )}
-          </tbody>
-        </table>
+          </div>
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Coverage (Tomorrow)</span>
+            <span className={`chip border ${coveragePct === 100 ? "bg-success/15 text-success border-success/30" : "bg-warning/15 text-warning border-warning/30"}`}>
+              {coveragePct}%
+            </span>
+          </div>
+        </div>
+
+        <div className={`kpi-card p-4 md:col-span-2 border ${over24.length > 0 ? "!border-danger/50 bg-danger/10" : "!border-success/40 bg-success/5"}`}>
+          <div className="flex items-center gap-2">
+            {over24.length > 0
+              ? <AlertTriangle className="h-5 w-5 text-danger" />
+              : <ShieldCheck className="h-5 w-5 text-success" />}
+            <h2 className="text-sm font-semibold">Critical Alerts</h2>
+          </div>
+          {over24.length === 0 ? (
+            <p className="mt-2 text-sm text-success">Compliance holding steady — 0 trailers past 24 hours.</p>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-danger font-semibold">
+                {over24.length} trailer{over24.length > 1 ? "s" : ""} past {COMPLIANCE_HOURS}h at Yard 589.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {over24.map((t) => (
+                  <span key={t.id} className="chip border bg-danger/20 text-danger border-danger/40 font-mono animate-pulse">
+                    {t.trailer} · {t.yard} · +{fmtHM(-t.remainingSec)} over
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+          <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Plan tomorrow's board to close coverage gaps.</span>
+            <Link to="/tomorrow" className="text-primary hover:underline">Open Tomorrow Board →</Link>
+          </div>
+        </div>
       </div>
-    </div>
-  );
-}
 
-/* ---------------- Drivers Tab ---------------- */
-
-function DriversTab() {
-  const { data: drivers = [] } = useDrivers();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-
-  async function addDriver(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) { toast.error("Name required"); return; }
-    const { data, error } = await supabase.from("drivers").insert({ name: name.trim(), phone: phone.trim() || null }).select().single();
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Added ${name}`);
-    setName(""); setPhone("");
-    fireWebhook("driver.create", { row: data });
-  }
-
-  async function toggleActive(d: Driver) {
-    const { data, error } = await supabase.from("drivers").update({ active: !d.active }).eq("id", d.id).select().single();
-    if (error) { toast.error(error.message); return; }
-    fireWebhook("driver.update", { id: d.id, row: data });
-  }
-
-  async function removeDriver(d: Driver) {
-    if (!confirm(`Remove driver ${d.name}?`)) return;
-    const { error } = await supabase.from("drivers").delete().eq("id", d.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Removed");
-    fireWebhook("driver.delete", { id: d.id, name: d.name });
-  }
-
-  return (
-    <div className="space-y-4">
-      <form onSubmit={addDriver} className="kpi-card p-4 flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-[180px]">
-          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Driver Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Ahmed Beshir"
-            className="mt-1 w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50" />
-        </div>
-        <div className="flex-1 min-w-[160px]">
-          <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Phone (optional)</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 …"
-            className="mt-1 w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50" />
-        </div>
-        <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
-          <Plus className="h-4 w-4" /> Add Driver
-        </button>
-      </form>
-
+      {/* Live Trailer Control table */}
       <div className="kpi-card overflow-hidden">
-        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Active Drivers</h2>
-          <span className="text-xs text-muted-foreground">{drivers.filter((d) => d.active).length} of {drivers.length} active</span>
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 className="text-sm font-semibold">Live Trailer Control</h2>
+            <p className="text-xs text-muted-foreground">Hours in yard tick up · time to compliance ticks down · every second.</p>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="chip border bg-success/15 text-success border-success/30">&lt; 18h OK</span>
+            <span className="chip border bg-warning/15 text-warning border-warning/30">18–24h Warn</span>
+            <span className="chip border bg-danger/15 text-danger border-danger/30">≥ 24h Breach</span>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-surface-2/40">
               <tr className="border-b border-border">
-                <th className="text-left font-medium py-3 px-4">Name</th>
-                <th className="text-left font-medium py-3 px-4">Phone</th>
-                <th className="text-left font-medium py-3 px-4">Status</th>
-                <th className="text-right font-medium py-3 px-4">Actions</th>
+                <th className="text-left font-medium py-3 px-3">Trailer #</th>
+                <th className="text-left font-medium py-3 px-3">Store</th>
+                <th className="text-left font-medium py-3 px-3">Destination</th>
+                <th className="text-left font-medium py-3 px-3">Current Yard</th>
+                <th className="text-left font-medium py-3 px-3">Return Time</th>
+                <th className="text-left font-medium py-3 px-3 min-w-[150px]">Hours in Yard</th>
+                <th className="text-left font-medium py-3 px-3 min-w-[170px]">Time Until Limit</th>
+                <th className="text-left font-medium py-3 px-3 min-w-[160px]">Assigned Next Driver</th>
+                <th className="text-left font-medium py-3 px-3">Next RDC Trailer</th>
+                <th className="text-left font-medium py-3 px-3">Next Schedule</th>
+                <th className="text-left font-medium py-3 px-3">Pickup Cutoff</th>
+                <th className="text-right font-medium py-3 px-3">Action</th>
               </tr>
             </thead>
             <tbody>
-              {drivers.map((d) => (
-                <tr key={d.id} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
-                  <td className="py-3 px-4 font-medium">{d.name}</td>
-                  <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{d.phone ?? "—"}</td>
-                  <td className="py-3 px-4">
-                    <span className={`chip border ${d.active ? "bg-success/15 text-success border-success/30" : "bg-muted text-muted-foreground border-border"}`}>
-                      {d.active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-2">
-                    <button onClick={() => toggleActive(d)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-surface-2 border border-border hover:bg-surface">
-                      {d.active ? "Deactivate" : "Activate"}
-                    </button>
-                    <button onClick={() => removeDriver(d)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20">
-                      <Trash2 className="h-3.5 w-3.5" /> Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {drivers.length === 0 && (
-                <tr><td colSpan={4} className="py-12 text-center text-muted-foreground">No drivers yet. Add one above to populate the dispatch dropdown.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- 24-Hour Yard Ticker ---------------- */
-
-function tierForHours(h: number) {
-  if (h >= 24) return { label: "OVERDUE", cls: "bg-danger/20 text-danger border-danger/40 animate-pulse", bar: "bg-danger" };
-  if (h >= 18) return { label: "WARNING", cls: "bg-warning/20 text-warning border-warning/40", bar: "bg-warning" };
-  if (h >= 12) return { label: "ALERT",   cls: "bg-warning/15 text-warning border-warning/30", bar: "bg-warning/70" };
-  return { label: "OK", cls: "bg-success/15 text-success border-success/30", bar: "bg-success" };
-}
-function fmtHM(hoursElapsed: number) {
-  const totalMin = Math.max(0, Math.floor(hoursElapsed * 60));
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m`;
-}
-function fmtCountdown(hoursElapsed: number) {
-  const remaining = (24 - hoursElapsed) * 60;
-  if (remaining <= 0) return `+${fmtHM(hoursElapsed - 24)} OVER`;
-  return `${fmtHM(remaining / 60)} left`;
-}
-
-function YardTicker() {
-  useNowTick(15_000);
-  const { data: items = [] } = useYardCheckIns();
-  const { data: loads = [] } = useLoads();
-  const [open, setOpen] = useState(false);
-  const [trailer, setTrailer] = useState("");
-  const [loadId, setLoadId] = useState("");
-  const [note, setNote] = useState("");
-
-  // Active STR RTRN TRL# timers pulled from loads (Column T timestamps)
-  const activeReturnTrailers = useMemo(() => loads
-    .filter((l) => l.return_trailer && (l as LoadRow & { str_return_trailer_started_at: string | null }).str_return_trailer_started_at)
-    .map((l) => {
-      const started = (l as LoadRow & { str_return_trailer_started_at: string | null }).str_return_trailer_started_at!;
-      const hours = (Date.now() - new Date(started).getTime()) / 3_600_000;
-      return { load: l, started, hours };
-    })
-    .sort((a, b) => b.hours - a.hours),
-  [loads]);
-
-  async function checkIn(e: React.FormEvent) {
-    e.preventDefault();
-    if (!trailer.trim()) { toast.error("Trailer # required"); return; }
-    const { data, error } = await supabase.from("yard_check_ins").insert({
-      trailer_number: trailer.trim(),
-      inbound_load_id: loadId.trim() || null,
-      note: note.trim() || null,
-    }).select().single();
-    if (error) toast.error(error.message);
-    else {
-      toast.success(`Trailer ${trailer} checked in at gate`);
-      fireWebhook("yard.check_in", { row: data });
-      setTrailer(""); setLoadId(""); setNote(""); setOpen(false);
-    }
-  }
-
-  async function checkOut(id: string, trailerNum: string) {
-    const { data, error } = await supabase.from("yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
-    if (error) toast.error(error.message);
-    else { toast.success(`Trailer ${trailerNum} dispatched out of yard`); fireWebhook("yard.check_out", { id, row: data }); }
-  }
-
-  const enriched = useMemo(() => items.map((i) => {
-    const hours = (Date.now() - new Date(i.arrival_at).getTime()) / 3_600_000;
-    return { ...i, hours };
-  }).sort((a, b) => b.hours - a.hours), [items]);
-
-  return (
-    <div className="space-y-4">
-      {activeReturnTrailers.length > 0 && (
-        <div className="kpi-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-sm font-semibold flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Live STR RTRN TRL# Timers (from dispatch board Column T)</h2>
-            <p className="text-xs text-muted-foreground">Started the second the trailer # was saved. Overdue rows blink red.</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-surface-2/40">
-                <tr className="border-b border-border">
-                  <th className="text-left font-medium py-3 px-4">Trailer #</th>
-                  <th className="text-left font-medium py-3 px-4">Load / Store</th>
-                  <th className="text-left font-medium py-3 px-4">Location (U)</th>
-                  <th className="text-left font-medium py-3 px-4">Started</th>
-                  <th className="text-left font-medium py-3 px-4">Elapsed</th>
-                  <th className="text-left font-medium py-3 px-4">State</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeReturnTrailers.map(({ load, started, hours }) => {
-                  const t = tierForHours(hours);
-                  return (
-                    <tr key={load.id} className={`border-b border-border/40 last:border-0 ${hours >= 24 ? "bg-danger/15 animate-pulse" : "hover:bg-surface-2/30"}`}>
-                      <td className="py-3 px-4 font-mono font-semibold">{load.return_trailer}</td>
-                      <td className="py-3 px-4 text-xs"><span className="font-mono">{load.schedule_id}</span> · {load.str_number} {load.str_name}</td>
-                      <td className="py-3 px-4 text-xs">{load.return_trailer_location ?? "—"}</td>
-                      <td className="py-3 px-4 text-xs tabular-nums">{new Date(started).toLocaleString()}</td>
-                      <td className="py-3 px-4 font-mono tabular-nums text-sm">{fmtHM(hours)}</td>
-                      <td className="py-3 px-4"><span className={`chip border ${t.cls}`}><Clock className="h-3 w-3" /> {t.label}</span></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h2 className="text-sm font-semibold">Manual Gate Check-Ins</h2>
-          <p className="text-xs text-muted-foreground">For trailers arriving without a scheduled load. 24-hour turnaround still enforced.</p>
-        </div>
-        <button onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
-          <DoorOpen className="h-4 w-4" /> Gate Check-In
-        </button>
-      </div>
-
-      <div className="kpi-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-surface-2/40">
-              <tr className="border-b border-border">
-                <th className="text-left font-medium py-3 px-4">Trailer #</th>
-                <th className="text-left font-medium py-3 px-4">Inbound Load ID</th>
-                <th className="text-left font-medium py-3 px-4">Arrival Time</th>
-                <th className="text-left font-medium py-3 px-4 w-[28%]">Countdown to 24h</th>
-                <th className="text-left font-medium py-3 px-4">State</th>
-                <th className="text-right font-medium py-3 px-4">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enriched.map((i) => {
-                const t = tierForHours(i.hours);
-                const pct = Math.min(100, (i.hours / 24) * 100);
+              {enriched.map((t) => {
+                const overdue = t.elapsedH >= COMPLIANCE_HOURS;
+                const warn = t.elapsedH >= WARN_HOURS && !overdue;
+                const chipCls = overdue
+                  ? "bg-danger/20 text-danger border-danger/50"
+                  : warn
+                    ? "bg-warning/20 text-warning border-warning/40"
+                    : "bg-success/15 text-success border-success/30";
+                const rowCls = overdue
+                  ? "bg-danger/10 hover:bg-danger/15 animate-pulse"
+                  : warn ? "hover:bg-warning/5" : "hover:bg-surface-2/30";
                 return (
-                  <tr key={i.id} className={`border-b border-border/40 last:border-0 ${i.hours >= 24 ? "bg-danger/10 animate-pulse" : "hover:bg-surface-2/30"}`}>
-                    <td className="py-3 px-4 font-mono font-semibold">{i.trailer_number}</td>
-                    <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{i.inbound_load_id ?? "—"}</td>
-                    <td className="py-3 px-4 text-xs tabular-nums">{new Date(i.arrival_at).toLocaleString()}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1.5 rounded-full bg-surface-2 overflow-hidden">
-                          <div className={`h-full ${t.bar}`} style={{ width: `${pct}%` }} />
-                        </div>
-                        <div className="tabular-nums text-xs font-mono w-[110px] text-right">{fmtCountdown(i.hours)}</div>
-                      </div>
+                  <tr key={t.id} className={`border-b border-border/40 last:border-0 transition-colors ${rowCls}`}>
+                    <td className="py-2.5 px-3 font-mono font-semibold text-primary">{t.trailer}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs">{t.store}</td>
+                    <td className="py-2.5 px-3 text-xs text-muted-foreground">{t.destination}</td>
+                    <td className="py-2.5 px-3 text-xs">{t.yard}</td>
+                    <td className="py-2.5 px-3 text-xs tabular-nums whitespace-nowrap">
+                      {new Date(t.returnTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </td>
-                    <td className="py-3 px-4"><span className={`chip border ${t.cls}`}><Clock className="h-3 w-3" /> {t.label}</span></td>
-                    <td className="py-3 px-4 text-right">
-                      <button onClick={() => checkOut(i.id, i.trailer_number)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-surface-2 border border-border hover:bg-surface text-foreground">
-                        <LogOut className="h-3.5 w-3.5" /> Check-Out
+                    <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
+                      <span className={`chip border ${chipCls}`}>
+                        <Clock className="h-3 w-3" /> {fmtHMS(t.elapsedSec)}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
+                      {overdue
+                        ? <span className="text-danger font-semibold">Expired · {fmtHMS(-t.remainingSec)} over</span>
+                        : <span className={warn ? "text-warning" : "text-foreground"}>Expires in {fmtHMS(t.remainingSec)}</span>}
+                    </td>
+                    <td className="py-2.5 px-3 text-xs">
+                      {t.nextDriver
+                        ? <span className="font-medium">{t.nextDriver}</span>
+                        : <span className="text-danger font-semibold">— Unassigned —</span>}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-xs">{t.nextRdcTrailer ?? <span className="text-danger">missing</span>}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.nextSchedule ?? "—"}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs tabular-nums">{t.pickupCutoff ?? "—"}</td>
+                    <td className="py-2.5 px-3 text-right">
+                      <button onClick={() => dispatch(t.id, t.trailer)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90">
+                        <Send className="h-3.5 w-3.5" /> Dispatch
                       </button>
                     </td>
                   </tr>
                 );
               })}
               {enriched.length === 0 && (
-                <tr><td colSpan={6} className="py-12 text-center text-muted-foreground">No active manual check-ins.</td></tr>
+                <tr><td colSpan={12} className="py-12 text-center text-muted-foreground">All trailers dispatched. Yard is clear.</td></tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
-
-      {open && (
-        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm grid place-items-center p-4" onClick={() => setOpen(false)}>
-          <form onSubmit={checkIn} onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-surface border border-border rounded-lg p-5 space-y-4">
-            <div>
-              <h3 className="text-base font-semibold flex items-center gap-2"><DoorOpen className="h-4 w-4" /> Gate Check-In</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Arrival timestamp is captured automatically.</p>
-            </div>
-            <div className="space-y-3">
-              <label className="block">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Trailer #</span>
-                <input autoFocus value={trailer} onChange={(e) => setTrailer(e.target.value)}
-                  className="mt-1 w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50" placeholder="e.g. 482917" />
-              </label>
-              <label className="block">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Inbound Load ID</span>
-                <input value={loadId} onChange={(e) => setLoadId(e.target.value)}
-                  className="mt-1 w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50" placeholder="Optional" />
-              </label>
-              <label className="block">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Note</span>
-                <input value={note} onChange={(e) => setNote(e.target.value)}
-                  className="mt-1 w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50" placeholder="Optional" />
-              </label>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setOpen(false)}
-                className="px-3 py-2 rounded-md text-sm border border-border hover:bg-surface-2">Cancel</button>
-              <button type="submit"
-                className="px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:opacity-90">Log Arrival</button>
-            </div>
-          </form>
+        <div className="px-4 py-2 border-t border-border text-[11px] text-muted-foreground flex items-center justify-between">
+          <span>{drivers.length} drivers available in roster</span>
+          <Link to="/tomorrow" className="text-primary hover:underline">Plan Tomorrow's Board →</Link>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-/* ---------------- Weekly Ingestion + Sync ---------------- */
+/* -------------------- KPI card -------------------- */
 
-type ParsedRow = { load_id?: string; trip_id?: string; trailer?: string; origin?: string; destination?: string; };
-
-function parseBlock(text: string): ParsedRow[] {
-  const out: ParsedRow[] = [];
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) continue;
-    let cols = line.split(/\t/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) cols = line.split(/\s{2,}/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) cols = line.split(/\s+/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) continue;
-    const row: ParsedRow = {};
-    for (const c of cols) {
-      if (/^\d{7,9}$/.test(c) && !row.load_id) { row.load_id = c; continue; }
-      if (/^\d{6,7}$/.test(c) && !row.trip_id) { row.trip_id = c; continue; }
-      if (/^\d{4,6}$/.test(c) && !row.trailer) { row.trailer = c; continue; }
-      if (/dc|chambersburg|589/i.test(c) && !row.origin) { row.origin = c; continue; }
-      if (!row.destination) row.destination = c;
-    }
-    if (row.load_id || row.trip_id || row.trailer) out.push(row);
-  }
-  return out;
-}
-
-function IngestionTool() {
-  const { data: loads = [] } = useLoads();
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  const parsed = useMemo(() => parseBlock(text), [text]);
-
-  async function applyToLoads() {
-    if (parsed.length === 0) { toast.error("Nothing to apply"); return; }
-    setBusy(true);
-    let matched = 0;
-    for (const row of parsed) {
-      const dest = (row.destination ?? "").toLowerCase();
-      const target = loads.find((l) =>
-        (l.str_name && dest.includes(l.str_name.toLowerCase().split(" ")[0])) ||
-        (row.load_id && (l as LoadRow & { target_load_id: string | null }).target_load_id === row.load_id) ||
-        (row.trip_id && (l as LoadRow & { trip_id: string | null }).trip_id === row.trip_id)
-      );
-      if (!target) continue;
-      const patch: Record<string, unknown> = {};
-      if (row.load_id) patch.target_load_id = row.load_id;
-      if (row.trip_id) patch.trip_id = row.trip_id;
-      if (row.trailer) patch.outbound_trailer = row.trailer;
-      if (Object.keys(patch).length === 0) continue;
-      const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", target.id);
-      if (!error) { matched++; fireWebhook("load.update", { id: target.id, patch }); }
-    }
-    setBusy(false);
-    toast.success(`Linked ${matched} of ${parsed.length} rows to existing loads`);
-  }
-
+function Kpi({ icon: Icon, label, value, tone = "neutral" }: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string | number;
+  tone?: "neutral" | "ok" | "warn" | "danger";
+}) {
+  const toneCls =
+    tone === "danger" ? "text-danger" :
+    tone === "warn" ? "text-warning" :
+    tone === "ok" ? "text-success" : "text-foreground";
+  const iconCls =
+    tone === "danger" ? "text-danger" :
+    tone === "warn" ? "text-warning" :
+    tone === "ok" ? "text-success" : "text-primary";
   return (
-    <div className="space-y-5">
-      <div className="kpi-card p-4 space-y-3">
-        <div>
-          <h2 className="text-sm font-semibold">Paste Target DLM Weekly Data</h2>
-          <p className="text-xs text-muted-foreground">Paste raw rows copied from the Target App. Tab- or space-separated (Load ID, Trip ID, Trailer #, Origin, Destination).</p>
-        </div>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={8}
-          placeholder={"75483812\t5261691\t482917\t589 - Chambersburg Pa Dc\t2247 - Riverdale Rt 23 And Falston"}
-          className="w-full bg-surface-2 border border-border rounded p-3 font-mono text-xs outline-none focus:border-primary/50" />
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">{parsed.length} row(s) detected</div>
-          <button onClick={applyToLoads} disabled={busy || parsed.length === 0}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50">
-            <ClipboardPaste className="h-4 w-4" /> {busy ? "Linking…" : "Link to Dispatch Board"}
-          </button>
-        </div>
+    <div className="kpi-card p-3.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</span>
+        <Icon className={`h-4 w-4 ${iconCls}`} />
       </div>
-
-      <SyncPanel />
-    </div>
-  );
-}
-
-function SyncPanel() {
-  const [endpoint, setEndpoint] = useState("");
-  const [webhook, setWebhook] = useState("");
-  const [lastSync, setLastSync] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.from("sync_config").select("endpoint_url,webhook_url,last_synced_at").eq("id", 1).maybeSingle();
-      if (data) {
-        setEndpoint(data.endpoint_url ?? "");
-        setWebhook((data as { webhook_url: string | null }).webhook_url ?? "");
-        setLastSync(data.last_synced_at);
-      }
-    })();
-  }, []);
-
-  async function save() {
-    const { error } = await supabase.from("sync_config").update({
-      endpoint_url: endpoint || null,
-      webhook_url: webhook || null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", 1);
-    if (error) toast.error(error.message);
-    else { toast.success("Sync settings saved"); invalidateWebhookCache(); }
-  }
-
-  async function testWebhook() {
-    if (!webhook) { toast.error("Enter a webhook URL first"); return; }
-    setBusy(true);
-    try {
-      await fetch(webhook, {
-        method: "POST", mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event: "test.ping", payload: { hello: "VTC Dispatch" }, at: new Date().toISOString() }),
-      });
-      const now = new Date().toISOString();
-      await supabase.from("sync_config").update({ last_synced_at: now, updated_at: now }).eq("id", 1);
-      setLastSync(now);
-      toast.success("Ping sent (opaque response — check your Sheet)");
-    } catch (e) { toast.error(`Ping failed: ${(e as Error).message}`); }
-    finally { setBusy(false); }
-  }
-
-  return (
-    <div className="kpi-card p-4 space-y-4">
-      <div className="flex items-center gap-2">
-        <Settings className="h-4 w-4 text-muted-foreground" />
-        <h2 className="text-sm font-semibold">Google Sheet Auto-Sync</h2>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Every dispatch, driver, or yard change is pushed to your Sheet webhook in real-time.
-        Recommended: publish a Google Apps Script Web App on your master sheet
-        (<a href="https://docs.google.com/spreadsheets/d/19r-9bBQCk55hNG12H6ankgTEa3i6fg-3/edit" target="_blank" rel="noreferrer" className="text-primary underline">open sheet</a>)
-        and paste its <code>/exec</code> URL below.
-      </p>
-
-      <div className="space-y-2">
-        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Sheet Webhook URL (writes to sheet)</label>
-        <input value={webhook} onChange={(e) => setWebhook(e.target.value)}
-          placeholder="https://script.google.com/macros/s/AKfyc.../exec"
-          className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50" />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Read-back Endpoint (optional REST/JSON)</label>
-        <input value={endpoint} onChange={(e) => setEndpoint(e.target.value)}
-          placeholder="https://api.sheety.co/.../sheet1"
-          className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50" />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <button onClick={save}
-          className="px-3 py-2 rounded-md text-sm border border-border hover:bg-surface-2">Save</button>
-        <button onClick={testWebhook} disabled={busy || !webhook}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50">
-          <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} /> Send Test Ping
-        </button>
-        <div className="text-xs text-muted-foreground flex items-center gap-2 ml-auto">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          Last push: <span className="font-mono">{lastSync ? new Date(lastSync).toLocaleString() : "never"}</span>
-        </div>
-      </div>
-
-      <details className="text-xs text-muted-foreground border border-border/60 rounded p-3">
-        <summary className="cursor-pointer font-medium text-foreground">Apps Script snippet for your Sheet</summary>
-        <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] leading-relaxed">{`function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
-  const sheet = SpreadsheetApp.getActive().getSheetByName('Dispatch') || SpreadsheetApp.getActive().getSheets()[0];
-  sheet.appendRow([new Date(), data.event, JSON.stringify(data.payload)]);
-  return ContentService.createTextOutput('ok');
-}`}</pre>
-        <p className="mt-2">Deploy → New deployment → Web app → Execute as <em>Me</em>, Access <em>Anyone</em>. Paste the <code>/exec</code> URL above.</p>
-      </details>
+      <div className={`mt-1.5 text-2xl font-bold tabular-nums ${toneCls}`}>{value}</div>
     </div>
   );
 }
