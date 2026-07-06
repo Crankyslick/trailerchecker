@@ -10,18 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YardRouteImport } from './routes/yard'
+import { Route as TomorrowRouteImport } from './routes/tomorrow'
 import { Route as StoresRouteImport } from './routes/stores'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as LoadsRouteImport } from './routes/loads'
 import { Route as DriversRouteImport } from './routes/drivers'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as HistoryIndexRouteImport } from './routes/history.index'
 import { Route as HistoryLoadIdRouteImport } from './routes/history.$loadId'
 
 const YardRoute = YardRouteImport.update({
   id: '/yard',
   path: '/yard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TomorrowRoute = TomorrowRouteImport.update({
+  id: '/tomorrow',
+  path: '/tomorrow',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoresRoute = StoresRouteImport.update({
@@ -49,11 +54,6 @@ const DriversRoute = DriversRouteImport.update({
   path: '/drivers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HistoryIndexRoute = HistoryIndexRouteImport.update({
   id: '/history/',
   path: '/history/',
@@ -66,35 +66,35 @@ const HistoryLoadIdRoute = HistoryLoadIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/drivers': typeof DriversRoute
   '/loads': typeof LoadsRoute
   '/reports': typeof ReportsRoute
   '/search': typeof SearchRoute
   '/stores': typeof StoresRoute
+  '/tomorrow': typeof TomorrowRoute
   '/yard': typeof YardRoute
   '/history/$loadId': typeof HistoryLoadIdRoute
   '/history/': typeof HistoryIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/drivers': typeof DriversRoute
   '/loads': typeof LoadsRoute
   '/reports': typeof ReportsRoute
   '/search': typeof SearchRoute
   '/stores': typeof StoresRoute
+  '/tomorrow': typeof TomorrowRoute
   '/yard': typeof YardRoute
   '/history/$loadId': typeof HistoryLoadIdRoute
   '/history': typeof HistoryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/drivers': typeof DriversRoute
   '/loads': typeof LoadsRoute
   '/reports': typeof ReportsRoute
   '/search': typeof SearchRoute
   '/stores': typeof StoresRoute
+  '/tomorrow': typeof TomorrowRoute
   '/yard': typeof YardRoute
   '/history/$loadId': typeof HistoryLoadIdRoute
   '/history/': typeof HistoryIndexRoute
@@ -102,46 +102,46 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/drivers'
     | '/loads'
     | '/reports'
     | '/search'
     | '/stores'
+    | '/tomorrow'
     | '/yard'
     | '/history/$loadId'
     | '/history/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/drivers'
     | '/loads'
     | '/reports'
     | '/search'
     | '/stores'
+    | '/tomorrow'
     | '/yard'
     | '/history/$loadId'
     | '/history'
   id:
     | '__root__'
-    | '/'
     | '/drivers'
     | '/loads'
     | '/reports'
     | '/search'
     | '/stores'
+    | '/tomorrow'
     | '/yard'
     | '/history/$loadId'
     | '/history/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   DriversRoute: typeof DriversRoute
   LoadsRoute: typeof LoadsRoute
   ReportsRoute: typeof ReportsRoute
   SearchRoute: typeof SearchRoute
   StoresRoute: typeof StoresRoute
+  TomorrowRoute: typeof TomorrowRoute
   YardRoute: typeof YardRoute
   HistoryLoadIdRoute: typeof HistoryLoadIdRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
@@ -154,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/yard'
       fullPath: '/yard'
       preLoaderRoute: typeof YardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tomorrow': {
+      id: '/tomorrow'
+      path: '/tomorrow'
+      fullPath: '/tomorrow'
+      preLoaderRoute: typeof TomorrowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stores': {
@@ -191,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriversRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/history/': {
       id: '/history/'
       path: '/history'
@@ -216,12 +216,12 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   DriversRoute: DriversRoute,
   LoadsRoute: LoadsRoute,
   ReportsRoute: ReportsRoute,
   SearchRoute: SearchRoute,
   StoresRoute: StoresRoute,
+  TomorrowRoute: TomorrowRoute,
   YardRoute: YardRoute,
   HistoryLoadIdRoute: HistoryLoadIdRoute,
   HistoryIndexRoute: HistoryIndexRoute,
@@ -229,13 +229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

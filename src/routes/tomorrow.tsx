@@ -12,7 +12,7 @@ import {
   RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin,
 } from "lucide-react";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/tomorrow")({
   head: () => ({
     meta: [
       { title: "VTC Dispatch Control — Yard 589" },
