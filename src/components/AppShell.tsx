@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <TruckIcon className="h-5 w-5" />
           </div>
           <div className="min-w-0 leading-tight">
-            <div className="text-sm font-bold tracking-tight truncate">Vital Transportation · Dispatch Control</div>
+            <div className="text-sm font-bold tracking-tight truncate">Trailer Checker</div>
             <div className="text-[11px] text-muted-foreground">Yard 589 · Chambersburg PA DC · Ahmed Beshir</div>
           </div>
         </div>
