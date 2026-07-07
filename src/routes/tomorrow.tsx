@@ -572,78 +572,207 @@ function YardTicker() {
 
 /* ---------------- Weekly Ingestion + Sync ---------------- */
 
-type ParsedRow = { load_id?: string; trip_id?: string; trailer?: string; origin?: string; destination?: string; };
+const DLM_HEADERS = [
+  "Load ID", "Trip ID", "Pro #", "Trailer #", "Status", "Alert Status",
+  "Unload Type", "Origin", "Destination", "Total Distance",
+  "Expected Pickup", "Expected Delivery", "Delivery Sequence",
+  "Pickup Defect Reason", "Delivery Defect Reason", "Carrier Comments",
+  "Category", "Updated By",
+] as const;
+type DlmKey = typeof DLM_HEADERS[number];
+type ParsedRow = Partial<Record<DlmKey, string>> & { __raw: string[] };
 
-function parseBlock(text: string): ParsedRow[] {
-  const out: ParsedRow[] = [];
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) continue;
-    let cols = line.split(/\t/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) cols = line.split(/\s{2,}/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) cols = line.split(/\s+/).map((c) => c.trim()).filter(Boolean);
-    if (cols.length < 2) continue;
-    const row: ParsedRow = {};
-    for (const c of cols) {
-      if (/^\d{7,9}$/.test(c) && !row.load_id) { row.load_id = c; continue; }
-      if (/^\d{6,7}$/.test(c) && !row.trip_id) { row.trip_id = c; continue; }
-      if (/^\d{4,6}$/.test(c) && !row.trailer) { row.trailer = c; continue; }
-      if (/dc|chambersburg|589/i.test(c) && !row.origin) { row.origin = c; continue; }
-      if (!row.destination) row.destination = c;
-    }
-    if (row.load_id || row.trip_id || row.trailer) out.push(row);
+function normalizeHeader(s: string) {
+  return s.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function splitLine(line: string): string[] {
+  // Prefer tabs; fall back to 2+ whitespace
+  if (line.includes("\t")) return line.split(/\t/).map((c) => c.trim());
+  return line.split(/\s{2,}|\t/).map((c) => c.trim());
+}
+
+function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; usedHeader: boolean } {
+  const lines = text.split(/\r?\n/).map((l) => l.replace(/\s+$/, "")).filter((l) => l.trim().length > 0);
+  if (lines.length === 0) return { rows: [], headerMap: [], usedHeader: false };
+
+  const wantNorm = DLM_HEADERS.map(normalizeHeader);
+  // Default position map = identity
+  let headerMap: number[] = DLM_HEADERS.map((_, i) => i);
+  let usedHeader = false;
+  let dataStart = 0;
+
+  const firstCols = splitLine(lines[0]);
+  const firstNorm = firstCols.map(normalizeHeader);
+  const looksLikeHeader = wantNorm.filter((h) => firstNorm.includes(h)).length >= 4;
+  if (looksLikeHeader) {
+    headerMap = DLM_HEADERS.map((h) => firstNorm.indexOf(normalizeHeader(h)));
+    usedHeader = true;
+    dataStart = 1;
   }
-  return out;
+
+  const rows: ParsedRow[] = [];
+  for (let i = dataStart; i < lines.length; i++) {
+    const cols = splitLine(lines[i]);
+    if (cols.length < 2) continue;
+    const row: ParsedRow = { __raw: cols };
+    DLM_HEADERS.forEach((h, idx) => {
+      const srcIdx = headerMap[idx];
+      if (srcIdx >= 0 && srcIdx < cols.length) {
+        const val = cols[srcIdx];
+        if (val) row[h] = val;
+      }
+    });
+    if (row["Load ID"] || row["Trip ID"] || row["Trailer #"]) rows.push(row);
+  }
+  return { rows, headerMap, usedHeader };
+}
+
+// Parse "Nov 12, 2025 08:30" or "2025-11-12 08:30" as America/New_York (GMT-4/-5)
+function toEstIsoDate(s: string | undefined): string | null {
+  if (!s) return null;
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  return null;
 }
 
 function IngestionTool() {
   const { data: loads = [] } = useLoads();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const parsed = useMemo(() => parseBlock(text), [text]);
+  const { rows: parsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
 
-  async function applyToLoads() {
-    if (parsed.length === 0) { toast.error("Nothing to apply"); return; }
+  const existingIds = useMemo(
+    () => new Set(loads.map((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id).filter(Boolean) as string[]),
+    [loads]
+  );
+  const updates = parsed.filter((r) => r["Load ID"] && existingIds.has(r["Load ID"]!)).length;
+  const inserts = parsed.filter((r) => r["Load ID"] && !existingIds.has(r["Load ID"]!)).length;
+  const skipped = parsed.length - updates - inserts;
+
+  async function executeSync() {
+    if (parsed.length === 0) { toast.error("Nothing to sync"); return; }
     setBusy(true);
-    let matched = 0;
-    for (const row of parsed) {
-      const dest = (row.destination ?? "").toLowerCase();
-      const target = loads.find((l) =>
-        (l.str_name && dest.includes(l.str_name.toLowerCase().split(" ")[0])) ||
-        (row.load_id && (l as LoadRow & { target_load_id: string | null }).target_load_id === row.load_id) ||
-        (row.trip_id && (l as LoadRow & { trip_id: string | null }).trip_id === row.trip_id)
-      );
-      if (!target) continue;
-      const patch: Record<string, unknown> = {};
-      if (row.load_id) patch.target_load_id = row.load_id;
-      if (row.trip_id) patch.trip_id = row.trip_id;
-      if (row.trailer) patch.outbound_trailer = row.trailer;
-      if (Object.keys(patch).length === 0) continue;
-      const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", target.id);
-      if (!error) { matched++; fireWebhook("load.update", { id: target.id, patch }); }
+    let ok = 0, fail = 0;
+    for (const r of parsed) {
+      const loadId = r["Load ID"];
+      if (!loadId) { fail++; continue; }
+      const patch: Record<string, unknown> = {
+        target_load_id: loadId,
+        trip_id: r["Trip ID"] ?? null,
+        pro_number: r["Pro #"] ?? null,
+        outbound_trailer: r["Trailer #"] ?? null,
+        origin_name: r["Origin"] ?? null,
+        str_name: r["Destination"] ?? null,
+        delivery_sequence: r["Delivery Sequence"] ? Number(r["Delivery Sequence"]) || null : null,
+        comments: r["Carrier Comments"] ?? null,
+        schedule_date: toEstIsoDate(r["Expected Pickup"]),
+        arrival_date: toEstIsoDate(r["Expected Delivery"]),
+      };
+      Object.keys(patch).forEach((k) => patch[k] === null && delete patch[k]);
+
+      const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === loadId);
+      if (existing) {
+        const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
+        if (error) fail++; else ok++;
+      } else {
+        const insertRow = { schedule_id: loadId, ...patch } as Partial<LoadRow> & { schedule_id: string };
+        const { error } = await supabase.from("loads").insert(insertRow);
+        if (error) fail++; else ok++;
+      }
     }
+    // One consolidated webhook push with full DLM payload
+    fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: parsed });
     setBusy(false);
-    toast.success(`Linked ${matched} of ${parsed.length} rows to existing loads`);
+    toast.success(`Synced ${ok} row(s)${fail ? ` · ${fail} failed` : ""}`);
+    setText("");
   }
 
   return (
     <div className="space-y-5">
       <div className="kpi-card p-4 space-y-3">
         <div>
-          <h2 className="text-sm font-semibold">Paste Target DLM Weekly Data</h2>
-          <p className="text-xs text-muted-foreground">Paste raw rows copied from the Target App. Tab- or space-separated (Load ID, Trip ID, Trailer #, Origin, Destination).</p>
+          <h2 className="text-sm font-semibold">Weekly Data Ingestion Portal</h2>
+          <p className="text-xs text-muted-foreground">
+            Paste the full 18-column Target DLM dump (with or without headers). Columns split by tabs or 2+ spaces.
+            Upsert key: <code className="font-mono">Load ID</code>. Dates parsed as America/New_York.
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1 font-mono truncate">
+            {DLM_HEADERS.join(" · ")}
+          </p>
         </div>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={8}
-          placeholder={"75483812\t5261691\t482917\t589 - Chambersburg Pa Dc\t2247 - Riverdale Rt 23 And Falston"}
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={10}
+          placeholder={"Load ID\tTrip ID\tPro #\tTrailer #\tStatus\tAlert Status\tUnload Type\tOrigin\tDestination\tTotal Distance\tExpected Pickup\tExpected Delivery\tDelivery Sequence\tPickup Defect Reason\tDelivery Defect Reason\tCarrier Comments\tCategory\tUpdated By"}
           className="w-full bg-surface-2 border border-border rounded p-3 font-mono text-xs outline-none focus:border-primary/50" />
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="rounded border border-border bg-surface-2 px-3 py-2">
+            <div className="text-[10px] uppercase text-muted-foreground">Parsed Rows</div>
+            <div className="text-lg font-semibold tabular-nums">{parsed.length}</div>
+          </div>
+          <div className="rounded border border-success/30 bg-success/10 px-3 py-2">
+            <div className="text-[10px] uppercase text-success">New Inserts</div>
+            <div className="text-lg font-semibold tabular-nums text-success">{inserts}</div>
+          </div>
+          <div className="rounded border border-primary/30 bg-primary/10 px-3 py-2">
+            <div className="text-[10px] uppercase text-primary">Updates</div>
+            <div className="text-lg font-semibold tabular-nums text-primary">{updates}</div>
+          </div>
+          <div className="rounded border border-warning/30 bg-warning/10 px-3 py-2">
+            <div className="text-[10px] uppercase text-warning">Skipped (no Load ID)</div>
+            <div className="text-lg font-semibold tabular-nums text-warning">{skipped}</div>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">{parsed.length} row(s) detected</div>
-          <button onClick={applyToLoads} disabled={busy || parsed.length === 0}
+          <div className="text-xs text-muted-foreground">
+            {usedHeader ? "Header row detected — column order auto-mapped." : "No header row — assumed positional order."}
+          </div>
+          <button onClick={executeSync} disabled={busy || parsed.length === 0}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50">
-            <ClipboardPaste className="h-4 w-4" /> {busy ? "Linking…" : "Link to Dispatch Board"}
+            <ClipboardPaste className="h-4 w-4" /> {busy ? "Syncing…" : "Execute Sync"}
           </button>
         </div>
       </div>
+
+      {parsed.length > 0 && (
+        <div className="kpi-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-sm font-semibold">Preview — first {Math.min(50, parsed.length)} row(s)</h2>
+          </div>
+          <div className="overflow-x-auto max-h-[420px]">
+            <table className="w-full text-xs">
+              <thead className="text-[10px] uppercase tracking-wider text-muted-foreground bg-surface-2/40 sticky top-0">
+                <tr className="border-b border-border">
+                  <th className="text-left font-medium py-2 px-2">Action</th>
+                  {DLM_HEADERS.map((h) => <th key={h} className="text-left font-medium py-2 px-2 whitespace-nowrap">{h}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {parsed.slice(0, 50).map((r, i) => {
+                  const isUpdate = r["Load ID"] && existingIds.has(r["Load ID"]!);
+                  return (
+                    <tr key={i} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
+                      <td className="py-1.5 px-2">
+                        {r["Load ID"] ? (
+                          <span className={`chip border text-[10px] ${isUpdate ? "bg-primary/15 text-primary border-primary/30" : "bg-success/15 text-success border-success/30"}`}>
+                            {isUpdate ? "UPDATE" : "INSERT"}
+                          </span>
+                        ) : <span className="text-warning text-[10px]">SKIP</span>}
+                      </td>
+                      {DLM_HEADERS.map((h) => (
+                        <td key={h} className="py-1.5 px-2 font-mono text-[11px] whitespace-nowrap max-w-[180px] truncate" title={r[h] ?? ""}>
+                          {r[h] ?? <span className="text-muted-foreground/40">—</span>}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <SyncPanel />
     </div>
