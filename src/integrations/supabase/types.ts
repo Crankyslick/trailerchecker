@@ -43,21 +43,29 @@ export type Database = {
       }
       loads: {
         Row: {
+          alert_status: string | null
           arrival_date: string | null
           arrival_day: string | null
           arrival_time: string | null
+          carrier_comments: string | null
+          category: string | null
           comments: string | null
           created_at: string
           cutoff_date: string | null
           cutoff_day: string | null
           cutoff_time: string | null
+          delivery_defect_reason: string | null
           delivery_sequence: number | null
           driver: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
           has_sweep: boolean | null
           id: string
+          invoiced: boolean | null
           origin_id: string | null
           origin_name: string | null
           outbound_trailer: string | null
+          pickup_defect_reason: string | null
           pro_number: string | null
           return_trailer: string | null
           return_trailer_location:
@@ -69,31 +77,43 @@ export type Database = {
           str_name: string | null
           str_number: string | null
           str_return_trailer_started_at: string | null
+          str_trl_location: string | null
           target_load_id: string | null
+          total_distance: string | null
           trip_id: string | null
+          trl_location_code: string | null
           unload_date: string | null
           unload_day: string | null
           unload_time: string | null
           unload_type: string | null
           updated_at: string
+          updated_by: string | null
           yard_arrival_at: string | null
         }
         Insert: {
+          alert_status?: string | null
           arrival_date?: string | null
           arrival_day?: string | null
           arrival_time?: string | null
+          carrier_comments?: string | null
+          category?: string | null
           comments?: string | null
           created_at?: string
           cutoff_date?: string | null
           cutoff_day?: string | null
           cutoff_time?: string | null
+          delivery_defect_reason?: string | null
           delivery_sequence?: number | null
           driver?: string | null
+          expected_delivery?: string | null
+          expected_pickup?: string | null
           has_sweep?: boolean | null
           id?: string
+          invoiced?: boolean | null
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
+          pickup_defect_reason?: string | null
           pro_number?: string | null
           return_trailer?: string | null
           return_trailer_location?:
@@ -105,31 +125,43 @@ export type Database = {
           str_name?: string | null
           str_number?: string | null
           str_return_trailer_started_at?: string | null
+          str_trl_location?: string | null
           target_load_id?: string | null
+          total_distance?: string | null
           trip_id?: string | null
+          trl_location_code?: string | null
           unload_date?: string | null
           unload_day?: string | null
           unload_time?: string | null
           unload_type?: string | null
           updated_at?: string
+          updated_by?: string | null
           yard_arrival_at?: string | null
         }
         Update: {
+          alert_status?: string | null
           arrival_date?: string | null
           arrival_day?: string | null
           arrival_time?: string | null
+          carrier_comments?: string | null
+          category?: string | null
           comments?: string | null
           created_at?: string
           cutoff_date?: string | null
           cutoff_day?: string | null
           cutoff_time?: string | null
+          delivery_defect_reason?: string | null
           delivery_sequence?: number | null
           driver?: string | null
+          expected_delivery?: string | null
+          expected_pickup?: string | null
           has_sweep?: boolean | null
           id?: string
+          invoiced?: boolean | null
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
+          pickup_defect_reason?: string | null
           pro_number?: string | null
           return_trailer?: string | null
           return_trailer_location?:
@@ -141,13 +173,17 @@ export type Database = {
           str_name?: string | null
           str_number?: string | null
           str_return_trailer_started_at?: string | null
+          str_trl_location?: string | null
           target_load_id?: string | null
+          total_distance?: string | null
           trip_id?: string | null
+          trl_location_code?: string | null
           unload_date?: string | null
           unload_day?: string | null
           unload_time?: string | null
           unload_type?: string | null
           updated_at?: string
+          updated_by?: string | null
           yard_arrival_at?: string | null
         }
         Relationships: []
