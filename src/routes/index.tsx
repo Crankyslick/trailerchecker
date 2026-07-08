@@ -327,7 +327,7 @@ function ControlTower() {
                     <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.nextSchedule ?? "—"}</td>
                     <td className="py-2.5 px-3 font-mono text-xs tabular-nums">{t.pickupCutoff ?? "—"}</td>
                     <td className="py-2.5 px-3 text-right">
-                      <button onClick={() => dispatch(t.id, t.trailer)}
+                      <button onClick={() => dispatch(t.id, t.trailer, t.yard, t.nextDriver)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90">
                         <Send className="h-3.5 w-3.5" /> Dispatch
                       </button>
