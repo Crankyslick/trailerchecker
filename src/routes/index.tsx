@@ -8,6 +8,8 @@ import { useLoads } from "@/hooks/use-loads";
 import { useDrivers } from "@/hooks/use-drivers";
 import type { LoadRow } from "@/lib/loads";
 import { toast } from "sonner";
+import { DispatchModal } from "@/components/DispatchModal";
+import { GuardCheckInModal } from "@/components/GuardCheckInModal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
