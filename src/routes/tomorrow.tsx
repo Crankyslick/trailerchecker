@@ -683,10 +683,39 @@ function IngestionTool() {
     }
     // One consolidated webhook push with full DLM payload
     fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: parsed });
+
+    // Bidirectional writeback to Google Sheet — batch update rows keyed by Load ID
+    // using dynamic header resolution. Errors are non-fatal (DB sync still succeeded).
+    try {
+      const { batchWriteByHeader } = await import("@/lib/sheets.functions");
+      const rows = parsed
+        .filter((r) => r["Load ID"])
+        .map((r) => ({
+          matchValue: r["Load ID"]!,
+          updates: {
+            "Trailer #": r["Trailer #"] ?? "",
+            "RDC Trailer": r["Trailer #"] ?? "",
+            "Status": r["Status"] ?? "",
+            "Alert Status": r["Alert Status"] ?? "",
+            "Trip ID": r["Trip ID"] ?? "",
+            "Driver": r["Updated By"] ?? "",
+            "Carrier Comments": r["Carrier Comments"] ?? "",
+          },
+        }));
+      if (rows.length > 0) {
+        const res = await batchWriteByHeader({ data: { matchColumn: "Load ID", rows } });
+        const matched = res.results.filter((x) => x.matched).length;
+        toast.success(`Sheet writeback · ${matched}/${rows.length} rows matched · ${res.written} cells updated`);
+      }
+    } catch (e) {
+      toast.warning(`Sheet writeback skipped: ${(e as Error).message}`);
+    }
+
     setBusy(false);
     toast.success(`Synced ${ok} row(s)${fail ? ` · ${fail} failed` : ""}`);
     setText("");
   }
+
 
   return (
     <div className="space-y-5">
