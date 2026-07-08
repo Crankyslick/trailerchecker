@@ -193,6 +193,8 @@ export type Database = {
           endpoint_url: string | null
           id: number
           last_synced_at: string | null
+          sheet_name: string | null
+          spreadsheet_id: string | null
           updated_at: string
           webhook_url: string | null
         }
@@ -200,6 +202,8 @@ export type Database = {
           endpoint_url?: string | null
           id?: number
           last_synced_at?: string | null
+          sheet_name?: string | null
+          spreadsheet_id?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
@@ -207,6 +211,8 @@ export type Database = {
           endpoint_url?: string | null
           id?: number
           last_synced_at?: string | null
+          sheet_name?: string | null
+          spreadsheet_id?: string | null
           updated_at?: string
           webhook_url?: string | null
         }

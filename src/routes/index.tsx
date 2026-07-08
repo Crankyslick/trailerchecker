@@ -8,6 +8,8 @@ import { useLoads } from "@/hooks/use-loads";
 import { useDrivers } from "@/hooks/use-drivers";
 import type { LoadRow } from "@/lib/loads";
 import { toast } from "sonner";
+import { DispatchModal } from "@/components/DispatchModal";
+import { GuardCheckInModal } from "@/components/GuardCheckInModal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -142,13 +144,28 @@ function ControlTower() {
   const avgSec = enriched.length ? enriched.reduce((s, t) => s + t.elapsedSec, 0) / enriched.length : 0;
   const compliancePct = enriched.length === 0 ? 100 : Math.round(((enriched.length - over24.length) / enriched.length) * 100);
 
-  const dispatch = (id: string, trailer: string) => {
-    setDispatched((prev) => new Set(prev).add(id));
-    toast.success(`Trailer ${trailer} dispatched out of yard`);
+  const [modal, setModal] = useState<{ id: string; trailer: string; yard: string; prevDriver: string | null } | null>(null);
+  const [guardOpen, setGuardOpen] = useState(false);
+
+  const dispatch = (id: string, trailer: string, yard: string, prevDriver: string | null) => {
+    setModal({ id, trailer, yard, prevDriver });
+  };
+  const confirmDispatched = () => {
+    if (modal) setDispatched((prev) => new Set(prev).add(modal.id));
   };
 
   return (
     <div className="space-y-5">
+      <DispatchModal
+        open={!!modal}
+        onClose={() => setModal(null)}
+        trailer={modal?.trailer ?? ""}
+        yard={modal?.yard ?? ""}
+        previousDriver={modal?.prevDriver ?? null}
+        onDispatched={confirmDispatched}
+      />
+      <GuardCheckInModal open={guardOpen} onClose={() => setGuardOpen(false)} />
+
       {/* Page header */}
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
@@ -159,8 +176,14 @@ function ControlTower() {
             Live yard compliance · {COMPLIANCE_HOURS}h turnaround enforced · {enriched.length} active trailers
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Ticking every 1s
+        <div className="flex items-center gap-3">
+          <button onClick={() => setGuardOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15">
+            <Warehouse className="h-3.5 w-3.5" /> Guard Check-In
+          </button>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Ticking every 1s
+          </span>
         </div>
       </div>
 
@@ -289,7 +312,7 @@ function ControlTower() {
                     <td className="py-2.5 px-3 text-xs text-muted-foreground">{t.destination}</td>
                     <td className="py-2.5 px-3 text-xs">{t.yard}</td>
                     <td className="py-2.5 px-3 text-xs tabular-nums whitespace-nowrap">
-                      {new Date(t.returnTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(t.returnTime))}
                     </td>
                     <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
                       <span className={`chip border ${chipCls}`}>
@@ -310,7 +333,7 @@ function ControlTower() {
                     <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.nextSchedule ?? "—"}</td>
                     <td className="py-2.5 px-3 font-mono text-xs tabular-nums">{t.pickupCutoff ?? "—"}</td>
                     <td className="py-2.5 px-3 text-right">
-                      <button onClick={() => dispatch(t.id, t.trailer)}
+                      <button onClick={() => dispatch(t.id, t.trailer, t.yard, t.nextDriver)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90">
                         <Send className="h-3.5 w-3.5" /> Dispatch
                       </button>
