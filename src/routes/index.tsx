@@ -144,13 +144,28 @@ function ControlTower() {
   const avgSec = enriched.length ? enriched.reduce((s, t) => s + t.elapsedSec, 0) / enriched.length : 0;
   const compliancePct = enriched.length === 0 ? 100 : Math.round(((enriched.length - over24.length) / enriched.length) * 100);
 
-  const dispatch = (id: string, trailer: string) => {
-    setDispatched((prev) => new Set(prev).add(id));
-    toast.success(`Trailer ${trailer} dispatched out of yard`);
+  const [modal, setModal] = useState<{ id: string; trailer: string; yard: string; prevDriver: string | null } | null>(null);
+  const [guardOpen, setGuardOpen] = useState(false);
+
+  const dispatch = (id: string, trailer: string, yard: string, prevDriver: string | null) => {
+    setModal({ id, trailer, yard, prevDriver });
+  };
+  const confirmDispatched = () => {
+    if (modal) setDispatched((prev) => new Set(prev).add(modal.id));
   };
 
   return (
     <div className="space-y-5">
+      <DispatchModal
+        open={!!modal}
+        onClose={() => setModal(null)}
+        trailer={modal?.trailer ?? ""}
+        yard={modal?.yard ?? ""}
+        previousDriver={modal?.prevDriver ?? null}
+        onDispatched={confirmDispatched}
+      />
+      <GuardCheckInModal open={guardOpen} onClose={() => setGuardOpen(false)} />
+
       {/* Page header */}
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
