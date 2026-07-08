@@ -176,8 +176,14 @@ function ControlTower() {
             Live yard compliance · {COMPLIANCE_HOURS}h turnaround enforced · {enriched.length} active trailers
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Ticking every 1s
+        <div className="flex items-center gap-3">
+          <button onClick={() => setGuardOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15">
+            <Warehouse className="h-3.5 w-3.5" /> Guard Check-In
+          </button>
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" /> Ticking every 1s
+          </span>
         </div>
       </div>
 
