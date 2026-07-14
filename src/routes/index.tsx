@@ -316,7 +316,7 @@ function ControlTower() {
                     <td className="py-2.5 px-3 text-xs text-muted-foreground">{t.destination}</td>
                     <td className="py-2.5 px-3 text-xs">{t.yard}</td>
                     <td className="py-2.5 px-3 text-xs tabular-nums whitespace-nowrap">
-                      {new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(t.returnTime))}
+                      {mounted ? new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(t.returnTime)) : "—"}
                     </td>
                     <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
                       <span className={`chip border ${chipCls}`}>
