@@ -682,19 +682,31 @@ function IngestionTool() {
     () => new Set(loads.map((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id).filter(Boolean) as string[]),
     [loads]
   );
-  const updates = parsed.filter((r) => r["Load ID"] && existingIds.has(r["Load ID"]!)).length;
-  const inserts = parsed.filter((r) => r["Load ID"] && !existingIds.has(r["Load ID"]!)).length;
+  const updates = parsed.filter((r) => r.__key && existingIds.has(r.__key)).length;
+  const inserts = parsed.filter((r) => r.__key && !existingIds.has(r.__key)).length;
   const skipped = parsed.length - updates - inserts;
+
+  /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
+  function normalizeForWebhook(r: ParsedRow) {
+    const out: Record<string, string | null> = { __key: r.__key || null };
+    for (const h of DLM_HEADERS) {
+      out[h] = r[h] ?? null;
+    }
+    // Unified trailer column — Format A "Trailer #" and Format B "RDC TRAILER"
+    // both live under "Trailer #" after parsing; expose as "Trailer" too.
+    out["Trailer"] = r["Trailer #"] ?? null;
+    return out;
+  }
 
   async function executeSync() {
     if (parsed.length === 0) { toast.error("Nothing to sync"); return; }
     setBusy(true);
     let ok = 0, fail = 0;
     for (const r of parsed) {
-      const loadId = r["Load ID"];
-      if (!loadId) { fail++; continue; }
+      const key = r.__key;
+      if (!key) { fail++; continue; }
       const patch: Record<string, unknown> = {
-        target_load_id: loadId,
+        target_load_id: key,
         trip_id: r["Trip ID"] ?? null,
         pro_number: r["Pro #"] ?? null,
         outbound_trailer: r["Trailer #"] ?? null,
@@ -707,18 +719,20 @@ function IngestionTool() {
       };
       Object.keys(patch).forEach((k) => patch[k] === null && delete patch[k]);
 
-      const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === loadId);
+      const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === key);
       if (existing) {
         const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
         if (error) fail++; else ok++;
       } else {
-        const insertRow = { schedule_id: loadId, ...patch } as Partial<LoadRow> & { schedule_id: string };
+        const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as Partial<LoadRow> & { schedule_id: string };
         const { error } = await supabase.from("loads").insert(insertRow);
         if (error) fail++; else ok++;
       }
     }
-    // One consolidated webhook push with full DLM payload
-    fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: parsed });
+    // One consolidated webhook push with uniformly-shaped rows (prevents
+    // serialization errors from ragged/missing keys downstream).
+    const normalizedRows = parsed.map(normalizeForWebhook);
+    fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: normalizedRows });
 
     // Bidirectional writeback to Google Sheet — batch update rows keyed by Load ID
     // using dynamic header resolution. Errors are non-fatal (DB sync still succeeded).
