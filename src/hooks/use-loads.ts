@@ -18,12 +18,10 @@ export function useLoads() {
   });
 
   useEffect(() => {
-    const ch = supabase
-      .channel("loads-stream")
-      .on("postgres_changes", { event: "*", schema: "public", table: "loads" }, () => {
-        query.refetch();
-      })
-      .subscribe();
+    const ch = supabase.channel(`loads-stream-${Math.random().toString(36).slice(2)}`);
+    ch.on("postgres_changes", { event: "*", schema: "public", table: "loads" }, () => {
+      query.refetch();
+    }).subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -56,9 +54,8 @@ export function useYardCheckIns() {
   });
 
   useEffect(() => {
-    const ch = supabase
-      .channel("yard_check_ins-stream")
-      .on("postgres_changes", { event: "*", schema: "public", table: "yard_check_ins" }, () => query.refetch())
+    const ch = supabase.channel(`yard-checkins-stream-${Math.random().toString(36).slice(2)}`);
+    ch.on("postgres_changes", { event: "*", schema: "public", table: "yard_check_ins" }, () => query.refetch())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
