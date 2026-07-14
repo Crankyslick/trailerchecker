@@ -798,7 +798,7 @@ function IngestionTool() {
             <div className="text-lg font-semibold tabular-nums text-primary">{updates}</div>
           </div>
           <div className="rounded border border-warning/30 bg-warning/10 px-3 py-2">
-            <div className="text-[10px] uppercase text-warning">Skipped (no Load ID)</div>
+            <div className="text-[10px] uppercase text-warning">Skipped (no key)</div>
             <div className="text-lg font-semibold tabular-nums text-warning">{skipped}</div>
           </div>
         </div>
