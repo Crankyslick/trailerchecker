@@ -91,6 +91,11 @@ function ControlTower() {
   const { data: loads = [] } = useLoads();
   const { data: drivers = [] } = useDrivers();
   const [dispatched, setDispatched] = useState<Set<string>>(new Set());
+  // Avoid SSR/client hydration mismatch: Date.now() differs between server
+  // render and client hydration, which flips 18h/24h threshold KPIs. Freeze
+  // "now" to 0 during SSR, then let it tick on the client after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   // Merge live loads with return_trailer_location = "Yard" alongside seed mocks.
   const activeTrailers = useMemo<ActiveTrailer[]>(() => {
@@ -129,9 +134,8 @@ function ControlTower() {
     : Math.round(((tomorrowsLoads.length - Math.max(driversMissing, trailersMissing)) / tomorrowsLoads.length) * 100);
 
   // Compute per-trailer status (recomputes each tick because component re-renders)
-  const now = Date.now();
   const enriched = activeTrailers.map((t) => {
-    const elapsedSec = Math.floor((now - t.returnTime) / 1000);
+    const elapsedSec = mounted ? Math.floor((Date.now() - t.returnTime) / 1000) : 0;
     const remainingSec = COMPLIANCE_HOURS * 3600 - elapsedSec;
     const elapsedH = elapsedSec / 3600;
     return { ...t, elapsedSec, remainingSec, elapsedH };
