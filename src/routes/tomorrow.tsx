@@ -829,13 +829,14 @@ function IngestionTool() {
               </thead>
               <tbody>
                 {parsed.slice(0, 50).map((r, i) => {
-                  const isUpdate = r["Load ID"] && existingIds.has(r["Load ID"]!);
+                  const isUpdate = r.__key && existingIds.has(r.__key);
+                  const usingFallback = r.__key && (!r["Load ID"] || r["Load ID"].toUpperCase() === "N/A");
                   return (
                     <tr key={i} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
                       <td className="py-1.5 px-2">
-                        {r["Load ID"] ? (
-                          <span className={`chip border text-[10px] ${isUpdate ? "bg-primary/15 text-primary border-primary/30" : "bg-success/15 text-success border-success/30"}`}>
-                            {isUpdate ? "UPDATE" : "INSERT"}
+                        {r.__key ? (
+                          <span className={`chip border text-[10px] ${isUpdate ? "bg-primary/15 text-primary border-primary/30" : "bg-success/15 text-success border-success/30"}`} title={usingFallback ? `Fallback key: ${r.__key}` : `Load ID: ${r.__key}`}>
+                            {isUpdate ? "UPDATE" : "INSERT"}{usingFallback ? " ⚑" : ""}
                           </span>
                         ) : <span className="text-warning text-[10px]">SKIP</span>}
                       </td>
