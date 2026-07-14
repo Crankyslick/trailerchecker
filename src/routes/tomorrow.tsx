@@ -573,14 +573,23 @@ function YardTicker() {
 /* ---------------- Weekly Ingestion + Sync ---------------- */
 
 const DLM_HEADERS = [
-  "Load ID", "Trip ID", "Pro #", "Trailer #", "Status", "Alert Status",
+  "Load ID", "Schedule ID", "Trip ID", "Pro #", "Trailer #", "Status", "Alert Status",
   "Unload Type", "Origin", "Destination", "Total Distance",
   "Expected Pickup", "Expected Delivery", "Delivery Sequence",
   "Pickup Defect Reason", "Delivery Defect Reason", "Carrier Comments",
   "Category", "Updated By",
 ] as const;
 type DlmKey = typeof DLM_HEADERS[number];
-type ParsedRow = Partial<Record<DlmKey, string>> & { __raw: string[] };
+type ParsedRow = Partial<Record<DlmKey, string>> & { __raw: string[]; __key: string };
+
+// Aliases: multiple sheet headers that map to the same canonical DLM column.
+// "RDC TRAILER" (Format B) and "Trailer #" (Format A) share one visual column.
+const HEADER_ALIASES: Partial<Record<DlmKey, string[]>> = {
+  "Trailer #": ["Trailer #", "RDC TRAILER", "RDC Trailer", "Trailer"],
+  "Load ID": ["Load ID", "LoadID"],
+  "Schedule ID": ["Schedule ID", "ScheduleID", "Schedule"],
+  "Trip ID": ["Trip ID", "TripID"],
+};
 
 function normalizeHeader(s: string) {
   return s.replace(/\s+/g, " ").trim().toLowerCase();
@@ -592,11 +601,32 @@ function splitLine(line: string): string[] {
   return line.split(/\s{2,}|\t/).map((c) => c.trim());
 }
 
+/** Resolve a canonical header to its source column index, trying aliases. */
+function resolveHeaderIdx(h: DlmKey, firstNorm: string[]): number {
+  const candidates = HEADER_ALIASES[h] ?? [h];
+  for (const c of candidates) {
+    const idx = firstNorm.indexOf(normalizeHeader(c));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+/** Build a stable unique key: Load ID when present & not N/A, else Schedule ID-Trip ID. */
+function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
+  const lid = (row["Load ID"] ?? "").trim();
+  if (lid && lid.toUpperCase() !== "N/A") return lid;
+  const sid = (row["Schedule ID"] ?? "").trim();
+  const tid = (row["Trip ID"] ?? "").trim();
+  if (sid && tid) return `${sid}-${tid}`;
+  if (sid) return sid;
+  if (tid) return tid;
+  return "";
+}
+
 function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; usedHeader: boolean } {
   const lines = text.split(/\r?\n/).map((l) => l.replace(/\s+$/, "")).filter((l) => l.trim().length > 0);
   if (lines.length === 0) return { rows: [], headerMap: [], usedHeader: false };
 
-  const wantNorm = DLM_HEADERS.map(normalizeHeader);
   // Default position map = identity
   let headerMap: number[] = DLM_HEADERS.map((_, i) => i);
   let usedHeader = false;
@@ -604,9 +634,11 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
 
   const firstCols = splitLine(lines[0]);
   const firstNorm = firstCols.map(normalizeHeader);
-  const looksLikeHeader = wantNorm.filter((h) => firstNorm.includes(h)).length >= 4;
+  // Detect header via any known alias
+  const hits = DLM_HEADERS.reduce((n, h) => n + (resolveHeaderIdx(h, firstNorm) >= 0 ? 1 : 0), 0);
+  const looksLikeHeader = hits >= 4;
   if (looksLikeHeader) {
-    headerMap = DLM_HEADERS.map((h) => firstNorm.indexOf(normalizeHeader(h)));
+    headerMap = DLM_HEADERS.map((h) => resolveHeaderIdx(h, firstNorm));
     usedHeader = true;
     dataStart = 1;
   }
@@ -615,15 +647,19 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
   for (let i = dataStart; i < lines.length; i++) {
     const cols = splitLine(lines[i]);
     if (cols.length < 2) continue;
-    const row: ParsedRow = { __raw: cols };
+    const row: Partial<Record<DlmKey, string>> = {};
     DLM_HEADERS.forEach((h, idx) => {
       const srcIdx = headerMap[idx];
       if (srcIdx >= 0 && srcIdx < cols.length) {
         const val = cols[srcIdx];
-        if (val) row[h] = val;
+        // Treat "N/A" and empty as absent
+        if (val && val.toUpperCase() !== "N/A") row[h] = val;
       }
     });
-    if (row["Load ID"] || row["Trip ID"] || row["Trailer #"]) rows.push(row);
+    const key = buildRowKey(row);
+    // Skip completely unidentifiable rows (no key AND no trailer)
+    if (!key && !row["Trailer #"]) continue;
+    rows.push({ ...row, __raw: cols, __key: key });
   }
   return { rows, headerMap, usedHeader };
 }
@@ -646,19 +682,31 @@ function IngestionTool() {
     () => new Set(loads.map((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id).filter(Boolean) as string[]),
     [loads]
   );
-  const updates = parsed.filter((r) => r["Load ID"] && existingIds.has(r["Load ID"]!)).length;
-  const inserts = parsed.filter((r) => r["Load ID"] && !existingIds.has(r["Load ID"]!)).length;
+  const updates = parsed.filter((r) => r.__key && existingIds.has(r.__key)).length;
+  const inserts = parsed.filter((r) => r.__key && !existingIds.has(r.__key)).length;
   const skipped = parsed.length - updates - inserts;
+
+  /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
+  function normalizeForWebhook(r: ParsedRow) {
+    const out: Record<string, string | null> = { __key: r.__key || null };
+    for (const h of DLM_HEADERS) {
+      out[h] = r[h] ?? null;
+    }
+    // Unified trailer column — Format A "Trailer #" and Format B "RDC TRAILER"
+    // both live under "Trailer #" after parsing; expose as "Trailer" too.
+    out["Trailer"] = r["Trailer #"] ?? null;
+    return out;
+  }
 
   async function executeSync() {
     if (parsed.length === 0) { toast.error("Nothing to sync"); return; }
     setBusy(true);
     let ok = 0, fail = 0;
     for (const r of parsed) {
-      const loadId = r["Load ID"];
-      if (!loadId) { fail++; continue; }
+      const key = r.__key;
+      if (!key) { fail++; continue; }
       const patch: Record<string, unknown> = {
-        target_load_id: loadId,
+        target_load_id: key,
         trip_id: r["Trip ID"] ?? null,
         pro_number: r["Pro #"] ?? null,
         outbound_trailer: r["Trailer #"] ?? null,
@@ -671,18 +719,20 @@ function IngestionTool() {
       };
       Object.keys(patch).forEach((k) => patch[k] === null && delete patch[k]);
 
-      const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === loadId);
+      const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === key);
       if (existing) {
         const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
         if (error) fail++; else ok++;
       } else {
-        const insertRow = { schedule_id: loadId, ...patch } as Partial<LoadRow> & { schedule_id: string };
+        const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as Partial<LoadRow> & { schedule_id: string };
         const { error } = await supabase.from("loads").insert(insertRow);
         if (error) fail++; else ok++;
       }
     }
-    // One consolidated webhook push with full DLM payload
-    fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: parsed });
+    // One consolidated webhook push with uniformly-shaped rows (prevents
+    // serialization errors from ragged/missing keys downstream).
+    const normalizedRows = parsed.map(normalizeForWebhook);
+    fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: normalizedRows });
 
     // Bidirectional writeback to Google Sheet — batch update rows keyed by Load ID
     // using dynamic header resolution. Errors are non-fatal (DB sync still succeeded).
@@ -748,7 +798,7 @@ function IngestionTool() {
             <div className="text-lg font-semibold tabular-nums text-primary">{updates}</div>
           </div>
           <div className="rounded border border-warning/30 bg-warning/10 px-3 py-2">
-            <div className="text-[10px] uppercase text-warning">Skipped (no Load ID)</div>
+            <div className="text-[10px] uppercase text-warning">Skipped (no key)</div>
             <div className="text-lg font-semibold tabular-nums text-warning">{skipped}</div>
           </div>
         </div>
@@ -779,13 +829,14 @@ function IngestionTool() {
               </thead>
               <tbody>
                 {parsed.slice(0, 50).map((r, i) => {
-                  const isUpdate = r["Load ID"] && existingIds.has(r["Load ID"]!);
+                  const isUpdate = r.__key && existingIds.has(r.__key);
+                  const usingFallback = r.__key && (!r["Load ID"] || r["Load ID"].toUpperCase() === "N/A");
                   return (
                     <tr key={i} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
                       <td className="py-1.5 px-2">
-                        {r["Load ID"] ? (
-                          <span className={`chip border text-[10px] ${isUpdate ? "bg-primary/15 text-primary border-primary/30" : "bg-success/15 text-success border-success/30"}`}>
-                            {isUpdate ? "UPDATE" : "INSERT"}
+                        {r.__key ? (
+                          <span className={`chip border text-[10px] ${isUpdate ? "bg-primary/15 text-primary border-primary/30" : "bg-success/15 text-success border-success/30"}`} title={usingFallback ? `Fallback key: ${r.__key}` : `Load ID: ${r.__key}`}>
+                            {isUpdate ? "UPDATE" : "INSERT"}{usingFallback ? " ⚑" : ""}
                           </span>
                         ) : <span className="text-warning text-[10px]">SKIP</span>}
                       </td>
