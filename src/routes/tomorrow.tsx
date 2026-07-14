@@ -573,14 +573,23 @@ function YardTicker() {
 /* ---------------- Weekly Ingestion + Sync ---------------- */
 
 const DLM_HEADERS = [
-  "Load ID", "Trip ID", "Pro #", "Trailer #", "Status", "Alert Status",
+  "Load ID", "Schedule ID", "Trip ID", "Pro #", "Trailer #", "Status", "Alert Status",
   "Unload Type", "Origin", "Destination", "Total Distance",
   "Expected Pickup", "Expected Delivery", "Delivery Sequence",
   "Pickup Defect Reason", "Delivery Defect Reason", "Carrier Comments",
   "Category", "Updated By",
 ] as const;
 type DlmKey = typeof DLM_HEADERS[number];
-type ParsedRow = Partial<Record<DlmKey, string>> & { __raw: string[] };
+type ParsedRow = Partial<Record<DlmKey, string>> & { __raw: string[]; __key: string };
+
+// Aliases: multiple sheet headers that map to the same canonical DLM column.
+// "RDC TRAILER" (Format B) and "Trailer #" (Format A) share one visual column.
+const HEADER_ALIASES: Partial<Record<DlmKey, string[]>> = {
+  "Trailer #": ["Trailer #", "RDC TRAILER", "RDC Trailer", "Trailer"],
+  "Load ID": ["Load ID", "LoadID"],
+  "Schedule ID": ["Schedule ID", "ScheduleID", "Schedule"],
+  "Trip ID": ["Trip ID", "TripID"],
+};
 
 function normalizeHeader(s: string) {
   return s.replace(/\s+/g, " ").trim().toLowerCase();
@@ -592,11 +601,32 @@ function splitLine(line: string): string[] {
   return line.split(/\s{2,}|\t/).map((c) => c.trim());
 }
 
+/** Resolve a canonical header to its source column index, trying aliases. */
+function resolveHeaderIdx(h: DlmKey, firstNorm: string[]): number {
+  const candidates = HEADER_ALIASES[h] ?? [h];
+  for (const c of candidates) {
+    const idx = firstNorm.indexOf(normalizeHeader(c));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+/** Build a stable unique key: Load ID when present & not N/A, else Schedule ID-Trip ID. */
+function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
+  const lid = (row["Load ID"] ?? "").trim();
+  if (lid && lid.toUpperCase() !== "N/A") return lid;
+  const sid = (row["Schedule ID"] ?? "").trim();
+  const tid = (row["Trip ID"] ?? "").trim();
+  if (sid && tid) return `${sid}-${tid}`;
+  if (sid) return sid;
+  if (tid) return tid;
+  return "";
+}
+
 function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; usedHeader: boolean } {
   const lines = text.split(/\r?\n/).map((l) => l.replace(/\s+$/, "")).filter((l) => l.trim().length > 0);
   if (lines.length === 0) return { rows: [], headerMap: [], usedHeader: false };
 
-  const wantNorm = DLM_HEADERS.map(normalizeHeader);
   // Default position map = identity
   let headerMap: number[] = DLM_HEADERS.map((_, i) => i);
   let usedHeader = false;
@@ -604,9 +634,11 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
 
   const firstCols = splitLine(lines[0]);
   const firstNorm = firstCols.map(normalizeHeader);
-  const looksLikeHeader = wantNorm.filter((h) => firstNorm.includes(h)).length >= 4;
+  // Detect header via any known alias
+  const hits = DLM_HEADERS.reduce((n, h) => n + (resolveHeaderIdx(h, firstNorm) >= 0 ? 1 : 0), 0);
+  const looksLikeHeader = hits >= 4;
   if (looksLikeHeader) {
-    headerMap = DLM_HEADERS.map((h) => firstNorm.indexOf(normalizeHeader(h)));
+    headerMap = DLM_HEADERS.map((h) => resolveHeaderIdx(h, firstNorm));
     usedHeader = true;
     dataStart = 1;
   }
@@ -615,15 +647,19 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
   for (let i = dataStart; i < lines.length; i++) {
     const cols = splitLine(lines[i]);
     if (cols.length < 2) continue;
-    const row: ParsedRow = { __raw: cols };
+    const row: Partial<Record<DlmKey, string>> = {};
     DLM_HEADERS.forEach((h, idx) => {
       const srcIdx = headerMap[idx];
       if (srcIdx >= 0 && srcIdx < cols.length) {
         const val = cols[srcIdx];
-        if (val) row[h] = val;
+        // Treat "N/A" and empty as absent
+        if (val && val.toUpperCase() !== "N/A") row[h] = val;
       }
     });
-    if (row["Load ID"] || row["Trip ID"] || row["Trailer #"]) rows.push(row);
+    const key = buildRowKey(row);
+    // Skip completely unidentifiable rows (no key AND no trailer)
+    if (!key && !row["Trailer #"]) continue;
+    rows.push({ ...row, __raw: cols, __key: key });
   }
   return { rows, headerMap, usedHeader };
 }
