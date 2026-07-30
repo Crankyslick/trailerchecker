@@ -310,12 +310,16 @@ function DispatchBoard() {
         <div>
           <h2 className="text-sm font-semibold">Daily Dispatch Board</h2>
           <p className="text-xs text-muted-foreground">
-            Type a trailer # into <strong>STR RTRN TRL#</strong> — the live 24-hour timer starts the instant you save.
+            Showing today onward — past days are archived in <Link to="/history" className="text-primary hover:underline">History</Link>.
             {pastDeadline && <span className="text-danger ml-2">· Past 16:00 EST — tomorrow&apos;s unassigned loads shown in red.</span>}
           </p>
         </div>
-        <span className="text-xs text-muted-foreground">{loads.length} loads · {groups.length} days</span>
+        <span className="text-xs text-muted-foreground">
+          {activeCount} active loads · {groups.length} days
+          {archivedCount > 0 && <> · {archivedCount} archived</>}
+        </span>
       </div>
+
 
       {groups.map((g) => {
         const open = isOpen(g.date);
