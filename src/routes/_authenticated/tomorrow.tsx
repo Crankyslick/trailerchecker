@@ -873,8 +873,12 @@ function IngestionTool() {
         }));
       if (rows.length > 0) {
         const res = await batchWriteByHeader({ data: { matchColumn: "Load ID", rows } });
-        const matched = res.results.filter((x) => x.matched).length;
-        toast.success(`Sheet writeback · ${matched}/${rows.length} rows matched · ${res.written} cells updated`);
+        if (!res.ok) {
+          toast.warning(res.warnings[0] ?? "Sheet writeback skipped");
+        } else {
+          const matched = res.results.filter((x) => x.matched).length;
+          toast.success(`Sheet writeback · ${matched}/${rows.length} rows matched · ${res.written} cells updated`);
+        }
       }
     } catch (e) {
       toast.warning(`Sheet writeback skipped: ${(e as Error).message}`);
