@@ -99,24 +99,26 @@ function ControlTower() {
 
   // Merge live loads with return_trailer_location = "Yard" alongside seed mocks.
   const activeTrailers = useMemo<ActiveTrailer[]>(() => {
-    const live: ActiveTrailer[] = loads
+    const rows = Array.isArray(loads) ? loads : [];
+    const live: ActiveTrailer[] = rows
       .filter((l) => {
-        const t = l as LoadRow & { str_return_trailer_started_at: string | null };
-        return l.return_trailer && t.str_return_trailer_started_at && l.return_trailer_location === "Yard";
+        const t = l as LoadRow & { str_return_trailer_started_at?: string | null };
+        return Boolean(l?.return_trailer) && Boolean(t?.str_return_trailer_started_at) && l?.return_trailer_location === "Yard";
       })
       .map((l, i) => {
-        const t = l as LoadRow & { str_return_trailer_started_at: string | null };
+        const t = l as LoadRow & { str_return_trailer_started_at?: string | null };
+        const started = new Date(t?.str_return_trailer_started_at ?? "").getTime();
         return {
-          id: l.id,
-          trailer: l.return_trailer!,
-          store: l.str_number ?? "—",
-          destination: l.str_name ?? "—",
+          id: l?.id ?? `live-${i}`,
+          trailer: l?.return_trailer ?? "—",
+          store: l?.str_number ?? "—",
+          destination: l?.str_name ?? "—",
           yard: YARDS[i % YARDS.length],
-          returnTime: new Date(t.str_return_trailer_started_at!).getTime(),
-          nextDriver: l.driver,
-          nextRdcTrailer: l.outbound_trailer,
-          nextSchedule: l.schedule_id,
-          pickupCutoff: l.cutoff_time,
+          returnTime: Number.isFinite(started) ? started : Date.now(),
+          nextDriver: l?.driver ?? null,
+          nextRdcTrailer: l?.outbound_trailer ?? null,
+          nextSchedule: l?.schedule_id ?? null,
+          pickupCutoff: l?.cutoff_time ?? null,
           source: "live" as const,
         };
       });
@@ -125,13 +127,15 @@ function ControlTower() {
 
   const tomorrow = estDateParts(1);
   const today = estDateParts(0);
-  const todaysLoads = loads.filter((l) => (l.schedule_date ?? l.cutoff_date) === today).length;
-  const tomorrowsLoads = loads.filter((l) => (l.schedule_date ?? l.cutoff_date) === tomorrow);
-  const driversMissing = tomorrowsLoads.filter((l) => !l.driver).length;
-  const trailersMissing = tomorrowsLoads.filter((l) => !l.outbound_trailer).length;
+  const allLoads = Array.isArray(loads) ? loads : [];
+  const todaysLoads = allLoads.filter((l) => (l?.schedule_date ?? l?.cutoff_date) === today).length;
+  const tomorrowsLoads = allLoads.filter((l) => (l?.schedule_date ?? l?.cutoff_date) === tomorrow);
+  const driversMissing = tomorrowsLoads.filter((l) => !l?.driver).length;
+  const trailersMissing = tomorrowsLoads.filter((l) => !l?.outbound_trailer).length;
   const coveragePct = tomorrowsLoads.length === 0
     ? 100
     : Math.round(((tomorrowsLoads.length - Math.max(driversMissing, trailersMissing)) / tomorrowsLoads.length) * 100);
+
 
   // Compute per-trailer status (recomputes each tick because component re-renders)
   const enriched = activeTrailers.map((t) => {
