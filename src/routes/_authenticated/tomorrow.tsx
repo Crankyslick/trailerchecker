@@ -783,13 +783,52 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
   return { rows, headerMap, usedHeader };
 }
 
-// Parse "Nov 12, 2025 08:30" or "2025-11-12 08:30" as America/New_York (GMT-4/-5)
+// Wall-clock date extraction in the operational timezone (America/New_York).
+// A late-night departure like "7/30/2026 10:27 PM" must stay on 7/30 — never
+// roll forward to 7/31 via UTC conversion.
+const ET_TZ = "America/New_York";
+
 function toEstIsoDate(s: string | undefined): string | null {
   if (!s) return null;
-  const d = new Date(s);
-  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  const raw = s.trim();
+  if (!raw) return null;
+
+  // 1) Explicit wall-clock strings without a timezone offset: take the date as-is.
+  const mdy = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+  if (mdy && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)) {
+    let [, mo, da, yr] = mdy;
+    const y = yr.length === 2 ? `20${yr}` : yr;
+    return `${y}-${mo.padStart(2, "0")}-${da.padStart(2, "0")}`;
+  }
+  const ymd = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymd && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+
+  // 2) Anything else (ISO w/ offset, "Nov 12, 2025 08:30"): convert into ET.
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ET_TZ, year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+/** Schedule date always comes from the DEPARTURE timestamp, never delivery/arrival. */
+function departureDate(r: ParsedRow): string | null {
+  const extra = r as unknown as Record<string, string | undefined>;
+  const candidates = [
+    r["Expected Pickup"],
+    extra["Departure"],
+    extra["Cutoff Time"],
+  ];
+
+  for (const c of candidates) {
+    const d = toEstIsoDate(c);
+    if (d) return d;
+  }
   return null;
 }
+
 
 function IngestionTool() {
   const { data: loads = [] } = useLoads();
@@ -833,7 +872,7 @@ function IngestionTool() {
         str_name: r["Destination"] ?? null,
         delivery_sequence: r["Delivery Sequence"] ? Number(r["Delivery Sequence"]) || null : null,
         comments: r["Carrier Comments"] ?? null,
-        schedule_date: toEstIsoDate(r["Expected Pickup"]),
+        schedule_date: departureDate(r),
         arrival_date: toEstIsoDate(r["Expected Delivery"]),
       };
       Object.keys(patch).forEach((k) => patch[k] === null && delete patch[k]);
