@@ -5,8 +5,6 @@
  * dispatcher column re-ordering.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_sheets/v4";
 
@@ -44,17 +42,16 @@ async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> 
 }
 
 async function readConfig(): Promise<{ spreadsheet_id: string; sheet_name: string }> {
-  const supabase = createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } },
-  );
-  const { data, error } = await supabase.from("sync_config").select("spreadsheet_id, sheet_name").eq("id", 1).maybeSingle();
+  // sync_config is admin-only under RLS; this server-side read uses the service
+  // client and returns nothing but the spreadsheet target.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.from("sync_config").select("spreadsheet_id, sheet_name").eq("id", 1).maybeSingle();
   if (error) throw new Error(error.message);
   const row = data as { spreadsheet_id: string | null; sheet_name: string | null } | null;
   if (!row?.spreadsheet_id) throw new Error("Spreadsheet ID not set. Configure it in Settings.");
   return { spreadsheet_id: row.spreadsheet_id, sheet_name: row.sheet_name ?? "Sheet1" };
 }
+
 
 /** Read header row and return { normalized -> {index, letter} }. */
 export const getSheetHeaders = createServerFn({ method: "GET" }).handler(async () => {
