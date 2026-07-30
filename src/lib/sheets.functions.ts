@@ -216,7 +216,16 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
     rows: Array<{ matchValue: string; updates: Record<string, string | number | null> }>;
   }) => data)
   .handler(async ({ data }) => {
-    const { spreadsheet_id, sheet_name } = await readConfig();
+    const cfg = await readConfig();
+    if (!cfg) {
+      return {
+        ok: false,
+        written: 0,
+        results: [] as Array<{ matchValue: string; matched: boolean; row?: number }>,
+        warnings: [NOT_CONFIGURED],
+      };
+    }
+    const { spreadsheet_id, sheet_name } = cfg;
     const headers = await getSheetHeaders();
     const matchKey = normalizeHeader(data.matchColumn);
     const matchCol = headers.map[matchKey];
