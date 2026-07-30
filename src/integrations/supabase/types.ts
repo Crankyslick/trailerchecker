@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          org_id: string | null
           phone: string | null
           updated_at: string
         }
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          org_id?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -36,10 +38,19 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          org_id?: string | null
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "drivers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       loads: {
         Row: {
@@ -62,6 +73,7 @@ export type Database = {
           has_sweep: boolean | null
           id: string
           invoiced: boolean | null
+          org_id: string | null
           origin_id: string | null
           origin_name: string | null
           outbound_trailer: string | null
@@ -110,6 +122,7 @@ export type Database = {
           has_sweep?: boolean | null
           id?: string
           invoiced?: boolean | null
+          org_id?: string | null
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
@@ -158,6 +171,7 @@ export type Database = {
           has_sweep?: boolean | null
           id?: string
           invoiced?: boolean | null
+          org_id?: string | null
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
@@ -186,13 +200,87 @@ export type Database = {
           updated_by?: string | null
           yard_arrival_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "loads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          onboarded: boolean
+          plan: string
+          updated_at: string
+          yard_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          onboarded?: boolean
+          plan?: string
+          updated_at?: string
+          yard_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          onboarded?: boolean
+          plan?: string
+          updated_at?: string
+          yard_count?: number
+        }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          org_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          org_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          org_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sync_config: {
         Row: {
           endpoint_url: string | null
           id: number
           last_synced_at: string | null
+          org_id: string | null
           sheet_name: string | null
           spreadsheet_id: string | null
           updated_at: string
@@ -202,6 +290,7 @@ export type Database = {
           endpoint_url?: string | null
           id?: number
           last_synced_at?: string | null
+          org_id?: string | null
           sheet_name?: string | null
           spreadsheet_id?: string | null
           updated_at?: string
@@ -211,12 +300,21 @@ export type Database = {
           endpoint_url?: string | null
           id?: number
           last_synced_at?: string | null
+          org_id?: string | null
           sheet_name?: string | null
           spreadsheet_id?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sync_config_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trailer_events: {
         Row: {
@@ -225,6 +323,7 @@ export type Database = {
           id: string
           load_id: string | null
           notes: string | null
+          org_id: string | null
           trailer_number: string | null
         }
         Insert: {
@@ -233,6 +332,7 @@ export type Database = {
           id?: string
           load_id?: string | null
           notes?: string | null
+          org_id?: string | null
           trailer_number?: string | null
         }
         Update: {
@@ -241,6 +341,7 @@ export type Database = {
           id?: string
           load_id?: string | null
           notes?: string | null
+          org_id?: string | null
           trailer_number?: string | null
         }
         Relationships: [
@@ -251,7 +352,35 @@ export type Database = {
             referencedRelation: "loads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "trailer_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       yard_check_ins: {
         Row: {
@@ -261,6 +390,7 @@ export type Database = {
           id: string
           inbound_load_id: string | null
           note: string | null
+          org_id: string | null
           trailer_number: string
         }
         Insert: {
@@ -270,6 +400,7 @@ export type Database = {
           id?: string
           inbound_load_id?: string | null
           note?: string | null
+          org_id?: string | null
           trailer_number: string
         }
         Update: {
@@ -279,18 +410,36 @@ export type Database = {
           id?: string
           inbound_load_id?: string | null
           note?: string | null
+          org_id?: string | null
           trailer_number?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "yard_check_ins_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_dispatch: { Args: never; Returns: boolean }
+      current_org_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "dispatcher" | "guard"
       load_status:
         | "Assigned"
         | "Heading To DC"
@@ -432,6 +581,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "dispatcher", "guard"],
       load_status: [
         "Assigned",
         "Heading To DC",
