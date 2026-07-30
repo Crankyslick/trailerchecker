@@ -56,8 +56,12 @@ function SettingsPage() {
     setHeaders(null);
     try {
       const res = await readHeaders();
-      setHeaders(res.headers);
-      toast.success(`Connected · resolved ${res.headers.length} columns from "${res.sheet_name}"`);
+      if (res.headers.length === 0) {
+        toast.warning(res.warnings[0] ?? "No headers found in the sheet.");
+      } else {
+        setHeaders(res.headers);
+        toast.success(`Connected · resolved ${res.headers.length} columns from "${res.sheet_name}"`);
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
