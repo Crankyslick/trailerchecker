@@ -872,7 +872,7 @@ function IngestionTool() {
         str_name: r["Destination"] ?? null,
         delivery_sequence: r["Delivery Sequence"] ? Number(r["Delivery Sequence"]) || null : null,
         comments: r["Carrier Comments"] ?? null,
-        schedule_date: toEstIsoDate(r["Expected Pickup"]),
+        schedule_date: departureDate(r),
         arrival_date: toEstIsoDate(r["Expected Delivery"]),
       };
       Object.keys(patch).forEach((k) => patch[k] === null && delete patch[k]);
