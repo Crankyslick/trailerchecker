@@ -122,7 +122,9 @@ export const writeCellsByHeader = createServerFn({ method: "POST" })
     updates: Record<string, string | number | null>;
   }) => data)
   .handler(async ({ data }) => {
-    const { spreadsheet_id, sheet_name } = await readConfig();
+    const cfg = await readConfig();
+    if (!cfg) return { ok: false, matched: false, reason: NOT_CONFIGURED };
+    const { spreadsheet_id, sheet_name } = cfg;
     const headers = await getSheetHeaders();
     const matchKey = normalizeHeader(data.matchColumn);
     const matchCol = headers.map[matchKey];
