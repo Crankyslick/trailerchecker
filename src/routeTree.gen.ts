@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/yard'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTomorrowRouteImport } from './routes/_authenticated/tomorrow'
@@ -22,6 +23,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedYardRoute = AuthenticatedYardRouteImport.update({
   id: '/_authenticated/yard',
   path: '/yard',
@@ -86,6 +92,7 @@ const AuthenticatedHistoryLoadIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/drivers': typeof AuthenticatedDriversRoute
   '/loads': typeof AuthenticatedLoadsRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/drivers': typeof AuthenticatedDriversRoute
   '/loads': typeof AuthenticatedLoadsRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/drivers': typeof AuthenticatedDriversRoute
   '/_authenticated/loads': typeof AuthenticatedLoadsRoute
@@ -131,6 +140,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/auth'
     | '/dashboard'
     | '/drivers'
     | '/loads'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/history/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/auth'
     | '/dashboard'
     | '/drivers'
     | '/loads'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/history'
   id:
     | '__root__'
+    | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/drivers'
     | '/_authenticated/loads'
@@ -174,6 +186,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AuthRoute: typeof AuthRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDriversRoute: typeof AuthenticatedDriversRoute
   AuthenticatedLoadsRoute: typeof AuthenticatedLoadsRoute
@@ -190,6 +203,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/yard': {
       id: '/_authenticated/yard'
       path: '/yard'
@@ -278,6 +298,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  AuthRoute: AuthRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDriversRoute: AuthenticatedDriversRoute,
   AuthenticatedLoadsRoute: AuthenticatedLoadsRoute,
