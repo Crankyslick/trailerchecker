@@ -5,8 +5,6 @@
  * dispatcher column re-ordering.
  */
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_sheets/v4";
 
