@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLoads } from "@/hooks/use-loads";
 import { History } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/history.index")({
+export const Route = createFileRoute("/_authenticated/history/")({
   head: () => ({ meta: [{ title: "Trailer History — VTCD Dispatch" }] }),
   component: HistoryIndex,
 });

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Clock } from "lucide-react";
 import { StatusChip, LocationChip } from "@/components/Chips";
 
-export const Route = createFileRoute("/_authenticated/history.$loadId")({
+export const Route = createFileRoute("/_authenticated/history/$loadId")({
   head: () => ({ meta: [{ title: "Trailer Timeline — VTCD Dispatch" }] }),
   component: HistoryDetail,
 });
