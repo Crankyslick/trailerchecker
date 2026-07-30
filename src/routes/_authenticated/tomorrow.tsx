@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
@@ -264,15 +264,18 @@ function DispatchBoard() {
   const tomorrow = estDateParts(1);
   const pastDeadline = estHour() >= 16;
 
-  const groups = useMemo(() => {
+  const { groups, archivedCount } = useMemo(() => {
     const map = new Map<string, LoadRow[]>();
+    let archived = 0;
     for (const l of loads) {
       const key = l.schedule_date ?? l.cutoff_date ?? "";
+      // Today onward only — past days live in /history
+      if (key && key < today) { archived++; continue; }
       const arr = map.get(key);
       if (arr) arr.push(l);
       else map.set(key, [l]);
     }
-    return [...map.entries()]
+    const list = [...map.entries()]
       .map(([date, rows]) => ({
         date: date || null,
         rows,
@@ -284,20 +287,22 @@ function DispatchBoard() {
         if (!b.date) return -1;
         return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
       });
-  }, [loads]);
+    return { groups: list, archivedCount: archived };
+  }, [loads, today]);
+
+  const activeCount = useMemo(() => groups.reduce((n, g) => n + g.rows.length, 0), [groups]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const isOpen = (date: string | null) => {
     const key = date ?? "__none__";
     if (key in collapsed) return !collapsed[key];
-    // default: past days collapsed, today / tomorrow / future expanded
-    if (!date) return true;
-    return date >= today;
+    return true;
   };
   const toggle = (date: string | null) => {
     const key = date ?? "__none__";
     setCollapsed((c) => ({ ...c, [key]: isOpen(date) }));
   };
+
 
   return (
     <div className="space-y-3">
@@ -305,12 +310,16 @@ function DispatchBoard() {
         <div>
           <h2 className="text-sm font-semibold">Daily Dispatch Board</h2>
           <p className="text-xs text-muted-foreground">
-            Type a trailer # into <strong>STR RTRN TRL#</strong> — the live 24-hour timer starts the instant you save.
+            Showing today onward — past days are archived in <Link to="/history" className="text-primary hover:underline">History</Link>.
             {pastDeadline && <span className="text-danger ml-2">· Past 16:00 EST — tomorrow&apos;s unassigned loads shown in red.</span>}
           </p>
         </div>
-        <span className="text-xs text-muted-foreground">{loads.length} loads · {groups.length} days</span>
+        <span className="text-xs text-muted-foreground">
+          {activeCount} active loads · {groups.length} days
+          {archivedCount > 0 && <> · {archivedCount} archived</>}
+        </span>
       </div>
+
 
       {groups.map((g) => {
         const open = isOpen(g.date);
@@ -366,9 +375,13 @@ function DispatchBoard() {
         );
       })}
 
-      {!isLoading && loads.length === 0 && (
-        <div className="kpi-card py-12 text-center text-muted-foreground">No loads scheduled yet.</div>
+      {!isLoading && groups.length === 0 && (
+        <div className="kpi-card py-12 text-center text-muted-foreground">
+          No loads scheduled for today or later.
+          {archivedCount > 0 && <> <Link to="/history" className="text-primary hover:underline">View {archivedCount} archived loads</Link>.</>}
+        </div>
       )}
+
     </div>
   );
 }
