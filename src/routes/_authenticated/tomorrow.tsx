@@ -9,7 +9,7 @@ import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toast } from "sonner";
 import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
-  RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin,
+  RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin, ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tomorrow")({
