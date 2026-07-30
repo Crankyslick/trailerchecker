@@ -6,7 +6,7 @@ import { YardChip } from "@/components/Chips";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/yard")({
+export const Route = createFileRoute("/_authenticated/yard")({
   head: () => ({ meta: [{ title: "Yard Inventory — VTCD Dispatch" }] }),
   component: YardPage,
 });

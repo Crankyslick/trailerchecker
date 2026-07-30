@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { DispatchModal } from "@/components/DispatchModal";
 import { GuardCheckInModal } from "@/components/GuardCheckInModal";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Control Tower — Trailer Checker" },

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { UserCog, ShieldCheck } from "lucide-react";
 
-export const Route = createFileRoute("/users")({
+export const Route = createFileRoute("/_authenticated/users")({
   head: () => ({ meta: [{ title: "Users — Trailer Checker" }] }),
   component: UsersPage,
 });

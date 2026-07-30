@@ -4,7 +4,7 @@ import { useLoads } from "@/hooks/use-loads";
 import { StatusChip, LocationChip } from "@/components/Chips";
 import { User } from "lucide-react";
 
-export const Route = createFileRoute("/drivers")({
+export const Route = createFileRoute("/_authenticated/drivers")({
   head: () => ({ meta: [{ title: "Driver Board — VTCD Dispatch" }] }),
   component: DriverBoard,
 });

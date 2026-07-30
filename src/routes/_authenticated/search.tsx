@@ -5,7 +5,7 @@ import { StatusChip, LocationChip, YardChip } from "@/components/Chips";
 import { yardHours } from "@/lib/loads";
 import { Search as SearchIcon } from "lucide-react";
 
-export const Route = createFileRoute("/search")({
+export const Route = createFileRoute("/_authenticated/search")({
   head: () => ({ meta: [{ title: "Trailer Search — VTCD Dispatch" }] }),
   component: SearchPage,
 });

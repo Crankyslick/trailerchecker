@@ -4,7 +4,7 @@ import { useLoads } from "@/hooks/use-loads";
 import { StatusChip } from "@/components/Chips";
 import { Store } from "lucide-react";
 
-export const Route = createFileRoute("/stores")({
+export const Route = createFileRoute("/_authenticated/stores")({
   head: () => ({ meta: [{ title: "Store Board — VTCD Dispatch" }] }),
   component: StoreBoard,
 });

@@ -9,127 +9,129 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as YardRouteImport } from './routes/yard'
-import { Route as UsersRouteImport } from './routes/users'
-import { Route as TomorrowRouteImport } from './routes/tomorrow'
-import { Route as StoresRouteImport } from './routes/stores'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as LoadsRouteImport } from './routes/loads'
-import { Route as DriversRouteImport } from './routes/drivers'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as HistoryIndexRouteImport } from './routes/history.index'
-import { Route as HistoryLoadIdRouteImport } from './routes/history.$loadId'
+import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/yard'
+import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedTomorrowRouteImport } from './routes/_authenticated/tomorrow'
+import { Route as AuthenticatedStoresRouteImport } from './routes/_authenticated/stores'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedLoadsRouteImport } from './routes/_authenticated/loads'
+import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticated/drivers'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
+import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 
-const YardRoute = YardRouteImport.update({
-  id: '/yard',
+const AuthenticatedYardRoute = AuthenticatedYardRouteImport.update({
+  id: '/_authenticated/yard',
   path: '/yard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UsersRoute = UsersRouteImport.update({
-  id: '/users',
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/_authenticated/users',
   path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TomorrowRoute = TomorrowRouteImport.update({
-  id: '/tomorrow',
+const AuthenticatedTomorrowRoute = AuthenticatedTomorrowRouteImport.update({
+  id: '/_authenticated/tomorrow',
   path: '/tomorrow',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StoresRoute = StoresRouteImport.update({
-  id: '/stores',
+const AuthenticatedStoresRoute = AuthenticatedStoresRouteImport.update({
+  id: '/_authenticated/stores',
   path: '/stores',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/_authenticated/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
+const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
+  id: '/_authenticated/search',
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/_authenticated/reports',
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoadsRoute = LoadsRouteImport.update({
-  id: '/loads',
+const AuthenticatedLoadsRoute = AuthenticatedLoadsRouteImport.update({
+  id: '/_authenticated/loads',
   path: '/loads',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DriversRoute = DriversRouteImport.update({
-  id: '/drivers',
+const AuthenticatedDriversRoute = AuthenticatedDriversRouteImport.update({
+  id: '/_authenticated/drivers',
   path: '/drivers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/_authenticated/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const HistoryIndexRoute = HistoryIndexRouteImport.update({
-  id: '/history/',
-  path: '/history/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryLoadIdRoute = HistoryLoadIdRouteImport.update({
-  id: '/history/$loadId',
-  path: '/history/$loadId',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedHistoryIndexRoute =
+  AuthenticatedHistoryIndexRouteImport.update({
+    id: '/_authenticated/history/',
+    path: '/history/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedHistoryLoadIdRoute =
+  AuthenticatedHistoryLoadIdRouteImport.update({
+    id: '/_authenticated/history/$loadId',
+    path: '/history/$loadId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/drivers': typeof DriversRoute
-  '/loads': typeof LoadsRoute
-  '/reports': typeof ReportsRoute
-  '/search': typeof SearchRoute
-  '/settings': typeof SettingsRoute
-  '/stores': typeof StoresRoute
-  '/tomorrow': typeof TomorrowRoute
-  '/users': typeof UsersRoute
-  '/yard': typeof YardRoute
-  '/history/$loadId': typeof HistoryLoadIdRoute
-  '/history/': typeof HistoryIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/drivers': typeof AuthenticatedDriversRoute
+  '/loads': typeof AuthenticatedLoadsRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/search': typeof AuthenticatedSearchRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/stores': typeof AuthenticatedStoresRoute
+  '/tomorrow': typeof AuthenticatedTomorrowRoute
+  '/users': typeof AuthenticatedUsersRoute
+  '/yard': typeof AuthenticatedYardRoute
+  '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/drivers': typeof DriversRoute
-  '/loads': typeof LoadsRoute
-  '/reports': typeof ReportsRoute
-  '/search': typeof SearchRoute
-  '/settings': typeof SettingsRoute
-  '/stores': typeof StoresRoute
-  '/tomorrow': typeof TomorrowRoute
-  '/users': typeof UsersRoute
-  '/yard': typeof YardRoute
-  '/history/$loadId': typeof HistoryLoadIdRoute
-  '/history': typeof HistoryIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/drivers': typeof AuthenticatedDriversRoute
+  '/loads': typeof AuthenticatedLoadsRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/search': typeof AuthenticatedSearchRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/stores': typeof AuthenticatedStoresRoute
+  '/tomorrow': typeof AuthenticatedTomorrowRoute
+  '/users': typeof AuthenticatedUsersRoute
+  '/yard': typeof AuthenticatedYardRoute
+  '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/history': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/drivers': typeof DriversRoute
-  '/loads': typeof LoadsRoute
-  '/reports': typeof ReportsRoute
-  '/search': typeof SearchRoute
-  '/settings': typeof SettingsRoute
-  '/stores': typeof StoresRoute
-  '/tomorrow': typeof TomorrowRoute
-  '/users': typeof UsersRoute
-  '/yard': typeof YardRoute
-  '/history/$loadId': typeof HistoryLoadIdRoute
-  '/history/': typeof HistoryIndexRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/drivers': typeof AuthenticatedDriversRoute
+  '/_authenticated/loads': typeof AuthenticatedLoadsRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/search': typeof AuthenticatedSearchRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/stores': typeof AuthenticatedStoresRoute
+  '/_authenticated/tomorrow': typeof AuthenticatedTomorrowRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/yard': typeof AuthenticatedYardRoute
+  '/_authenticated/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
+    | '/dashboard'
     | '/drivers'
     | '/loads'
     | '/reports'
@@ -143,7 +145,7 @@ export interface FileRouteTypes {
     | '/history/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/dashboard'
     | '/drivers'
     | '/loads'
     | '/reports'
@@ -157,137 +159,137 @@ export interface FileRouteTypes {
     | '/history'
   id:
     | '__root__'
-    | '/'
-    | '/drivers'
-    | '/loads'
-    | '/reports'
-    | '/search'
-    | '/settings'
-    | '/stores'
-    | '/tomorrow'
-    | '/users'
-    | '/yard'
-    | '/history/$loadId'
-    | '/history/'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/drivers'
+    | '/_authenticated/loads'
+    | '/_authenticated/reports'
+    | '/_authenticated/search'
+    | '/_authenticated/settings'
+    | '/_authenticated/stores'
+    | '/_authenticated/tomorrow'
+    | '/_authenticated/users'
+    | '/_authenticated/yard'
+    | '/_authenticated/history/$loadId'
+    | '/_authenticated/history/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DriversRoute: typeof DriversRoute
-  LoadsRoute: typeof LoadsRoute
-  ReportsRoute: typeof ReportsRoute
-  SearchRoute: typeof SearchRoute
-  SettingsRoute: typeof SettingsRoute
-  StoresRoute: typeof StoresRoute
-  TomorrowRoute: typeof TomorrowRoute
-  UsersRoute: typeof UsersRoute
-  YardRoute: typeof YardRoute
-  HistoryLoadIdRoute: typeof HistoryLoadIdRoute
-  HistoryIndexRoute: typeof HistoryIndexRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDriversRoute: typeof AuthenticatedDriversRoute
+  AuthenticatedLoadsRoute: typeof AuthenticatedLoadsRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedStoresRoute: typeof AuthenticatedStoresRoute
+  AuthenticatedTomorrowRoute: typeof AuthenticatedTomorrowRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedYardRoute: typeof AuthenticatedYardRoute
+  AuthenticatedHistoryLoadIdRoute: typeof AuthenticatedHistoryLoadIdRoute
+  AuthenticatedHistoryIndexRoute: typeof AuthenticatedHistoryIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/yard': {
-      id: '/yard'
+    '/_authenticated/yard': {
+      id: '/_authenticated/yard'
       path: '/yard'
       fullPath: '/yard'
-      preLoaderRoute: typeof YardRouteImport
+      preLoaderRoute: typeof AuthenticatedYardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/users': {
-      id: '/users'
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
       path: '/users'
       fullPath: '/users'
-      preLoaderRoute: typeof UsersRouteImport
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tomorrow': {
-      id: '/tomorrow'
+    '/_authenticated/tomorrow': {
+      id: '/_authenticated/tomorrow'
       path: '/tomorrow'
       fullPath: '/tomorrow'
-      preLoaderRoute: typeof TomorrowRouteImport
+      preLoaderRoute: typeof AuthenticatedTomorrowRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/stores': {
-      id: '/stores'
+    '/_authenticated/stores': {
+      id: '/_authenticated/stores'
       path: '/stores'
       fullPath: '/stores'
-      preLoaderRoute: typeof StoresRouteImport
+      preLoaderRoute: typeof AuthenticatedStoresRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings': {
-      id: '/settings'
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/search': {
-      id: '/search'
+    '/_authenticated/search': {
+      id: '/_authenticated/search'
       path: '/search'
       fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
+      preLoaderRoute: typeof AuthenticatedSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reports': {
-      id: '/reports'
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
       path: '/reports'
       fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/loads': {
-      id: '/loads'
+    '/_authenticated/loads': {
+      id: '/_authenticated/loads'
       path: '/loads'
       fullPath: '/loads'
-      preLoaderRoute: typeof LoadsRouteImport
+      preLoaderRoute: typeof AuthenticatedLoadsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/drivers': {
-      id: '/drivers'
+    '/_authenticated/drivers': {
+      id: '/_authenticated/drivers'
       path: '/drivers'
       fullPath: '/drivers'
-      preLoaderRoute: typeof DriversRouteImport
+      preLoaderRoute: typeof AuthenticatedDriversRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/history/': {
-      id: '/history/'
+    '/_authenticated/history/': {
+      id: '/_authenticated/history/'
       path: '/history'
       fullPath: '/history/'
-      preLoaderRoute: typeof HistoryIndexRouteImport
+      preLoaderRoute: typeof AuthenticatedHistoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/history/$loadId': {
-      id: '/history/$loadId'
+    '/_authenticated/history/$loadId': {
+      id: '/_authenticated/history/$loadId'
       path: '/history/$loadId'
       fullPath: '/history/$loadId'
-      preLoaderRoute: typeof HistoryLoadIdRouteImport
+      preLoaderRoute: typeof AuthenticatedHistoryLoadIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DriversRoute: DriversRoute,
-  LoadsRoute: LoadsRoute,
-  ReportsRoute: ReportsRoute,
-  SearchRoute: SearchRoute,
-  SettingsRoute: SettingsRoute,
-  StoresRoute: StoresRoute,
-  TomorrowRoute: TomorrowRoute,
-  UsersRoute: UsersRoute,
-  YardRoute: YardRoute,
-  HistoryLoadIdRoute: HistoryLoadIdRoute,
-  HistoryIndexRoute: HistoryIndexRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDriversRoute: AuthenticatedDriversRoute,
+  AuthenticatedLoadsRoute: AuthenticatedLoadsRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedSearchRoute: AuthenticatedSearchRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedStoresRoute: AuthenticatedStoresRoute,
+  AuthenticatedTomorrowRoute: AuthenticatedTomorrowRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedYardRoute: AuthenticatedYardRoute,
+  AuthenticatedHistoryLoadIdRoute: AuthenticatedHistoryLoadIdRoute,
+  AuthenticatedHistoryIndexRoute: AuthenticatedHistoryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
