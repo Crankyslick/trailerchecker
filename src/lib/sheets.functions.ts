@@ -41,23 +41,38 @@ async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> 
   return res;
 }
 
-async function readConfig(): Promise<{ spreadsheet_id: string; sheet_name: string }> {
+const NOT_CONFIGURED = "Google Sheet not configured — set the Spreadsheet ID in Settings.";
+
+/** Returns the sheet target, or null when the org hasn't configured one yet. */
+async function readConfig(): Promise<{ spreadsheet_id: string; sheet_name: string } | null> {
   // sync_config is admin-only under RLS; this server-side read uses the service
   // client and returns nothing but the spreadsheet target.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.from("sync_config").select("spreadsheet_id, sheet_name").eq("id", 1).maybeSingle();
   if (error) throw new Error(error.message);
   const row = data as { spreadsheet_id: string | null; sheet_name: string | null } | null;
-  if (!row?.spreadsheet_id) throw new Error("Spreadsheet ID not set. Configure it in Settings.");
+  if (!row?.spreadsheet_id) return null;
   return { spreadsheet_id: row.spreadsheet_id, sheet_name: row.sheet_name ?? "Sheet1" };
 }
 
 
 /** Read header row and return { normalized -> {index, letter} }. */
 export const getSheetHeaders = createServerFn({ method: "GET" }).handler(async () => {
-  const { spreadsheet_id, sheet_name } = await readConfig();
+  const cfg = await readConfig();
+  if (!cfg) {
+    return {
+      map: {} as Record<string, { index: number; letter: string; original: string }>,
+      headers: [] as string[],
+      warnings: [NOT_CONFIGURED],
+      sheet_name: "",
+      spreadsheet_id: "",
+      configured: false,
+    };
+  }
+  const { spreadsheet_id, sheet_name } = cfg;
   const range = `${sheet_name}!A1:Z1`;
   const res = await gwFetch(`/spreadsheets/${spreadsheet_id}/values/${range}`);
+
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`Sheets header read failed [${res.status}]: ${body}`);
