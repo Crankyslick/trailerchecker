@@ -16,19 +16,31 @@ export function useDrivers() {
     queryKey: ["drivers"],
     queryFn: async (): Promise<Driver[]> => {
       const { data, error } = await supabase.from("drivers").select("*").order("name");
-      if (error) throw error;
+      if (error) {
+        console.error("[useDrivers]", error.message);
+        return [];
+      }
       return (data ?? []) as Driver[];
     },
+    initialData: [] as Driver[],
   });
 
   useEffect(() => {
-    const ch = supabase
-      .channel("drivers-stream")
-      .on("postgres_changes", { event: "*", schema: "public", table: "drivers" }, () => query.refetch())
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    let ch: ReturnType<typeof supabase.channel> | undefined;
+    try {
+      ch = supabase.channel(`drivers-stream-${Math.random().toString(36).slice(2)}`);
+      ch.on("postgres_changes", { event: "*", schema: "public", table: "drivers" }, () => {
+        void query.refetch();
+      }).subscribe();
+    } catch (e) {
+      console.error("[useDrivers] realtime subscribe failed", e);
+    }
+    return () => {
+      try { if (ch) supabase.removeChannel(ch); } catch { /* noop */ }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return query;
 }
+

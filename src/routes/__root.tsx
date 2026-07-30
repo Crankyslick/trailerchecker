@@ -12,7 +12,9 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/components/AppShell";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "sonner";
+
 
 function NotFoundComponent() {
   return (
@@ -121,13 +123,21 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const pathname = router.state.location.pathname;
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        <Outlet />
-      </AppShell>
+      <ErrorBoundary label="App shell">
+        <AppShell>
+          {/* Keyed by route so navigating away clears a crashed page */}
+          <ErrorBoundary key={pathname} label="Page">
+            <Outlet />
+          </ErrorBoundary>
+        </AppShell>
+      </ErrorBoundary>
       <Toaster theme="dark" position="bottom-right" richColors />
     </QueryClientProvider>
   );
 }
+

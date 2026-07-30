@@ -3,6 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { LoadRow } from "@/lib/loads";
 
+function subscribe(table: string, onChange: () => void) {
+  let ch: ReturnType<typeof supabase.channel> | undefined;
+  try {
+    ch = supabase.channel(`${table}-stream-${Math.random().toString(36).slice(2)}`);
+    ch.on("postgres_changes", { event: "*", schema: "public", table }, onChange).subscribe();
+  } catch (e) {
+    console.error(`[realtime:${table}] subscribe failed`, e);
+  }
+  return () => {
+    try { if (ch) supabase.removeChannel(ch); } catch { /* noop */ }
+  };
+}
+
 export function useLoads() {
   const query = useQuery({
     queryKey: ["loads"],
@@ -12,19 +25,16 @@ export function useLoads() {
         .select("*")
         .order("cutoff_date", { ascending: true, nullsFirst: false })
         .order("cutoff_time", { ascending: true, nullsFirst: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[useLoads]", error.message);
+        return [];
+      }
       return (data ?? []) as LoadRow[];
     },
+    initialData: [] as LoadRow[],
   });
 
-  useEffect(() => {
-    const ch = supabase.channel(`loads-stream-${Math.random().toString(36).slice(2)}`);
-    ch.on("postgres_changes", { event: "*", schema: "public", table: "loads" }, () => {
-      query.refetch();
-    }).subscribe();
-    return () => { supabase.removeChannel(ch); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => subscribe("loads", () => { void query.refetch(); }), []);
 
   return query;
 }
@@ -48,21 +58,20 @@ export function useYardCheckIns() {
         .select("*")
         .is("checked_out_at", null)
         .order("arrival_at", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        console.error("[useYardCheckIns]", error.message);
+        return [];
+      }
       return (data ?? []) as YardCheckIn[];
     },
+    initialData: [] as YardCheckIn[],
   });
 
-  useEffect(() => {
-    const ch = supabase.channel(`yard-checkins-stream-${Math.random().toString(36).slice(2)}`);
-    ch.on("postgres_changes", { event: "*", schema: "public", table: "yard_check_ins" }, () => query.refetch())
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => subscribe("yard_check_ins", () => { void query.refetch(); }), []);
 
   return query;
 }
+
 
 export function useNowTick(intervalMs = 60_000) {
   const [, set] = useState(0);
