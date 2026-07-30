@@ -47,6 +47,7 @@ export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
           },
         });
         if (res.ok) toast.success(`Trailer ${trailer.trim()} logged · appended to sheet ${res.updatedRange ?? ""}`);
+        else toast.warning(`Saved locally. ${res.warnings[0] ?? "Sheet append skipped."}`);
       } catch (e) {
         toast.warning(`Saved locally. Sheet append skipped: ${(e as Error).message}`);
       }
