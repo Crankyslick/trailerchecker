@@ -7,7 +7,7 @@ import { invalidateWebhookCache } from "@/lib/webhook";
 import { getSheetHeaders } from "@/lib/sheets.functions";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/settings")({
+export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Trailer Checker" }] }),
   component: SettingsPage,
 });

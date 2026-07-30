@@ -11,9 +11,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AppShell } from "@/components/AppShell";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
+
 
 
 function NotFoundComponent() {
@@ -126,18 +127,25 @@ function RootComponent() {
   const router = useRouter();
   const pathname = router.state.location.pathname;
 
+  // Single global auth subscriber: keep router + cache in sync with the session.
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    });
+    return () => sub?.subscription?.unsubscribe?.();
+  }, [router, queryClient]);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary label="App shell">
-        <AppShell>
-          {/* Keyed by route so navigating away clears a crashed page */}
-          <ErrorBoundary key={pathname} label="Page">
-            <Outlet />
-          </ErrorBoundary>
-        </AppShell>
+      {/* Keyed by route so navigating away clears a crashed page */}
+      <ErrorBoundary key={pathname} label="Page">
+        <Outlet />
       </ErrorBoundary>
       <Toaster theme="dark" position="bottom-right" richColors />
     </QueryClientProvider>
   );
 }
+
 

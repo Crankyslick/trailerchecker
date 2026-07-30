@@ -7,7 +7,7 @@ import {
 import { useLoads } from "@/hooks/use-loads";
 import { yardHours, yardTier } from "@/lib/loads";
 
-export const Route = createFileRoute("/reports")({
+export const Route = createFileRoute("/_authenticated/reports")({
   head: () => ({ meta: [{ title: "Reports — VTCD Dispatch" }] }),
   component: Reports,
 });
