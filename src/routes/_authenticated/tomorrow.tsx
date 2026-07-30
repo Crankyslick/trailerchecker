@@ -375,9 +375,13 @@ function DispatchBoard() {
         );
       })}
 
-      {!isLoading && loads.length === 0 && (
-        <div className="kpi-card py-12 text-center text-muted-foreground">No loads scheduled yet.</div>
+      {!isLoading && groups.length === 0 && (
+        <div className="kpi-card py-12 text-center text-muted-foreground">
+          No loads scheduled for today or later.
+          {archivedCount > 0 && <> <Link to="/history" className="text-primary hover:underline">View {archivedCount} archived loads</Link>.</>}
+        </div>
       )}
+
     </div>
   );
 }
