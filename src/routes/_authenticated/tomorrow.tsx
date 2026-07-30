@@ -293,10 +293,11 @@ function DispatchBoard() {
   const activeCount = useMemo(() => groups.reduce((n, g) => n + g.rows.length, 0), [groups]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const defaultOpen = (date: string | null) => date === today || date === tomorrow;
   const isOpen = (date: string | null) => {
     const key = date ?? "__none__";
     if (key in collapsed) return !collapsed[key];
-    return true;
+    return defaultOpen(date);
   };
   const toggle = (date: string | null) => {
     const key = date ?? "__none__";
