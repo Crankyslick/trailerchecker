@@ -264,15 +264,18 @@ function DispatchBoard() {
   const tomorrow = estDateParts(1);
   const pastDeadline = estHour() >= 16;
 
-  const groups = useMemo(() => {
+  const { groups, archivedCount } = useMemo(() => {
     const map = new Map<string, LoadRow[]>();
+    let archived = 0;
     for (const l of loads) {
       const key = l.schedule_date ?? l.cutoff_date ?? "";
+      // Today onward only — past days live in /history
+      if (key && key < today) { archived++; continue; }
       const arr = map.get(key);
       if (arr) arr.push(l);
       else map.set(key, [l]);
     }
-    return [...map.entries()]
+    const list = [...map.entries()]
       .map(([date, rows]) => ({
         date: date || null,
         rows,
@@ -284,20 +287,22 @@ function DispatchBoard() {
         if (!b.date) return -1;
         return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
       });
-  }, [loads]);
+    return { groups: list, archivedCount: archived };
+  }, [loads, today]);
+
+  const activeCount = useMemo(() => groups.reduce((n, g) => n + g.rows.length, 0), [groups]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const isOpen = (date: string | null) => {
     const key = date ?? "__none__";
     if (key in collapsed) return !collapsed[key];
-    // default: past days collapsed, today / tomorrow / future expanded
-    if (!date) return true;
-    return date >= today;
+    return true;
   };
   const toggle = (date: string | null) => {
     const key = date ?? "__none__";
     setCollapsed((c) => ({ ...c, [key]: isOpen(date) }));
   };
+
 
   return (
     <div className="space-y-3">
