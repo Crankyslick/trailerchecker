@@ -171,17 +171,137 @@ function fmtElapsed(startedAt: string): string {
   return `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m`;
 }
 
+function fmtGroupLabel(date: string | null, today: string, tomorrow: string): string {
+  if (!date) return "Unscheduled";
+  const long = new Date(date + "T00:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  if (date === today) return `Today — ${long}`;
+  if (date === tomorrow) return `Tomorrow — ${long}`;
+  return long;
+}
+
+type BoardRowProps = {
+  load: LoadRow;
+  drivers: Driver[];
+  tomorrow: string;
+  pastDeadline: boolean;
+};
+
+function BoardRow({ load: l, drivers, tomorrow, pastDeadline }: BoardRowProps) {
+  const started = (l as LoadRow & { str_return_trailer_started_at: string | null }).str_return_trailer_started_at;
+  const hours = started ? (Date.now() - new Date(started).getTime()) / 3_600_000 : null;
+  const timerOverdue = hours !== null && hours >= 24;
+  const scheduleDate = l.schedule_date ?? l.cutoff_date;
+  const isTomorrow = scheduleDate === tomorrow;
+  const driverOverdue = isTomorrow && !l.driver && pastDeadline;
+  const rowRed = timerOverdue || driverOverdue;
+  return (
+    <tr className={`border-b border-border/40 last:border-0 transition-colors ${
+      rowRed ? "bg-danger/15 hover:bg-danger/20 animate-pulse" : "hover:bg-surface-2/30"
+    }`}>
+      <td className="py-2 px-3 text-xs tabular-nums whitespace-nowrap">
+        {fmtDate(scheduleDate)}
+        {isTomorrow && <span className="ml-1 text-[10px] uppercase text-warning">tmrw</span>}
+      </td>
+      <td className="py-2 px-3 font-mono text-xs">{l.schedule_id}</td>
+      <td className="py-2 px-3">
+        <DriverSelect value={l.driver} drivers={drivers} danger={driverOverdue}
+          onSave={(v) => updateLoad(l.id, { driver: v })} />
+      </td>
+      <td className="py-2 px-3"><EditCell mono value={l.outbound_trailer} placeholder="Trailer #"
+        onSave={(v) => updateLoad(l.id, { outbound_trailer: v })} /></td>
+      <td className="py-2 px-3 text-xs"><span className="font-mono">{l.origin_id}</span> · <span className="text-muted-foreground">{l.origin_name}</span></td>
+      <td className="py-2 px-3 text-xs"><span className="font-mono">{l.str_number}</span> · <span className="text-muted-foreground">{l.str_name}</span></td>
+      <td className="py-2 px-3">
+        <EditCell mono value={l.return_trailer} placeholder="Type trailer #"
+          className={l.return_trailer ? "text-primary font-semibold" : ""}
+          onSave={(v) => updateLoad(l.id, { return_trailer: v })} />
+      </td>
+      <td className="py-2 px-3">
+        <LocationSelect value={l.return_trailer_location}
+          onSave={(v) => updateLoad(l.id, { return_trailer_location: v as LoadRow["return_trailer_location"] })} />
+      </td>
+      <td className="py-2 px-3">
+        {started ? (
+          <span className={`chip border tabular-nums font-mono text-xs ${
+            timerOverdue
+              ? "bg-danger/25 text-danger border-danger/50"
+              : hours! >= 18
+                ? "bg-warning/20 text-warning border-warning/40"
+                : "bg-success/15 text-success border-success/30"
+          }`}>
+            <Clock className="h-3 w-3" /> {fmtElapsed(started)}
+          </span>
+        ) : <span className="text-muted-foreground/60 text-xs">—</span>}
+      </td>
+    </tr>
+  );
+}
+
+function BoardHead() {
+  return (
+    <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-surface-2/40">
+      <tr className="border-b border-border">
+        <th className="text-left font-medium py-2.5 px-3">Schedule Date</th>
+        <th className="text-left font-medium py-2.5 px-3">Schedule ID</th>
+        <th className="text-left font-medium py-2.5 px-3 min-w-[160px]">Driver Assigned</th>
+        <th className="text-left font-medium py-2.5 px-3">RDC Trailer</th>
+        <th className="text-left font-medium py-2.5 px-3">Origin</th>
+        <th className="text-left font-medium py-2.5 px-3">Destination</th>
+        <th className="text-left font-medium py-2.5 px-3 min-w-[140px]">STR RTRN TRL# (T)</th>
+        <th className="text-left font-medium py-2.5 px-3">TRL Location (U)</th>
+        <th className="text-left font-medium py-2.5 px-3 min-w-[130px]">Active Timer</th>
+      </tr>
+    </thead>
+  );
+}
+
 function DispatchBoard() {
   useNowTick(30_000);
   const { data: loads = [], isLoading } = useLoads();
   const { data: drivers = [] } = useDrivers();
 
+  const today = estDateParts(0);
   const tomorrow = estDateParts(1);
   const pastDeadline = estHour() >= 16;
 
+  const groups = useMemo(() => {
+    const map = new Map<string, LoadRow[]>();
+    for (const l of loads) {
+      const key = l.schedule_date ?? l.cutoff_date ?? "";
+      const arr = map.get(key);
+      if (arr) arr.push(l);
+      else map.set(key, [l]);
+    }
+    return [...map.entries()]
+      .map(([date, rows]) => ({
+        date: date || null,
+        rows,
+        unassigned: rows.filter((r) => !r.driver).length,
+        missingTrailer: rows.filter((r) => !r.outbound_trailer).length,
+      }))
+      .sort((a, b) => {
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+      });
+  }, [loads]);
+
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const isOpen = (date: string | null) => {
+    const key = date ?? "__none__";
+    if (key in collapsed) return !collapsed[key];
+    // default: past days collapsed, today / tomorrow / future expanded
+    if (!date) return true;
+    return date >= today;
+  };
+  const toggle = (date: string | null) => {
+    const key = date ?? "__none__";
+    setCollapsed((c) => ({ ...c, [key]: isOpen(date) }));
+  };
+
   return (
-    <div className="kpi-card overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between flex-wrap gap-2">
+    <div className="space-y-3">
+      <div className="kpi-card px-4 py-3 flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="text-sm font-semibold">Daily Dispatch Board</h2>
           <p className="text-xs text-muted-foreground">
@@ -189,85 +309,70 @@ function DispatchBoard() {
             {pastDeadline && <span className="text-danger ml-2">· Past 16:00 EST — tomorrow&apos;s unassigned loads shown in red.</span>}
           </p>
         </div>
-        <span className="text-xs text-muted-foreground">{loads.length} loads</span>
+        <span className="text-xs text-muted-foreground">{loads.length} loads · {groups.length} days</span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-surface-2/40">
-            <tr className="border-b border-border">
-              <th className="text-left font-medium py-3 px-3">Schedule Date</th>
-              <th className="text-left font-medium py-3 px-3">Schedule ID</th>
-              <th className="text-left font-medium py-3 px-3 min-w-[160px]">Driver Assigned</th>
-              <th className="text-left font-medium py-3 px-3">RDC Trailer</th>
-              <th className="text-left font-medium py-3 px-3">Origin</th>
-              <th className="text-left font-medium py-3 px-3">Destination</th>
-              <th className="text-left font-medium py-3 px-3 min-w-[140px]">STR RTRN TRL# (T)</th>
-              <th className="text-left font-medium py-3 px-3">TRL Location (U)</th>
-              <th className="text-left font-medium py-3 px-3 min-w-[130px]">Active Timer</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loads.map((l) => {
-              const started = (l as LoadRow & { str_return_trailer_started_at: string | null }).str_return_trailer_started_at;
-              const hours = started ? (Date.now() - new Date(started).getTime()) / 3_600_000 : null;
-              const timerOverdue = hours !== null && hours >= 24;
-              const scheduleDate = l.schedule_date ?? l.cutoff_date;
-              const isTomorrow = scheduleDate === tomorrow;
-              const driverMissing = !l.driver;
-              const driverOverdue = isTomorrow && driverMissing && pastDeadline;
-              const rowRed = timerOverdue || driverOverdue;
-              return (
-                <tr key={l.id}
-                  className={`border-b border-border/40 last:border-0 transition-colors ${
-                    rowRed ? "bg-danger/15 hover:bg-danger/20 animate-pulse" : "hover:bg-surface-2/30"
+
+      {groups.map((g) => {
+        const open = isOpen(g.date);
+        const key = g.date ?? "__none__";
+        const isToday = g.date === today;
+        const isTomorrowGroup = g.date === tomorrow;
+        return (
+          <div key={key} className="kpi-card overflow-hidden">
+            <button
+              onClick={() => toggle(g.date)}
+              className={`w-full sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors border-b ${
+                open ? "border-border" : "border-transparent"
+              } ${isToday ? "bg-primary/10" : isTomorrowGroup ? "bg-warning/10" : "bg-surface-2/60"} hover:bg-surface-2`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <ChevronRight className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? "rotate-90" : ""}`} />
+                <span className={`text-sm font-semibold truncate ${isToday ? "text-primary" : ""}`}>
+                  {fmtGroupLabel(g.date, today, tomorrow)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-end text-[11px]">
+                <span className="chip border bg-surface-2 border-border text-muted-foreground">{g.rows.length} loads</span>
+                {g.unassigned > 0 && (
+                  <span className={`chip border ${
+                    isTomorrowGroup && pastDeadline
+                      ? "bg-danger/20 text-danger border-danger/50"
+                      : "bg-warning/15 text-warning border-warning/40"
                   }`}>
-                  <td className="py-2 px-3 text-xs tabular-nums whitespace-nowrap">
-                    {fmtDate(scheduleDate)}
-                    {isTomorrow && <span className="ml-1 text-[10px] uppercase text-warning">tmrw</span>}
-                  </td>
-                  <td className="py-2 px-3 font-mono text-xs">{l.schedule_id}</td>
-                  <td className="py-2 px-3">
-                    <DriverSelect value={l.driver} drivers={drivers} danger={driverOverdue}
-                      onSave={(v) => updateLoad(l.id, { driver: v })} />
-                  </td>
-                  <td className="py-2 px-3"><EditCell mono value={l.outbound_trailer} placeholder="Trailer #"
-                    onSave={(v) => updateLoad(l.id, { outbound_trailer: v })} /></td>
-                  <td className="py-2 px-3 text-xs"><span className="font-mono">{l.origin_id}</span> · <span className="text-muted-foreground">{l.origin_name}</span></td>
-                  <td className="py-2 px-3 text-xs"><span className="font-mono">{l.str_number}</span> · <span className="text-muted-foreground">{l.str_name}</span></td>
-                  <td className="py-2 px-3">
-                    <EditCell mono value={l.return_trailer} placeholder="Type trailer #"
-                      className={l.return_trailer ? "text-primary font-semibold" : ""}
-                      onSave={(v) => updateLoad(l.id, { return_trailer: v })} />
-                  </td>
-                  <td className="py-2 px-3">
-                    <LocationSelect value={l.return_trailer_location}
-                      onSave={(v) => updateLoad(l.id, { return_trailer_location: v as LoadRow["return_trailer_location"] })} />
-                  </td>
-                  <td className="py-2 px-3">
-                    {started ? (
-                      <span className={`chip border tabular-nums font-mono text-xs ${
-                        timerOverdue
-                          ? "bg-danger/25 text-danger border-danger/50"
-                          : hours! >= 18
-                            ? "bg-warning/20 text-warning border-warning/40"
-                            : "bg-success/15 text-success border-success/30"
-                      }`}>
-                        <Clock className="h-3 w-3" /> {fmtElapsed(started)}
-                      </span>
-                    ) : <span className="text-muted-foreground/60 text-xs">—</span>}
-                  </td>
-                </tr>
-              );
-            })}
-            {!isLoading && loads.length === 0 && (
-              <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">No loads scheduled yet.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                    <AlertTriangle className="h-3 w-3" /> {g.unassigned} unassigned
+                  </span>
+                )}
+                {g.missingTrailer > 0 && (
+                  <span className="chip border bg-info/15 text-info border-info/30">{g.missingTrailer} missing trailer</span>
+                )}
+              </div>
+            </button>
+
+            <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <BoardHead />
+                    <tbody>
+                      {g.rows.map((l) => (
+                        <BoardRow key={l.id} load={l} drivers={drivers} tomorrow={tomorrow} pastDeadline={pastDeadline} />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {!isLoading && loads.length === 0 && (
+        <div className="kpi-card py-12 text-center text-muted-foreground">No loads scheduled yet.</div>
+      )}
     </div>
   );
 }
+
 
 /* ---------------- Drivers Tab ---------------- */
 
