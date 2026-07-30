@@ -181,7 +181,9 @@ export const writeCellsByHeader = createServerFn({ method: "POST" })
 export const appendRowByHeader = createServerFn({ method: "POST" })
   .inputValidator((data: { record: Record<string, string | number | null> }) => data)
   .handler(async ({ data }) => {
-    const { spreadsheet_id, sheet_name } = await readConfig();
+    const cfg = await readConfig();
+    if (!cfg) return { ok: false, updatedRange: null, warnings: [NOT_CONFIGURED] };
+    const { spreadsheet_id, sheet_name } = cfg;
     const headers = await getSheetHeaders();
     const headerRow = headers.headers;
     const warnings: string[] = [];
