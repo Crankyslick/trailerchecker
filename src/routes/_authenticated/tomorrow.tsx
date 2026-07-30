@@ -815,11 +815,13 @@ function toEstIsoDate(s: string | undefined): string | null {
 
 /** Schedule date always comes from the DEPARTURE timestamp, never delivery/arrival. */
 function departureDate(r: ParsedRow): string | null {
+  const extra = r as unknown as Record<string, string | undefined>;
   const candidates = [
     r["Expected Pickup"],
-    (r as Record<string, string | undefined>)["Departure"],
-    (r as Record<string, string | undefined>)["Cutoff Time"],
+    extra["Departure"],
+    extra["Cutoff Time"],
   ];
+
   for (const c of candidates) {
     const d = toEstIsoDate(c);
     if (d) return d;
