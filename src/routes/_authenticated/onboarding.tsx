@@ -16,9 +16,11 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 });
 
 const PLANS = [
-  { id: "starter", name: "Starter", price: "$499/mo per yard", blurb: "One yard, full compliance ticker." },
-  { id: "enterprise", name: "Enterprise", price: "$1,299/mo multi-yard", blurb: "Unlimited yards, roles, and reporting." },
+  { id: "professional", name: "Professional", price: "$40 per user / month", blurb: "Single yard, full compliance ticker." },
+  { id: "business", name: "Business", price: "$65 per user / month", blurb: "Multi-yard, roles, sheet sync, reporting." },
+  { id: "enterprise", name: "Enterprise", price: "Custom quote", blurb: "SSO, API integrations, SLA and onboarding." },
 ];
+
 
 function Onboarding() {
   const navigate = useNavigate();
