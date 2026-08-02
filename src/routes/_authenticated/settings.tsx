@@ -137,6 +137,36 @@ function SettingsPage() {
           </div>
         )}
       </div>
+
+      <div className="kpi-card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold">Billing & Plans</h2>
+          <p className="text-xs text-muted-foreground">Choose the plan that fits your team. Billed per user, per month.</p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            { name: "Professional", price: "$40", unit: "per user / month", blurb: "Single yard, full dispatch board and compliance ticker." },
+            { name: "Business", price: "$65", unit: "per user / month", blurb: "Multi-yard, roles, sheet sync, and reporting.", featured: true },
+            { name: "Enterprise", price: "Custom", unit: "quote", blurb: "SSO, API integrations, SLA, and onboarding support." },
+          ].map((p) => (
+            <div key={p.name} className={`rounded-md border p-4 ${p.featured ? "border-primary/50 bg-primary/5" : "border-border"}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">{p.name}</span>
+                {p.featured && <span className="chip border border-primary/30 bg-primary/15 text-primary">Popular</span>}
+              </div>
+              <div className="mt-2 flex items-end gap-1">
+                <span className="text-2xl font-black tracking-tight">{p.price}</span>
+                <span className="pb-1 text-[11px] text-muted-foreground">{p.unit}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">{p.blurb}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Billing is not processed in-app yet — pick a plan and our team invoices your organization directly.
+        </p>
+      </div>
     </div>
+
   );
 }
