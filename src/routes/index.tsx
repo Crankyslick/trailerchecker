@@ -1,150 +1,331 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Truck, ShieldCheck, Timer, Radio, Check, ArrowRight } from "lucide-react";
+import {
+  Truck,
+  ShieldCheck,
+  Timer,
+  Radio,
+  ArrowRight,
+  LayoutDashboard,
+  MapPin,
+  Users,
+  Warehouse,
+  Sheet,
+  BellRing,
+  BarChart3,
+  Building2,
+  KeyRound,
+  ScrollText,
+  Plug,
+  Lock,
+  Layers,
+  AlertTriangle,
+  Search,
+  ClipboardX,
+  CalendarX,
+  EyeOff,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
+import dashboardHero from "@/assets/dashboard-hero.jpg";
+import yardShot from "@/assets/yard-screenshot.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Trailer Checker — Yard Compliance & Dispatch Control Tower" },
-      { name: "description", content: "Enforce 24-hour trailer turnaround, dispatch drivers, and sync your master sheet in real time. Built for US distribution-center yards." },
-      { property: "og:title", content: "Trailer Checker — Yard Compliance & Dispatch Control Tower" },
-      { property: "og:description", content: "Real-time yard compliance, 24h turnaround enforcement, and gate check-in for DC operations." },
+      { title: "Trailer Checker — The Modern Drayage Operating System" },
+      {
+        name: "description",
+        content:
+          "Track trailers, dispatch drivers, eliminate detention, and manage your entire drayage operation from one platform. Start a free trial — no credit card required.",
+      },
+      { property: "og:title", content: "Trailer Checker — The Modern Drayage Operating System" },
+      {
+        property: "og:description",
+        content:
+          "One platform for trailer tracking, dispatch, yard operations, and compliance. Built for drayage and distribution-center fleets.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2158693b-f192-4e5f-b358-2ee08281659d/id-preview-f2c4129d--590caa48-69e5-493c-9a2f-88efefd52aed.lovable.app-1782890234292.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2158693b-f192-4e5f-b358-2ee08281659d/id-preview-f2c4129d--590caa48-69e5-493c-9a2f-88efefd52aed.lovable.app-1782890234292.png",
+      },
     ],
   }),
   component: Landing,
 });
 
-const TIERS = [
-  {
-    name: "Starter",
-    price: "$499",
-    unit: "/mo per yard",
-    blurb: "For a single distribution-center yard.",
-    features: [
-      "1 yard, unlimited trailers",
-      "24h compliance ticker & alerts",
-      "Dispatch board + driver roster",
-      "Gate guard kiosk",
-      "Google Sheets two-way sync",
-      "Email support",
-    ],
-  },
-  {
-    name: "Enterprise",
-    price: "$1,299",
-    unit: "/mo multi-yard",
-    blurb: "For networks running multiple yards.",
-    featured: true,
-    features: [
-      "Unlimited yards & users",
-      "Everything in Starter",
-      "Role-based access (Admin / Dispatcher / Guard)",
-      "Bulk DLM ingestion & batch writeback",
-      "Compliance reporting & history export",
-      "Priority onboarding + SLA",
-    ],
-  },
+const PROBLEMS = [
+  { icon: Search, title: "Lost trailers", body: "Equipment disappears between the yard, the DC, and the driver's memory." },
+  { icon: ClipboardX, title: "Manual dispatching", body: "Phone calls and texts decide who moves what — and nothing is auditable." },
+  { icon: Layers, title: "Spreadsheet chaos", body: "Five versions of the master sheet, none of them current." },
+  { icon: CalendarX, title: "Missed pickups", body: "Tomorrow's loads sit unassigned until it's too late to cover them." },
+  { icon: EyeOff, title: "Poor visibility", body: "No one can answer 'where is that trailer and how long has it been there?'" },
+];
+
+const FEATURES = [
+  { icon: LayoutDashboard, title: "Live Dispatch Board", body: "Every load for today and the days ahead, grouped by date and editable inline." },
+  { icon: MapPin, title: "Trailer Tracking", body: "Outbound and return trailers tracked separately, never overwritten." },
+  { icon: Users, title: "Driver Assignment", body: "Smart driver picker that surfaces scheduled drivers first and writes back instantly." },
+  { icon: Warehouse, title: "Yard Operations", body: "Gate check-in kiosk with auto-stamped arrival times and live aging clocks." },
+  { icon: Sheet, title: "Google Sheets Sync", body: "Two-way, header-matched writeback that survives dispatchers moving columns." },
+  { icon: BellRing, title: "Compliance Alerts", body: "24-hour turnaround breaches and 16:00 coverage gaps escalate automatically." },
+  { icon: BarChart3, title: "Reporting & Analytics", body: "Turn times, detention exposure, and dispatcher throughput in one export." },
+];
+
+const ENTERPRISE = [
+  { icon: Building2, title: "Multi-tenant", body: "Every record scoped to your organization at the database layer." },
+  { icon: Warehouse, title: "Multi-yard", body: "Run one yard or a national network from a single control tower." },
+  { icon: KeyRound, title: "Role-based permissions", body: "Admin, dispatcher, and gate guard roles with least-privilege access." },
+  { icon: ScrollText, title: "Audit logs", body: "Every trailer event and status change is written to an immutable trail." },
+  { icon: Plug, title: "API integrations", body: "Webhooks and REST endpoints to push events into your existing stack." },
+  { icon: Lock, title: "Secure authentication", body: "Managed auth with row-level security enforced on every query." },
+];
+
+const ROI = [
+  { icon: DollarSign, stat: "$3,600+", label: "Detention avoided per month", body: "At $75/hour, catching just four late trailers a week pays for the platform many times over." },
+  { icon: Timer, stat: "31%", label: "Less empty trailer dwell", body: "Live aging clocks push empties out of the yard before the free-time window closes." },
+  { icon: Calendar, stat: "9 hrs", label: "Dispatcher hours saved weekly", body: "No re-keying, no chasing sheet versions, no manual coverage audits at 4 PM." },
 ];
 
 function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-surface/70 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <Truck className="h-5 w-5" />
             </div>
             <span className="truncate text-sm font-bold tracking-tight">Trailer Checker</span>
           </div>
-          <Link to="/auth" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
-            Sign in
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
+              className="hidden rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-surface-2/60 sm:inline-flex"
+            >
+              Book a Demo
+            </a>
+            <Link to="/auth" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
+              Start Free Trial
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4">
-        <section className="py-16 md:py-24">
-          <span className="chip border border-primary/30 bg-primary/10 text-primary">Yard 589 · Chambersburg PA DC proven</span>
-          <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight md:text-5xl">
-            Never blow a 24-hour trailer turnaround again.
-          </h1>
-          <p className="mt-4 max-w-2xl text-base text-muted-foreground">
-            Trailer Checker is the compliance control tower for distribution-center yards: live aging clocks,
-            gate check-in, next-day driver coverage alerts, and two-way Google Sheets sync.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link to="/auth" className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90">
-              Start free trial <ArrowRight className="h-4 w-4" />
-            </Link>
-            <a href="#pricing" className="inline-flex items-center rounded-md border border-border px-5 py-2.5 text-sm font-semibold hover:bg-surface-2/60">
-              See pricing
-            </a>
-          </div>
+      <main>
+        {/* HERO */}
+        <section className="relative overflow-hidden border-b border-border">
+          <div className="pointer-events-none absolute inset-x-0 -top-40 h-[420px] bg-[radial-gradient(60%_60%_at_50%_50%,color-mix(in_oklab,var(--color-primary)_18%,transparent),transparent)]" />
+          <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32">
+            <div className="mx-auto max-w-3xl text-center">
+              <span className="chip border border-primary/30 bg-primary/10 text-primary">
+                Proven at Yard 589 · Chambersburg PA DC
+              </span>
+              <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight md:text-6xl">
+                The Modern Drayage Operating System
+              </h1>
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+                Track trailers, dispatch drivers, eliminate detention, and manage your entire drayage
+                operation from one platform.
+              </p>
+              <div className="mt-10 flex flex-wrap justify-center gap-3">
+                <Link
+                  to="/auth"
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                >
+                  Start Free Trial <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
+                  className="inline-flex items-center rounded-md border border-border px-7 py-3.5 text-sm font-semibold hover:bg-surface-2/60"
+                >
+                  Book a Demo
+                </a>
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground">No credit card required.</p>
+            </div>
 
-          <div className="mt-12 grid gap-3 sm:grid-cols-3">
-            <Feature icon={Timer} title="Live 24h ticker" body="Every yard trailer counts up to the limit and flashes red on breach." />
-            <Feature icon={ShieldCheck} title="Coverage alerts" body="Tomorrow's unassigned drivers go red at 16:00 EST, every day." />
-            <Feature icon={Radio} title="Two-way sheet sync" body="Header-matched writeback that survives dispatchers moving columns." />
+            <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">
+              <img
+                src={dashboardHero}
+                alt="Trailer Checker dispatch dashboard showing live loads, KPI tiles, and trailer status"
+                width={1600}
+                height={1008}
+                className="w-full"
+              />
+            </div>
           </div>
         </section>
 
-        <section id="pricing" className="border-t border-border py-16">
-          <h2 className="text-2xl font-bold tracking-tight">Pricing</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Flat monthly rate. No per-load fees.</p>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {TIERS.map((t) => (
-              <div key={t.name} className={`kpi-card p-6 ${t.featured ? "border !border-primary/50 bg-primary/5" : ""}`}>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">{t.name}</h3>
-                  {t.featured && <span className="chip border border-primary/30 bg-primary/15 text-primary">Most popular</span>}
+        {/* PROBLEMS */}
+        <section className="border-b border-border py-24">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="max-w-2xl">
+              <span className="chip border border-destructive/30 bg-destructive/10 text-destructive">
+                <AlertTriangle className="mr-1 inline h-3 w-3" /> The daily reality
+              </span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+                Drayage still runs on guesswork
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Every hour a trailer goes unaccounted for is margin leaving the yard.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {PROBLEMS.map((p) => (
+                <div key={p.title} className="kpi-card p-6">
+                  <p.icon className="h-5 w-5 text-destructive" />
+                  <h3 className="mt-4 text-base font-semibold">{p.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
                 </div>
-                <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-black tracking-tight">{t.price}</span>
-                  <span className="pb-1 text-xs text-muted-foreground">{t.unit}</span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">{t.blurb}</p>
-                <ul className="mt-5 space-y-2">
-                  {t.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                      <span className="text-muted-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to="/auth"
-                  className={`mt-6 inline-flex w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold ${
-                    t.featured ? "bg-primary text-primary-foreground hover:opacity-90" : "border border-border hover:bg-surface-2/60"
-                  }`}
-                >
-                  Get started
-                </Link>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Billing is not yet processed in-app — pick a plan during onboarding and our team invoices you directly.
-          </p>
+        </section>
+
+        {/* FEATURES */}
+        <section className="border-b border-border py-24">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="max-w-2xl">
+              <span className="chip border border-primary/30 bg-primary/10 text-primary">Platform</span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+                One control tower for the whole operation
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Dispatch, yard, compliance, and reporting in a single system of record.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((f) => (
+                <div key={f.title} className="kpi-card p-6">
+                  <div className="grid h-10 w-10 place-items-center rounded-md bg-primary/10">
+                    <f.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-14 grid items-center gap-10 lg:grid-cols-2">
+              <div>
+                <h3 className="text-2xl font-bold tracking-tight">Yard aging you can see across the room</h3>
+                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                  Arrival timestamps are stamped automatically the moment a return trailer hits the yard.
+                  Under 24 hours is green, 24–48 is yellow, and anything past 48 turns red and escalates —
+                  no one has to remember to check.
+                </p>
+                <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2"><Timer className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> Live countdowns on every trailer in the yard</li>
+                  <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> Coverage alerts for unassigned next-day loads</li>
+                  <li className="flex items-start gap-2"><Radio className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> Real-time updates across every signed-in dispatcher</li>
+                </ul>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-border shadow-xl">
+                <img
+                  src={yardShot}
+                  alt="Yard operations view with trailer aging timers and gate check-in panel"
+                  loading="lazy"
+                  width={1408}
+                  height={912}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ROI */}
+        <section className="border-b border-border py-24">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="max-w-2xl">
+              <span className="chip border border-success/30 bg-success/10 text-success">Return on investment</span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+                Thousands back every month, from the first week
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Detention charges, idle equipment, and dispatcher rework are the three most expensive
+                habits in drayage. Trailer Checker attacks all three at once.
+              </p>
+            </div>
+            <div className="mt-12 grid gap-4 md:grid-cols-3">
+              {ROI.map((r) => (
+                <div key={r.label} className="kpi-card p-7">
+                  <r.icon className="h-5 w-5 text-success" />
+                  <div className="mt-5 text-4xl font-black tracking-tight">{r.stat}</div>
+                  <div className="mt-1 text-sm font-semibold">{r.label}</div>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{r.body}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              A fleet turning 200 trailers a week that eliminates two detention events and four hours of
+              empty dwell per day recovers well over $5,000 a month — before counting the dispatcher hours
+              given back to actually covering freight.
+            </p>
+          </div>
+        </section>
+
+        {/* ENTERPRISE */}
+        <section className="border-b border-border py-24">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="max-w-2xl">
+              <span className="chip border border-primary/30 bg-primary/10 text-primary">Enterprise ready</span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+                Built for networks, not just one yard
+              </h2>
+            </div>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {ENTERPRISE.map((e) => (
+                <div key={e.title} className="kpi-card p-6">
+                  <e.icon className="h-5 w-5 text-primary" />
+                  <h3 className="mt-4 text-base font-semibold">{e.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{e.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-28">
+          <div className="mx-auto max-w-3xl px-6 text-center">
+            <h2 className="text-3xl font-black tracking-tight md:text-5xl">Start Free Trial</h2>
+            <p className="mt-5 text-lg text-muted-foreground">
+              Create your organization, import your first DLM, and watch the yard clocks start ticking in
+              minutes.
+            </p>
+            <div className="mt-10 flex flex-wrap justify-center gap-3">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
+              >
+                Start Free Trial <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a
+                href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
+                className="inline-flex items-center rounded-md border border-border px-8 py-4 text-sm font-semibold hover:bg-surface-2/60"
+              >
+                Book a Demo
+              </a>
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">No credit card required.</p>
+          </div>
         </section>
       </main>
 
-      <footer className="border-t border-border py-8">
-        <div className="mx-auto max-w-6xl px-4 text-xs text-muted-foreground">
+      <footer className="border-t border-border py-10">
+        <div className="mx-auto max-w-6xl px-6 text-xs text-muted-foreground">
           © {new Date().getFullYear()} Trailer Checker · Vital Transportation Corporation
         </div>
       </footer>
-    </div>
-  );
-}
-
-function Feature({ icon: Icon, title, body }: { icon: React.ComponentType<{ className?: string }>; title: string; body: string }) {
-  return (
-    <div className="kpi-card p-5">
-      <Icon className="h-5 w-5 text-primary" />
-      <h3 className="mt-3 text-sm font-semibold">{title}</h3>
-      <p className="mt-1 text-xs text-muted-foreground">{body}</p>
     </div>
   );
 }
