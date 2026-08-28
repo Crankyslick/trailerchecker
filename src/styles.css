@@ -92,6 +92,17 @@
   border-radius: var(--radius);
 }
 
+@utility text-gradient {
+  background: linear-gradient(100deg, var(--info) 0%, var(--primary) 55%, var(--success) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-brand-gradient {
+  background: linear-gradient(120deg, var(--info) 0%, var(--primary) 60%, var(--success) 130%);
+}
+
 @utility chip {
   display: inline-flex;
   align-items: center;
