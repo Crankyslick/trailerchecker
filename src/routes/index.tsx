@@ -97,10 +97,10 @@ const ROI = [
 function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-20 border-b border-border bg-surface/70 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+<header className="sticky top-0 z-20 border-b border-border bg-surface/70 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-gradient text-primary-foreground shadow-lg shadow-primary/20">
               <Truck className="h-5 w-5" />
             </div>
             <span className="truncate text-sm font-bold tracking-tight">TrailerFlow Pro</span>
@@ -108,11 +108,14 @@ function Landing() {
           <div className="flex items-center gap-2">
             <a
               href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
-              className="hidden rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-surface-2/60 sm:inline-flex"
+              className="hidden rounded-full border border-border px-5 py-2 text-sm font-semibold hover:bg-surface-2/60 sm:inline-flex"
             >
               Book a Demo
             </a>
-            <Link to="/auth" className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
+            <Link
+              to="/auth"
+              className="rounded-full bg-brand-gradient px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110"
+            >
               Start Free Trial
             </Link>
           </div>
