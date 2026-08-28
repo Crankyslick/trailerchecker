@@ -36,13 +36,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Track trailers, dispatch drivers, eliminate detention, and manage your entire drayage operation from one platform. Start a free trial — no credit card required.",
+          "Manage trailers, drivers, dispatch, and yard operations in one system. Start a free trial — no credit card required.",
       },
       { property: "og:title", content: "TrailerFlow Pro — The TrailerFlow Pro" },
       {
         property: "og:description",
         content:
-          "One platform for trailer tracking, dispatch, yard operations, and compliance. Built for drayage and distribution-center fleets.",
+          "One platform for trailer tracking, dispatch, yard operations, and compliance. Built for trailer and distribution-center fleets.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
