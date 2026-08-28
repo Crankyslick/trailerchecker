@@ -8,9 +8,9 @@ import { lovable } from "@/integrations/lovable";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Trailer Checker" },
-      { name: "description", content: "Sign in to the Trailer Checker compliance control tower for dispatch, yard, and gate operations." },
-      { property: "og:title", content: "Sign in — Trailer Checker" },
+      { title: "Sign in — TrailerFlow Pro" },
+      { name: "description", content: "Sign in to the TrailerFlow Pro compliance control tower for dispatch, yard, and gate operations." },
+      { property: "og:title", content: "Sign in — TrailerFlow Pro" },
       { property: "og:description", content: "Secure access to your yard compliance control tower." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -83,7 +83,7 @@ function AuthPage() {
             <Truck className="h-6 w-6" />
           </div>
           <div className="leading-tight">
-            <div className="text-base font-bold tracking-tight">Trailer Checker</div>
+            <div className="text-base font-bold tracking-tight">TrailerFlow Pro</div>
             <div className="text-[11px] text-muted-foreground">Compliance Control Tower</div>
           </div>
         </Link>

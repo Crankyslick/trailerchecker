@@ -9,7 +9,7 @@ import { useCurrentUser } from "@/hooks/use-auth";
 export const Route = createFileRoute("/_authenticated/kiosk")({
   head: () => ({
     meta: [
-      { title: "Gate Kiosk — Trailer Checker" },
+      { title: "Gate Kiosk — TrailerFlow Pro" },
       { name: "description", content: "High-contrast gate guard kiosk for trailer check-in, check-out, and lookup." },
     ],
   }),

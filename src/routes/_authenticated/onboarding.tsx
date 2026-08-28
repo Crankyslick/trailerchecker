@@ -8,7 +8,7 @@ import { useCurrentUser } from "@/hooks/use-auth";
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your organization — Trailer Checker" },
+      { title: "Set up your organization — TrailerFlow Pro" },
       { name: "description", content: "Name your organization, count your yards, and pick a plan to finish setup." },
     ],
   }),

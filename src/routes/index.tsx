@@ -32,17 +32,17 @@ import yardShot from "@/assets/yard-screenshot.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Trailer Checker — The Modern Drayage Operating System" },
+      { title: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
       {
         name: "description",
         content:
-          "Track trailers, dispatch drivers, eliminate detention, and manage your entire drayage operation from one platform. Start a free trial — no credit card required.",
+          "Manage trailers, drivers, dispatch, and yard operations in one system. Start a free trial — no credit card required.",
       },
-      { property: "og:title", content: "Trailer Checker — The Modern Drayage Operating System" },
+      { property: "og:title", content: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
       {
         property: "og:description",
         content:
-          "One platform for trailer tracking, dispatch, yard operations, and compliance. Built for drayage and distribution-center fleets.",
+          "One platform for trailer tracking, dispatch, yard operations, and compliance. Built for trailer and distribution-center fleets.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -103,7 +103,7 @@ function Landing() {
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
               <Truck className="h-5 w-5" />
             </div>
-            <span className="truncate text-sm font-bold tracking-tight">Trailer Checker</span>
+            <span className="truncate text-sm font-bold tracking-tight">TrailerFlow Pro</span>
           </div>
           <div className="flex items-center gap-2">
             <a
@@ -129,11 +129,10 @@ function Landing() {
                 Proven at Yard 589 · Chambersburg PA DC
               </span>
               <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight md:text-6xl">
-                The Modern Drayage Operating System
+                TrailerFlow Pro
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-                Track trailers, dispatch drivers, eliminate detention, and manage your entire drayage
-                operation from one platform.
+                Manage trailers, drivers, dispatch, and yard operations in one system.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-3">
                 <Link
@@ -155,7 +154,7 @@ function Landing() {
             <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">
               <img
                 src={dashboardHero}
-                alt="Trailer Checker dispatch dashboard showing live loads, KPI tiles, and trailer status"
+                alt="TrailerFlow Pro dispatch dashboard showing live loads, KPI tiles, and trailer status"
                 width={1600}
                 height={1008}
                 className="w-full"
@@ -172,7 +171,7 @@ function Landing() {
                 <AlertTriangle className="mr-1 inline h-3 w-3" /> The daily reality
               </span>
               <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
-                Drayage still runs on guesswork
+                Trailer yards still run on guesswork
               </h2>
               <p className="mt-4 text-base text-muted-foreground">
                 Every hour a trailer goes unaccounted for is margin leaving the yard.
@@ -252,7 +251,7 @@ function Landing() {
               </h2>
               <p className="mt-4 text-base text-muted-foreground">
                 Detention charges, idle equipment, and dispatcher rework are the three most expensive
-                habits in drayage. Trailer Checker attacks all three at once.
+                habits in the trailer yard. TrailerFlow Pro attacks all three at once.
               </p>
             </div>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
@@ -323,7 +322,7 @@ function Landing() {
 
       <footer className="border-t border-border py-10">
         <div className="mx-auto max-w-6xl px-6 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Trailer Checker · Vital Transportation Corporation
+          © {new Date().getFullYear()} TrailerFlow Pro · Vital Transportation Corporation
         </div>
       </footer>
     </div>

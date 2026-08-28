@@ -14,7 +14,7 @@ import { GuardCheckInModal } from "@/components/GuardCheckInModal";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Control Tower — Trailer Checker" },
+      { title: "Control Tower — TrailerFlow Pro" },
       { name: "description", content: "Real-time yard compliance, 24h turnaround enforcement, and live trailer dispatch control." },
     ],
   }),
