@@ -208,12 +208,12 @@ function Landing() {
               </p>
             </div>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((f) => (
-                <div key={f.title} className="kpi-card p-6">
-                  <div className="grid h-10 w-10 place-items-center rounded-md bg-primary/10">
-                    <f.icon className="h-5 w-5 text-primary" />
+{FEATURES.map((f) => (
+                <div key={f.title} className="kpi-card p-7 transition-colors hover:border-primary/40">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-gradient text-primary-foreground shadow-lg shadow-primary/20">
+                    <f.icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold">{f.title}</h3>
+                  <h3 className="mt-5 text-base font-semibold">{f.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
                 </div>
               ))}
