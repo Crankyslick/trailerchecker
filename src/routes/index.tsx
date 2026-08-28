@@ -129,11 +129,10 @@ function Landing() {
                 Proven at Yard 589 · Chambersburg PA DC
               </span>
               <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight md:text-6xl">
-                The TrailerFlow Pro
+                TrailerFlow Pro
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-                Track trailers, dispatch drivers, eliminate detention, and manage your entire drayage
-                operation from one platform.
+                Manage trailers, drivers, dispatch, and yard operations in one system.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-3">
                 <Link
