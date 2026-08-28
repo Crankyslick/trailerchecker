@@ -300,28 +300,30 @@ function Landing() {
         </section>
 
         {/* CTA */}
-        <section className="py-28">
+<section className="py-32">
           <div className="mx-auto max-w-3xl px-6 text-center">
-            <h2 className="text-3xl font-black tracking-tight md:text-5xl">Start Free Trial</h2>
-            <p className="mt-5 text-lg text-muted-foreground">
+            <h2 className="text-4xl font-black tracking-tight md:text-6xl">
+              <span className="text-gradient">Start Free Trial</span>
+            </h2>
+            <p className="mt-6 text-lg text-muted-foreground">
               Create your organization, import your first DLM, and watch the yard clocks start ticking in
               minutes.
             </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <div className="mt-12 flex flex-wrap justify-center gap-4">
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-8 py-4 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110"
               >
                 Start Free Trial <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
-                className="inline-flex items-center rounded-md border border-border px-8 py-4 text-sm font-semibold hover:bg-surface-2/60"
+                className="inline-flex items-center rounded-full border border-border px-8 py-4 text-base font-semibold hover:bg-surface-2/60"
               >
                 Book a Demo
               </a>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">No credit card required.</p>
+            <p className="mt-5 text-sm text-muted-foreground">No credit card required.</p>
           </div>
         </section>
       </main>
