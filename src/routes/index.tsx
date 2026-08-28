@@ -170,8 +170,8 @@ function Landing() {
         </section>
 
         {/* PROBLEMS */}
-        <section className="border-b border-border py-24">
-          <div className="mx-auto max-w-6xl px-6">
+<section className="border-b border-border py-28">
+          <div className="mx-auto max-w-7xl px-6">
             <div className="max-w-2xl">
               <span className="chip border border-destructive/30 bg-destructive/10 text-destructive">
                 <AlertTriangle className="mr-1 inline h-3 w-3" /> The daily reality
