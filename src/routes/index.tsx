@@ -124,37 +124,40 @@ function Landing() {
 
       <main>
         {/* HERO */}
-        <section className="relative overflow-hidden border-b border-border">
-          <div className="pointer-events-none absolute inset-x-0 -top-40 h-[420px] bg-[radial-gradient(60%_60%_at_50%_50%,color-mix(in_oklab,var(--color-primary)_18%,transparent),transparent)]" />
-          <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32">
-            <div className="mx-auto max-w-3xl text-center">
+<section className="relative overflow-hidden border-b border-border">
+          <div className="pointer-events-none absolute inset-x-0 -top-48 h-[560px] bg-[radial-gradient(55%_55%_at_50%_45%,color-mix(in_oklab,var(--color-primary)_22%,transparent),transparent)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="relative mx-auto max-w-7xl px-6 py-28 md:py-40">
+            <div className="mx-auto max-w-4xl text-center">
               <span className="chip border border-primary/30 bg-primary/10 text-primary">
                 Proven at Yard 589 · Chambersburg PA DC
               </span>
-              <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight md:text-6xl">
-                TrailerFlow Pro
+              <h1 className="mt-8 text-5xl font-black leading-[1.02] tracking-tight md:text-7xl">
+                <span className="text-gradient">The Modern Drayage</span>
+                <br />
+                Operating System
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+              <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
                 Manage trailers, drivers, dispatch, and yard operations in one system.
               </p>
-              <div className="mt-10 flex flex-wrap justify-center gap-3">
+              <div className="mt-12 flex flex-wrap justify-center gap-4">
                 <Link
                   to="/auth"
-                  className="inline-flex items-center gap-2 rounded-md bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-8 py-4 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110"
                 >
                   Start Free Trial <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
                   href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
-                  className="inline-flex items-center rounded-md border border-border px-7 py-3.5 text-sm font-semibold hover:bg-surface-2/60"
+                  className="inline-flex items-center rounded-full border border-border px-8 py-4 text-base font-semibold hover:bg-surface-2/60"
                 >
                   Book a Demo
                 </a>
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">No credit card required.</p>
+              <p className="mt-5 text-sm text-muted-foreground">No credit card required.</p>
             </div>
 
-            <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">
+            <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-border shadow-2xl shadow-primary/10">
               <img
                 src={dashboardHero}
                 alt="TrailerFlow Pro dispatch dashboard showing live loads, KPI tiles, and trailer status"
