@@ -32,13 +32,13 @@ import yardShot from "@/assets/yard-screenshot.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TrailerFlow Pro — The TrailerFlow Pro" },
+      { title: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
       {
         name: "description",
         content:
           "Manage trailers, drivers, dispatch, and yard operations in one system. Start a free trial — no credit card required.",
       },
-      { property: "og:title", content: "TrailerFlow Pro — The TrailerFlow Pro" },
+      { property: "og:title", content: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
       {
         property: "og:description",
         content:
