@@ -196,8 +196,8 @@ function Landing() {
         </section>
 
         {/* FEATURES */}
-        <section className="border-b border-border py-24">
-          <div className="mx-auto max-w-6xl px-6">
+<section className="border-b border-border py-28">
+          <div className="mx-auto max-w-7xl px-6">
             <div className="max-w-2xl">
               <span className="chip border border-primary/30 bg-primary/10 text-primary">Platform</span>
               <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
