@@ -7,12 +7,12 @@ export type AppRole = "admin" | "dispatcher" | "guard";
 
 export type Profile = {
   id: string;
-  org_id: string | null;
+  tenant_id: string | null;
   email: string | null;
   full_name: string | null;
 };
 
-export type Organization = {
+export type Tenant = {
   id: string;
   name: string;
   plan: string;
