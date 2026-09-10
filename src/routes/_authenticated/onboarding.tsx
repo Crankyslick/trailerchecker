@@ -42,7 +42,7 @@ function Onboarding() {
     setBusy(true);
     try {
       const { error } = await supabase
-        .from("organizations")
+        .from("tenants")
         .update({ name: name.trim() || org.name, yard_count: yards, plan, onboarded: true })
         .eq("id", org.id);
       if (error) throw new Error(error.message);
