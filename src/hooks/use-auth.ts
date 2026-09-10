@@ -81,7 +81,9 @@ export function useCurrentUser() {
     loading: loading || (Boolean(userId) && query.isLoading),
     user: session?.user ?? null,
     profile: query.data?.profile ?? null,
-    org: query.data?.org ?? null,
+    tenant: query.data?.tenant ?? null,
+    /** @deprecated use `tenant` */
+    org: query.data?.tenant ?? null,
     roles,
     hasRole,
     isAdmin: hasRole("admin"),
