@@ -31,7 +31,7 @@ function UsersPage() {
     enabled: Boolean(org?.id),
     queryFn: async (): Promise<Member[]> => {
       const { data: profiles, error } = await supabase
-        .from("profiles").select("id, email, full_name").eq("org_id", org!.id);
+        .from("profiles").select("id, email, full_name").eq("tenant_id", org!.id);
       if (error) { console.error(error.message); return []; }
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
       const roleFor = new Map((roles ?? []).map((r) => [r.user_id, r.role as AppRole]));

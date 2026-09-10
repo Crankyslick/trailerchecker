@@ -7,12 +7,12 @@ export type AppRole = "admin" | "dispatcher" | "guard";
 
 export type Profile = {
   id: string;
-  org_id: string | null;
+  tenant_id: string | null;
   email: string | null;
   full_name: string | null;
 };
 
-export type Organization = {
+export type Tenant = {
   id: string;
   name: string;
   plan: string;
@@ -40,7 +40,9 @@ export function useSession() {
   return { session, user: session?.user ?? null, loading };
 }
 
-/** Profile + org + roles for the signed-in user. */
+export type Organization = Tenant;
+
+/** Profile + tenant + roles for the signed-in user. */
 export function useCurrentUser() {
   const { session, loading } = useSession();
   const userId = session?.user?.id ?? null;
@@ -50,23 +52,23 @@ export function useCurrentUser() {
     enabled: Boolean(userId),
     queryFn: async () => {
       const [{ data: profile }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, org_id, email, full_name").eq("id", userId!).maybeSingle(),
+        supabase.from("profiles").select("id, tenant_id, email, full_name").eq("id", userId!).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", userId!),
       ]);
 
-      let org: Organization | null = null;
-      if (profile?.org_id) {
+      let tenant: Tenant | null = null;
+      if (profile?.tenant_id) {
         const { data } = await supabase
-          .from("organizations")
+          .from("tenants")
           .select("id, name, plan, yard_count, onboarded")
-          .eq("id", profile.org_id)
+          .eq("id", profile.tenant_id)
           .maybeSingle();
-        org = (data as Organization | null) ?? null;
+        tenant = (data as Tenant | null) ?? null;
       }
 
       return {
         profile: (profile as Profile | null) ?? null,
-        org,
+        tenant,
         roles: ((roles ?? []) as { role: AppRole }[]).map((r) => r.role),
       };
     },
@@ -79,7 +81,9 @@ export function useCurrentUser() {
     loading: loading || (Boolean(userId) && query.isLoading),
     user: session?.user ?? null,
     profile: query.data?.profile ?? null,
-    org: query.data?.org ?? null,
+    tenant: query.data?.tenant ?? null,
+    /** @deprecated use `tenant` */
+    org: query.data?.tenant ?? null,
     roles,
     hasRole,
     isAdmin: hasRole("admin"),
