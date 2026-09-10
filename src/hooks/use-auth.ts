@@ -52,23 +52,23 @@ export function useCurrentUser() {
     enabled: Boolean(userId),
     queryFn: async () => {
       const [{ data: profile }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, org_id, email, full_name").eq("id", userId!).maybeSingle(),
+        supabase.from("profiles").select("id, tenant_id, email, full_name").eq("id", userId!).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", userId!),
       ]);
 
-      let org: Organization | null = null;
-      if (profile?.org_id) {
+      let tenant: Tenant | null = null;
+      if (profile?.tenant_id) {
         const { data } = await supabase
-          .from("organizations")
+          .from("tenants")
           .select("id, name, plan, yard_count, onboarded")
-          .eq("id", profile.org_id)
+          .eq("id", profile.tenant_id)
           .maybeSingle();
-        org = (data as Organization | null) ?? null;
+        tenant = (data as Tenant | null) ?? null;
       }
 
       return {
         profile: (profile as Profile | null) ?? null,
-        org,
+        tenant,
         roles: ((roles ?? []) as { role: AppRole }[]).map((r) => r.role),
       };
     },
