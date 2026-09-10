@@ -40,7 +40,9 @@ export function useSession() {
   return { session, user: session?.user ?? null, loading };
 }
 
-/** Profile + org + roles for the signed-in user. */
+export type Organization = Tenant;
+
+/** Profile + tenant + roles for the signed-in user. */
 export function useCurrentUser() {
   const { session, loading } = useSession();
   const userId = session?.user?.id ?? null;
