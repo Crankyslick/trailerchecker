@@ -14,14 +14,52 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           active: boolean
           created_at: string
           id: string
           name: string
-          org_id: string | null
           phone: string | null
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -29,8 +67,8 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
-          org_id?: string | null
           phone?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -38,16 +76,16 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
-          org_id?: string | null
           phone?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "drivers_org_id_fkey"
-            columns: ["org_id"]
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -60,6 +98,7 @@ export type Database = {
           arrival_time: string | null
           carrier_comments: string | null
           category: string | null
+          client_id: string | null
           comments: string | null
           created_at: string
           cutoff_date: string | null
@@ -73,7 +112,6 @@ export type Database = {
           has_sweep: boolean | null
           id: string
           invoiced: boolean | null
-          org_id: string | null
           origin_id: string | null
           origin_name: string | null
           outbound_trailer: string | null
@@ -91,6 +129,7 @@ export type Database = {
           str_return_trailer_started_at: string | null
           str_trl_location: string | null
           target_load_id: string | null
+          tenant_id: string | null
           total_distance: string | null
           trip_id: string | null
           trl_location_code: string | null
@@ -109,6 +148,7 @@ export type Database = {
           arrival_time?: string | null
           carrier_comments?: string | null
           category?: string | null
+          client_id?: string | null
           comments?: string | null
           created_at?: string
           cutoff_date?: string | null
@@ -122,7 +162,6 @@ export type Database = {
           has_sweep?: boolean | null
           id?: string
           invoiced?: boolean | null
-          org_id?: string | null
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
@@ -140,6 +179,7 @@ export type Database = {
           str_return_trailer_started_at?: string | null
           str_trl_location?: string | null
           target_load_id?: string | null
+          tenant_id?: string | null
           total_distance?: string | null
           trip_id?: string | null
           trl_location_code?: string | null
@@ -158,6 +198,7 @@ export type Database = {
           arrival_time?: string | null
           carrier_comments?: string | null
           category?: string | null
+          client_id?: string | null
           comments?: string | null
           created_at?: string
           cutoff_date?: string | null
@@ -171,7 +212,6 @@ export type Database = {
           has_sweep?: boolean | null
           id?: string
           invoiced?: boolean | null
-          org_id?: string | null
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
@@ -189,6 +229,7 @@ export type Database = {
           str_return_trailer_started_at?: string | null
           str_trl_location?: string | null
           target_load_id?: string | null
+          tenant_id?: string | null
           total_distance?: string | null
           trip_id?: string | null
           trl_location_code?: string | null
@@ -202,15 +243,98 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "loads_org_id_fkey"
-            columns: ["org_id"]
+            foreignKeyName: "loads_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loads_org_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
       }
-      organizations: {
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_config: {
+        Row: {
+          endpoint_url: string | null
+          id: number
+          last_synced_at: string | null
+          sheet_name: string | null
+          spreadsheet_id: string | null
+          tenant_id: string | null
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          endpoint_url?: string | null
+          id?: number
+          last_synced_at?: string | null
+          sheet_name?: string | null
+          spreadsheet_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          endpoint_url?: string | null
+          id?: number
+          last_synced_at?: string | null
+          sheet_name?: string | null
+          spreadsheet_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_config_org_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
         Row: {
           created_at: string
           id: string
@@ -240,82 +364,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          org_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id: string
-          org_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          org_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sync_config: {
-        Row: {
-          endpoint_url: string | null
-          id: number
-          last_synced_at: string | null
-          org_id: string | null
-          sheet_name: string | null
-          spreadsheet_id: string | null
-          updated_at: string
-          webhook_url: string | null
-        }
-        Insert: {
-          endpoint_url?: string | null
-          id?: number
-          last_synced_at?: string | null
-          org_id?: string | null
-          sheet_name?: string | null
-          spreadsheet_id?: string | null
-          updated_at?: string
-          webhook_url?: string | null
-        }
-        Update: {
-          endpoint_url?: string | null
-          id?: number
-          last_synced_at?: string | null
-          org_id?: string | null
-          sheet_name?: string | null
-          spreadsheet_id?: string | null
-          updated_at?: string
-          webhook_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sync_config_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       trailer_events: {
         Row: {
           created_at: string
@@ -323,7 +371,7 @@ export type Database = {
           id: string
           load_id: string | null
           notes: string | null
-          org_id: string | null
+          tenant_id: string | null
           trailer_number: string | null
         }
         Insert: {
@@ -332,7 +380,7 @@ export type Database = {
           id?: string
           load_id?: string | null
           notes?: string | null
-          org_id?: string | null
+          tenant_id?: string | null
           trailer_number?: string | null
         }
         Update: {
@@ -341,7 +389,7 @@ export type Database = {
           id?: string
           load_id?: string | null
           notes?: string | null
-          org_id?: string | null
+          tenant_id?: string | null
           trailer_number?: string | null
         }
         Relationships: [
@@ -354,9 +402,9 @@ export type Database = {
           },
           {
             foreignKeyName: "trailer_events_org_id_fkey"
-            columns: ["org_id"]
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -390,7 +438,7 @@ export type Database = {
           id: string
           inbound_load_id: string | null
           note: string | null
-          org_id: string | null
+          tenant_id: string | null
           trailer_number: string
         }
         Insert: {
@@ -400,7 +448,7 @@ export type Database = {
           id?: string
           inbound_load_id?: string | null
           note?: string | null
-          org_id?: string | null
+          tenant_id?: string | null
           trailer_number: string
         }
         Update: {
@@ -410,15 +458,15 @@ export type Database = {
           id?: string
           inbound_load_id?: string | null
           note?: string | null
-          org_id?: string | null
+          tenant_id?: string | null
           trailer_number?: string
         }
         Relationships: [
           {
             foreignKeyName: "yard_check_ins_org_id_fkey"
-            columns: ["org_id"]
+            columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -429,7 +477,7 @@ export type Database = {
     }
     Functions: {
       can_dispatch: { Args: never; Returns: boolean }
-      current_org_id: { Args: never; Returns: string }
+      current_tenant_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
