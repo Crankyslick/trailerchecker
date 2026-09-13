@@ -152,7 +152,7 @@ function AuthPage() {
                       </span>
                       <span className="min-w-0">
                         <span className="block text-sm font-semibold">{p.name}</span>
-                        <span className="block text-[11px] text-muted-foreground">{p.tagline} · ${p.pricePerUser}/user/mo</span>
+                        <span className="block text-[11px] text-muted-foreground">{p.tagline} · {p.price} {p.priceUnit}</span>
                       </span>
                     </button>
                   );

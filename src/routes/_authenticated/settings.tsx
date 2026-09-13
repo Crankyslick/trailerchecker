@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, TestTube2, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, TestTube2, Loader2, Check, Package } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateWebhookCache } from "@/lib/webhook";
 import { getSheetHeaders } from "@/lib/sheets.functions";
 import { toast } from "sonner";
+import { PRODUCTS, type ProductKey } from "@/lib/products";
+import { useTenantProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Me Do Logistics" }] }),
@@ -169,5 +171,57 @@ function SettingsPage() {
       </div>
     </div>
 
+  );
+}
+
+function ProductsCard() {
+  const { has, setProduct, loading } = useTenantProducts();
+  const [busy, setBusy] = useState<ProductKey | null>(null);
+
+  async function toggle(key: ProductKey, enabled: boolean) {
+    setBusy(key);
+    try {
+      await setProduct(key, enabled);
+      toast.success(enabled ? "Product activated." : "Product switched off.");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="kpi-card p-5 space-y-4">
+      <h2 className="text-sm font-semibold flex items-center gap-2"><Package className="h-4 w-4 text-primary" /> Your products</h2>
+      <p className="text-xs text-muted-foreground">
+        Switch a product on to unlock its boards for everyone in your organization. Switching off hides it — your data stays.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {PRODUCTS.map((p) => {
+          const on = has(p.key);
+          return (
+            <div key={p.key} className={`rounded-md border p-4 ${on ? "border-primary/40 bg-primary/5" : "border-border bg-surface-2/40"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold">{p.name}</div>
+                  <div className="text-[11px] text-muted-foreground">{p.tagline}</div>
+                </div>
+                {on && <span className="chip border border-success/30 bg-success/15 text-success text-[10px]"><Check className="h-3 w-3" /> Active</span>}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">{p.price} {p.priceUnit}</div>
+              <button
+                onClick={() => void toggle(p.key, !on)}
+                disabled={loading || busy === p.key}
+                className={`mt-3 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+                  on ? "border border-border bg-surface-2 hover:bg-surface-2/70" : "bg-primary text-primary-foreground hover:opacity-90"
+                }`}>
+                {busy === p.key && <Loader2 className="h-3 w-3 animate-spin" />}
+                {on ? "Turn off" : "Activate"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
