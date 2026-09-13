@@ -1,0 +1,2 @@
+ALTER TABLE public.trailer_loads ADD COLUMN IF NOT EXISTS driver_id uuid REFERENCES public.drivers(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS trailer_loads_driver_id_idx ON public.trailer_loads(driver_id);

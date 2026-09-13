@@ -607,6 +607,7 @@ export type Database = {
           delivery_defect_reason: string | null
           delivery_sequence: number | null
           driver: string | null
+          driver_id: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           has_sweep: boolean
@@ -659,6 +660,7 @@ export type Database = {
           delivery_defect_reason?: string | null
           delivery_sequence?: number | null
           driver?: string | null
+          driver_id?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
           has_sweep?: boolean
@@ -711,6 +713,7 @@ export type Database = {
           delivery_defect_reason?: string | null
           delivery_sequence?: number | null
           driver?: string | null
+          driver_id?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
           has_sweep?: boolean
@@ -758,6 +761,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
         ]
