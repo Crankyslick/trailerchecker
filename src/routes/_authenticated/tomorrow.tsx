@@ -4,7 +4,7 @@ import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
 import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
-import type { LoadRow } from "@/lib/loads";
+import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toast } from "sonner";
 import {
@@ -69,7 +69,7 @@ function DispatchControl() {
 /* ---------------- Shared mutation helpers ---------------- */
 
 async function updateLoad(id: string, patch: Partial<LoadRow>) {
-  const { data, error } = await supabase.from("loads").update(patch).eq("id", id).select().single();
+  const { data, error } = await supabase.from("trailer_loads").update(patch).eq("id", id).select().single();
   if (error) { toast.error(error.message); return; }
   toast.success("Saved");
   fireWebhook("load.update", { id, patch, row: data });
@@ -528,10 +528,9 @@ function YardTicker() {
   async function checkIn(e: React.FormEvent) {
     e.preventDefault();
     if (!trailer.trim()) { toast.error("Trailer # required"); return; }
-    const { data, error } = await supabase.from("legacy_yard_check_ins").insert({
+    const { data, error } = await supabase.from("yard_check_ins").insert({
       trailer_number: trailer.trim(),
-      inbound_load_id: loadId.trim() || null,
-      note: note.trim() || null,
+      note: [loadId.trim() ? `Load ${loadId.trim()}` : null, note.trim() || null].filter(Boolean).join(" · ") || null,
     }).select().single();
     if (error) toast.error(error.message);
     else {
@@ -542,7 +541,7 @@ function YardTicker() {
   }
 
   async function checkOut(id: string, trailerNum: string) {
-    const { data, error } = await supabase.from("legacy_yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
+    const { data, error } = await supabase.from("yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
     if (error) toast.error(error.message);
     else { toast.success(`Trailer ${trailerNum} dispatched out of yard`); fireWebhook("yard.check_out", { id, row: data }); }
   }
@@ -879,11 +878,11 @@ function IngestionTool() {
 
       const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === key);
       if (existing) {
-        const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
+        const { error } = await supabase.from("trailer_loads").update(patch as LoadUpdate).eq("id", existing.id);
         if (error) fail++; else ok++;
       } else {
-        const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as Partial<LoadRow> & { schedule_id: string };
-        const { error } = await supabase.from("loads").insert(insertRow);
+        const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as LoadUpdate & { schedule_id: string };
+        const { error } = await supabase.from("trailer_loads").insert(insertRow);
         if (error) fail++; else ok++;
       }
     }
