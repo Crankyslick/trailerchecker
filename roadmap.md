@@ -34,3 +34,16 @@ safety was achieved with a shadow-then-flip inside one database.
 - [ ] Stage 6 — drop legacy tables (loads, legacy_trailer_events,
       legacy_yard_check_ins, sync_config migration) after 1-2 weeks of clean
       daily use. Legacy rows remain untouched as the live fallback.
+
+# Me Do Logistics — two-product platform (Vendasta ready)
+
+- [ ] Rebrand app from "TrailerFlow Pro" to "Me Do Logistics" everywhere
+      (landing, auth, sidebar, meta tags, README).
+- [ ] Product entitlements: tenant_products table (trailer | drayage),
+      chosen at signup, editable in Settings, enforced in RLS helpers.
+- [ ] Separate signup funnels: landing shows two products; /auth?product=…
+      grants only that product. Sidebar + routes gated per product.
+- [ ] Drayage module build (containers, chassis, moves, billing). QuickBooks
+      still a later phase.
+- [ ] Vendasta listing readiness: per-product pricing page, demo account,
+      activation webhook (/api/public/vendasta) once Vendasta creds exist.
