@@ -66,7 +66,7 @@ function Kiosk() {
     setBusy(true);
     try {
       const { error } = await supabase
-        .from("legacy_yard_check_ins")
+        .from("yard_check_ins")
         .update({ checked_out_at: new Date().toISOString() })
         .eq("id", row.id);
       if (error) throw new Error(error.message);

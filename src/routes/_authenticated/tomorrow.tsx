@@ -69,7 +69,7 @@ function DispatchControl() {
 /* ---------------- Shared mutation helpers ---------------- */
 
 async function updateLoad(id: string, patch: Partial<LoadRow>) {
-  const { data, error } = await supabase.from("loads").update(patch).eq("id", id).select().single();
+  const { data, error } = await supabase.from("trailer_loads").update(patch).eq("id", id).select().single();
   if (error) { toast.error(error.message); return; }
   toast.success("Saved");
   fireWebhook("load.update", { id, patch, row: data });
@@ -528,10 +528,9 @@ function YardTicker() {
   async function checkIn(e: React.FormEvent) {
     e.preventDefault();
     if (!trailer.trim()) { toast.error("Trailer # required"); return; }
-    const { data, error } = await supabase.from("legacy_yard_check_ins").insert({
+    const { data, error } = await supabase.from("yard_check_ins").insert({
       trailer_number: trailer.trim(),
-      inbound_load_id: loadId.trim() || null,
-      note: note.trim() || null,
+      note: [loadId.trim() ? `Load ${loadId.trim()}` : null, note.trim() || null].filter(Boolean).join(" · ") || null,
     }).select().single();
     if (error) toast.error(error.message);
     else {
