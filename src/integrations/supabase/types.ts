@@ -58,7 +58,7 @@ export type Database = {
           id: string
           name: string
           slug: string | null
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string
         }
         Insert: {
@@ -66,7 +66,7 @@ export type Database = {
           id?: string
           name: string
           slug?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -74,7 +74,7 @@ export type Database = {
           id?: string
           name?: string
           slug?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -242,7 +242,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string
         }
         Insert: {
@@ -251,7 +251,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -260,7 +260,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -318,7 +318,7 @@ export type Database = {
           id: string
           load_id: string | null
           notes: string | null
-          tenant_id: string | null
+          tenant_id: string
           trailer_number: string | null
         }
         Insert: {
@@ -327,7 +327,7 @@ export type Database = {
           id?: string
           load_id?: string | null
           notes?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           trailer_number?: string | null
         }
         Update: {
@@ -336,7 +336,7 @@ export type Database = {
           id?: string
           load_id?: string | null
           notes?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           trailer_number?: string | null
         }
         Relationships: [
@@ -364,7 +364,7 @@ export type Database = {
           id: string
           inbound_load_id: string | null
           note: string | null
-          tenant_id: string | null
+          tenant_id: string
           trailer_number: string
         }
         Insert: {
@@ -374,7 +374,7 @@ export type Database = {
           id?: string
           inbound_load_id?: string | null
           note?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           trailer_number: string
         }
         Update: {
@@ -384,7 +384,7 @@ export type Database = {
           id?: string
           inbound_load_id?: string | null
           note?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           trailer_number?: string
         }
         Relationships: [
@@ -436,7 +436,7 @@ export type Database = {
           str_return_trailer_started_at: string | null
           str_trl_location: string | null
           target_load_id: string | null
-          tenant_id: string | null
+          tenant_id: string
           total_distance: string | null
           trip_id: string | null
           trl_location_code: string | null
@@ -486,7 +486,7 @@ export type Database = {
           str_return_trailer_started_at?: string | null
           str_trl_location?: string | null
           target_load_id?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           total_distance?: string | null
           trip_id?: string | null
           trl_location_code?: string | null
@@ -536,7 +536,7 @@ export type Database = {
           str_return_trailer_started_at?: string | null
           str_trl_location?: string | null
           target_load_id?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           total_distance?: string | null
           trip_id?: string | null
           trl_location_code?: string | null
@@ -607,7 +607,7 @@ export type Database = {
           last_synced_at: string | null
           sheet_name: string | null
           spreadsheet_id: string | null
-          tenant_id: string | null
+          tenant_id: string
           updated_at: string
           webhook_url: string | null
         }
@@ -617,7 +617,7 @@ export type Database = {
           last_synced_at?: string | null
           sheet_name?: string | null
           spreadsheet_id?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
           webhook_url?: string | null
         }
@@ -627,7 +627,7 @@ export type Database = {
           last_synced_at?: string | null
           sheet_name?: string | null
           spreadsheet_id?: string | null
-          tenant_id?: string | null
+          tenant_id?: string
           updated_at?: string
           webhook_url?: string | null
         }
@@ -749,7 +749,7 @@ export type Database = {
       }
       trailer_clients: {
         Row: {
-          company_id: string | null
+          company_id: string
           contact_info: string | null
           created_at: string
           id: string
@@ -758,7 +758,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          company_id?: string | null
+          company_id?: string
           contact_info?: string | null
           created_at?: string
           id?: string
@@ -767,7 +767,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           contact_info?: string | null
           created_at?: string
           id?: string
@@ -833,7 +833,7 @@ export type Database = {
           category: string | null
           client_id: string | null
           comments: string | null
-          company_id: string | null
+          company_id: string
           created_at: string
           created_by: string | null
           cutoff_date: string | null
@@ -886,7 +886,7 @@ export type Database = {
           category?: string | null
           client_id?: string | null
           comments?: string | null
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           created_by?: string | null
           cutoff_date?: string | null
@@ -939,7 +939,7 @@ export type Database = {
           category?: string | null
           client_id?: string | null
           comments?: string | null
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           created_by?: string | null
           cutoff_date?: string | null
@@ -1009,7 +1009,7 @@ export type Database = {
       }
       trailer_sync_config: {
         Row: {
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
           last_sync_status: string | null
@@ -1020,7 +1020,7 @@ export type Database = {
           webhook_url: string | null
         }
         Insert: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           last_sync_status?: string | null
@@ -1031,7 +1031,7 @@ export type Database = {
           webhook_url?: string | null
         }
         Update: {
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           last_sync_status?: string | null
@@ -1076,7 +1076,7 @@ export type Database = {
         Row: {
           arrival_at: string
           checked_out_at: string | null
-          company_id: string | null
+          company_id: string
           created_at: string
           id: string
           inbound_load_id: string | null
@@ -1086,7 +1086,7 @@ export type Database = {
         Insert: {
           arrival_at?: string
           checked_out_at?: string | null
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           inbound_load_id?: string | null
@@ -1096,7 +1096,7 @@ export type Database = {
         Update: {
           arrival_at?: string
           checked_out_at?: string | null
-          company_id?: string | null
+          company_id?: string
           created_at?: string
           id?: string
           inbound_load_id?: string | null
