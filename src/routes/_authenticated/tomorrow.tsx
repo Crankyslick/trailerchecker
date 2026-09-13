@@ -541,7 +541,7 @@ function YardTicker() {
   }
 
   async function checkOut(id: string, trailerNum: string) {
-    const { data, error } = await supabase.from("legacy_yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
+    const { data, error } = await supabase.from("yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
     if (error) toast.error(error.message);
     else { toast.success(`Trailer ${trailerNum} dispatched out of yard`); fireWebhook("yard.check_out", { id, row: data }); }
   }
@@ -878,11 +878,11 @@ function IngestionTool() {
 
       const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === key);
       if (existing) {
-        const { error } = await supabase.from("loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
+        const { error } = await supabase.from("trailer_loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
         if (error) fail++; else ok++;
       } else {
         const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as Partial<LoadRow> & { schedule_id: string };
-        const { error } = await supabase.from("loads").insert(insertRow);
+        const { error } = await supabase.from("trailer_loads").insert(insertRow);
         if (error) fail++; else ok++;
       }
     }
