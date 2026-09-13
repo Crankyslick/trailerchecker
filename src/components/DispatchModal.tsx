@@ -77,7 +77,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
       // Persist assignment locally: try to update the scheduled load row if found;
       // otherwise create an ad-hoc dispatch note in trailer_events.
       if (captured?.load_id) {
-        await supabase.from("loads").update({
+        await supabase.from("trailer_loads").update({
           outbound_trailer: trailer,
           driver: driverName,
           return_trailer_location: "Store",
@@ -85,11 +85,11 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
         }).eq("id", captured.load_id);
       }
 
-      await supabase.from("legacy_trailer_events").insert({
+      await supabase.from("trailer_events").insert({
         load_id: captured?.load_id ?? null,
         trailer_number: trailer,
         event_type: "Dispatched",
-        notes: `Trailer ${trailer} dispatched from ${yard} → ${NEXT_DESTINATION}. Driver: ${driverName}${previousDriver ? ` · Returned by ${previousDriver}` : ""}${custom ? " (custom)" : ""}`,
+        note: `Trailer ${trailer} dispatched from ${yard} → ${NEXT_DESTINATION}. Driver: ${driverName}${previousDriver ? ` · Returned by ${previousDriver}` : ""}${custom ? " (custom)" : ""}`,
       });
 
       // Fire dynamic Sheet writeback (matches by Load ID)

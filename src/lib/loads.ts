@@ -1,8 +1,8 @@
 import type { Database } from "@/integrations/supabase/types";
 
-export type LoadRow = Database["public"]["Tables"]["loads"]["Row"];
-export type LoadUpdate = Database["public"]["Tables"]["loads"]["Update"];
-export type LoadStatus = Database["public"]["Enums"]["load_status"];
+export type LoadRow = Database["public"]["Tables"]["trailer_loads"]["Row"];
+export type LoadUpdate = Database["public"]["Tables"]["trailer_loads"]["Update"];
+export type LoadStatus = Database["public"]["Enums"]["trailer_load_status"];
 export type TrailerLocation = Database["public"]["Enums"]["trailer_location"];
 
 export const LOAD_STATUSES: LoadStatus[] = [

@@ -18,10 +18,10 @@ function subscribe(table: string, onChange: () => void) {
 
 export function useLoads() {
   const query = useQuery({
-    queryKey: ["loads"],
+    queryKey: ["trailer_loads"],
     queryFn: async (): Promise<LoadRow[]> => {
       const { data, error } = await supabase
-        .from("loads")
+        .from("trailer_loads")
         .select("*")
         .order("cutoff_date", { ascending: true, nullsFirst: false })
         .order("cutoff_time", { ascending: true, nullsFirst: false });
@@ -34,7 +34,7 @@ export function useLoads() {
     initialData: [] as LoadRow[],
   });
 
-  useEffect(() => subscribe("loads", () => { void query.refetch(); }), []);
+  useEffect(() => subscribe("trailer_loads", () => { void query.refetch(); }), []);
 
   return query;
 }
@@ -54,7 +54,7 @@ export function useYardCheckIns() {
     queryKey: ["yard_check_ins"],
     queryFn: async (): Promise<YardCheckIn[]> => {
       const { data, error } = await supabase
-        .from("legacy_yard_check_ins")
+        .from("yard_check_ins")
         .select("*")
         .is("checked_out_at", null)
         .order("arrival_at", { ascending: true });
@@ -67,7 +67,7 @@ export function useYardCheckIns() {
     initialData: [] as YardCheckIn[],
   });
 
-  useEffect(() => subscribe("legacy_yard_check_ins", () => { void query.refetch(); }), []);
+  useEffect(() => subscribe("yard_check_ins", () => { void query.refetch(); }), []);
 
   return query;
 }

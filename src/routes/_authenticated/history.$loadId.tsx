@@ -15,8 +15,8 @@ function HistoryDetail() {
     queryKey: ["history", loadId],
     queryFn: async () => {
       const [{ data: load }, { data: events }] = await Promise.all([
-        supabase.from("loads").select("*").eq("id", loadId).maybeSingle(),
-        supabase.from("legacy_trailer_events").select("*").eq("load_id", loadId).order("created_at", { ascending: true }),
+        supabase.from("trailer_loads").select("*").eq("id", loadId).maybeSingle(),
+        supabase.from("trailer_events").select("*").eq("load_id", loadId).order("created_at", { ascending: true }),
       ]);
       return { load, events: events ?? [] };
     },
@@ -64,7 +64,7 @@ function HistoryDetail() {
                 <Clock className="h-3 w-3" />
                 {new Date(e.created_at).toLocaleString()}
               </div>
-              {e.notes && <div className="text-xs text-muted-foreground mt-1">{e.notes}</div>}
+              {e.note && <div className="text-xs text-muted-foreground mt-1">{e.note}</div>}
             </li>
           ))}
           {data.events.length === 0 && (

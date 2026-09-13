@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/loads")({
 });
 
 async function updateLoad(id: string, patch: Partial<LoadRow>) {
-  const { error } = await supabase.from("loads").update(patch).eq("id", id);
+  const { error } = await supabase.from("trailer_loads").update(patch).eq("id", id);
   if (error) toast.error(error.message);
   else toast.success("Saved");
 }
