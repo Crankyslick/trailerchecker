@@ -52,12 +52,17 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (picked.length === 0) { toast.error("Pick at least one product to start."); return; }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: fullName || email },
+            data: {
+              full_name: fullName || email,
+              company_name: company.trim() || undefined,
+              products: picked.join(","),
+            },
           },
         });
         if (error) throw error;
