@@ -87,6 +87,154 @@ export type Database = {
           },
         ]
       }
+      container_events: {
+        Row: {
+          container_id: string
+          created_at: string
+          event_type: string
+          id: string
+          note: string | null
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          container_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          note?: string | null
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Update: {
+          container_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          note?: string | null
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "container_events_container_id_fkey"
+            columns: ["container_id"]
+            isOneToOne: false
+            referencedRelation: "containers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "container_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      containers: {
+        Row: {
+          appointment_at: string | null
+          bill_of_lading: string | null
+          chassis_number: string | null
+          client_id: string | null
+          container_number: string
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          delivery_location: string | null
+          driver_id: string | null
+          eta: string | null
+          id: string
+          invoiced: boolean
+          last_free_day: string | null
+          notes: string | null
+          pickup_location: string | null
+          port_terminal: string | null
+          rate: number | null
+          returned_at: string | null
+          size: string | null
+          status: Database["public"]["Enums"]["container_status"]
+          steamship_line: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_at?: string | null
+          bill_of_lading?: string | null
+          chassis_number?: string | null
+          client_id?: string | null
+          container_number: string
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          delivery_location?: string | null
+          driver_id?: string | null
+          eta?: string | null
+          id?: string
+          invoiced?: boolean
+          last_free_day?: string | null
+          notes?: string | null
+          pickup_location?: string | null
+          port_terminal?: string | null
+          rate?: number | null
+          returned_at?: string | null
+          size?: string | null
+          status?: Database["public"]["Enums"]["container_status"]
+          steamship_line?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_at?: string | null
+          bill_of_lading?: string | null
+          chassis_number?: string | null
+          client_id?: string | null
+          container_number?: string
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          delivery_location?: string | null
+          driver_id?: string | null
+          eta?: string | null
+          id?: string
+          invoiced?: boolean
+          last_free_day?: string | null
+          notes?: string | null
+          pickup_location?: string | null
+          port_terminal?: string | null
+          rate?: number | null
+          returned_at?: string | null
+          size?: string | null
+          status?: Database["public"]["Enums"]["container_status"]
+          steamship_line?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "containers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "containers_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "containers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           active: boolean
@@ -1006,6 +1154,18 @@ export type Database = {
         | "billing"
         | "driver"
         | "owner"
+      container_status:
+        | "Available"
+        | "Dispatched"
+        | "At Port"
+        | "Loaded"
+        | "In Transit"
+        | "Delivered"
+        | "Empty Ready"
+        | "Returned"
+        | "Completed"
+        | "Delayed"
+        | "Exception"
       legacy_trailer_location:
         | "DC"
         | "Store"
@@ -1168,6 +1328,19 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "dispatcher", "guard", "billing", "driver", "owner"],
+      container_status: [
+        "Available",
+        "Dispatched",
+        "At Port",
+        "Loaded",
+        "In Transit",
+        "Delivered",
+        "Empty Ready",
+        "Returned",
+        "Completed",
+        "Delayed",
+        "Exception",
+      ],
       legacy_trailer_location: [
         "DC",
         "Store",
