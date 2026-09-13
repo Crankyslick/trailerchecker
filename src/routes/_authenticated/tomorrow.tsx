@@ -4,7 +4,7 @@ import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
 import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
-import type { LoadRow } from "@/lib/loads";
+import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toast } from "sonner";
 import {
@@ -878,10 +878,10 @@ function IngestionTool() {
 
       const existing = loads.find((l) => (l as LoadRow & { target_load_id: string | null }).target_load_id === key);
       if (existing) {
-        const { error } = await supabase.from("trailer_loads").update(patch as Partial<LoadRow>).eq("id", existing.id);
+        const { error } = await supabase.from("trailer_loads").update(patch as LoadUpdate).eq("id", existing.id);
         if (error) fail++; else ok++;
       } else {
-        const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as Partial<LoadRow> & { schedule_id: string };
+        const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as LoadUpdate & { schedule_id: string };
         const { error } = await supabase.from("trailer_loads").insert(insertRow);
         if (error) fail++; else ok++;
       }
