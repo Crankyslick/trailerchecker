@@ -1,17 +1,20 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Truck, Loader2, Mail, Lock, User } from "lucide-react";
+import { Truck, Loader2, Mail, Lock, User, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { PRODUCTS, parseProductParam, type ProductKey } from "@/lib/products";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { product?: string } =>
+    typeof search.product === "string" ? { product: search.product } : {},
   head: () => ({
     meta: [
-      { title: "Sign in — TrailerFlow Pro" },
-      { name: "description", content: "Sign in to the TrailerFlow Pro compliance control tower for dispatch, yard, and gate operations." },
-      { property: "og:title", content: "Sign in — TrailerFlow Pro" },
-      { property: "og:description", content: "Secure access to your yard compliance control tower." },
+      { title: "Sign in — Me Do Logistics" },
+      { name: "description", content: "Sign in to Me Do Logistics for trailer, yard and drayage container operations." },
+      { property: "og:title", content: "Sign in — Me Do Logistics" },
+      { property: "og:description", content: "Secure access to your trailer, yard and drayage operations." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -21,11 +24,17 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const search = Route.useSearch();
+  const [mode, setMode] = useState<"signin" | "signup">(search.product ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [company, setCompany] = useState("");
+  const [picked, setPicked] = useState<ProductKey[]>(parseProductParam(search.product));
   const [busy, setBusy] = useState(false);
+
+  const toggleProduct = (key: ProductKey) =>
+    setPicked((cur) => (cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key]));
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -42,12 +51,17 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (picked.length === 0) { toast.error("Pick at least one product to start."); return; }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { full_name: fullName || email },
+            data: {
+              full_name: fullName || email,
+              company_name: company.trim() || undefined,
+              products: picked.join(","),
+            },
           },
         });
         if (error) throw error;
@@ -83,7 +97,7 @@ function AuthPage() {
             <Truck className="h-6 w-6" />
           </div>
           <div className="leading-tight">
-            <div className="text-base font-bold tracking-tight">TrailerFlow Pro</div>
+            <div className="text-base font-bold tracking-tight">Me Do Logistics</div>
             <div className="text-[11px] text-muted-foreground">Compliance Control Tower</div>
           </div>
         </Link>
@@ -115,10 +129,35 @@ function AuthPage() {
 
           <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
-              <Field icon={User} placeholder="Full name" value={fullName} onChange={setFullName} type="text" />
+              <>
+                <Field icon={User} placeholder="Full name" value={fullName} onChange={setFullName} type="text" />
+                <Field icon={Truck} placeholder="Company name" value={company} onChange={setCompany} type="text" />
+              </>
             )}
             <Field icon={Mail} placeholder="you@company.com" value={email} onChange={setEmail} type="email" required />
             <Field icon={Lock} placeholder="Password" value={password} onChange={setPassword} type="password" required />
+            {mode === "signup" && (
+              <div className="space-y-2 pt-1">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Choose your products</div>
+                {PRODUCTS.map((p) => {
+                  const on = picked.includes(p.key);
+                  return (
+                    <button key={p.key} type="button" onClick={() => toggleProduct(p.key)}
+                      className={`flex w-full items-start gap-3 rounded-md border p-3 text-left transition ${
+                        on ? "border-primary/50 bg-primary/10" : "border-border bg-surface-2/40 hover:bg-surface-2"
+                      }`}>
+                      <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border ${on ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
+                        {on && <Check className="h-3 w-3" />}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold">{p.name}</span>
+                        <span className="block text-[11px] text-muted-foreground">{p.tagline} · {p.price} {p.priceUnit}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <button
               type="submit"
               disabled={busy}

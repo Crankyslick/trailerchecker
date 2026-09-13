@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Truck, Warehouse, AlertTriangle, Clock, Activity, ShieldCheck,
@@ -10,11 +10,12 @@ import type { LoadRow } from "@/lib/loads";
 import { toast } from "sonner";
 import { DispatchModal } from "@/components/DispatchModal";
 import { GuardCheckInModal } from "@/components/GuardCheckInModal";
+import { useTenantProducts } from "@/hooks/use-products";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Control Tower — TrailerFlow Pro" },
+      { title: "Control Tower — Me Do Logistics" },
       { name: "description", content: "Real-time yard compliance, 24h turnaround enforcement, and live trailer dispatch control." },
     ],
   }),
@@ -88,6 +89,14 @@ function estDateParts(offsetDays = 0): string {
 
 function ControlTower() {
   useSecondTick();
+  // Drayage-only organizations have no trailer board — send them to containers.
+  const navigate = useNavigate();
+  const { has, loading: productsLoading } = useTenantProducts();
+  useEffect(() => {
+    if (!productsLoading && !has("trailer") && has("drayage")) {
+      void navigate({ to: "/containers", replace: true });
+    }
+  }, [productsLoading, has, navigate]);
   const { data: loads = [] } = useLoads();
   const { data: drivers = [] } = useDrivers();
   const [dispatched, setDispatched] = useState<Set<string>>(new Set());

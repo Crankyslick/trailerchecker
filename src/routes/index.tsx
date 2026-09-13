@@ -25,20 +25,22 @@ import {
   EyeOff,
   DollarSign,
   Calendar,
+  Check,
 } from "lucide-react";
+import { PRODUCTS } from "@/lib/products";
 import dashboardHero from "@/assets/dashboard-hero.jpg";
 import yardShot from "@/assets/yard-screenshot.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
+      { title: "Me Do Logistics — Trailer, Dispatch & Yard Management" },
       {
         name: "description",
         content:
           "Manage trailers, drivers, dispatch, and yard operations in one system. Start a free trial — no credit card required.",
       },
-      { property: "og:title", content: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
+      { property: "og:title", content: "Me Do Logistics — Trailer, Dispatch & Yard Management" },
       {
         property: "og:description",
         content:
@@ -103,7 +105,7 @@ function Landing() {
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-gradient text-primary-foreground shadow-lg shadow-primary/20">
               <Truck className="h-5 w-5" />
             </div>
-            <span className="truncate text-sm font-bold tracking-tight">TrailerFlow Pro</span>
+            <span className="truncate text-sm font-bold tracking-tight">Me Do Logistics</span>
           </div>
           <div className="flex items-center gap-2">
             <a
@@ -133,22 +135,22 @@ function Landing() {
                 Proven at Yard 589 · Chambersburg PA DC
               </span>
               <h1 className="mt-8 text-5xl font-black leading-[1.02] tracking-tight md:text-7xl">
-                <span className="text-gradient">The Modern Drayage</span>
+                <span className="text-gradient">Two products.</span>
                 <br />
-                Operating System
+                One logistics platform.
               </h1>
               <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-                Manage trailers, drivers, dispatch, and yard operations in one system.
+                Run trailer and yard operations, port drayage, or both — sign up for only what you need.
               </p>
               <div className="mt-12 flex flex-wrap justify-center gap-4">
-                <Link
-                  to="/auth"
+                <a
+                  href="#products"
                   className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-8 py-4 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110"
                 >
-                  Start Free Trial <ArrowRight className="h-4 w-4" />
-                </Link>
+                  Choose your product <ArrowRight className="h-4 w-4" />
+                </a>
                 <a
-                  href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
+                  href="mailto:sales@medologistics.com?subject=Book%20a%20demo"
                   className="inline-flex items-center rounded-full border border-border px-8 py-4 text-base font-semibold hover:bg-surface-2/60"
                 >
                   Book a Demo
@@ -160,7 +162,7 @@ function Landing() {
             <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-border shadow-2xl shadow-primary/10">
               <img
                 src={dashboardHero}
-                alt="TrailerFlow Pro dispatch dashboard showing live loads, KPI tiles, and trailer status"
+                alt="Me Do Logistics dispatch dashboard showing live loads, KPI tiles, and trailer status"
                 width={1600}
                 height={1008}
                 className="w-full"
@@ -168,6 +170,57 @@ function Landing() {
             </div>
           </div>
         </section>
+
+        {/* PRODUCTS */}
+        <section id="products" className="border-b border-border py-28">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="chip border border-primary/30 bg-primary/10 text-primary">Pick one, or both</span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+                Buy only the operation you run
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Each product is sold, activated and billed on its own. Add the second one later in a click.
+              </p>
+            </div>
+            <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
+              {PRODUCTS.map((p) => (
+                <div key={p.key} className="kpi-card flex flex-col p-8">
+                  <h3 className="text-xl font-bold tracking-tight">{p.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>
+                  <div className="mt-6 flex items-baseline gap-2">
+                    <span className="text-4xl font-black tracking-tight">{p.price}</span>
+                    <span className="text-sm text-muted-foreground">{p.priceUnit}</span>
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{p.blurb}</p>
+                  <ul className="mt-6 flex-1 space-y-2.5">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-sm">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to="/auth"
+                    search={{ product: p.key }}
+                    className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110"
+                  >
+                    Start free trial <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+            <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted-foreground">
+              Need both?{" "}
+              <Link to="/auth" search={{ product: "trailer,drayage" }} className="font-semibold text-primary hover:underline">
+                Start with the full platform
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+
 
         {/* PROBLEMS */}
 <section className="border-b border-border py-28">
@@ -257,7 +310,7 @@ function Landing() {
               </h2>
               <p className="mt-4 text-base text-muted-foreground">
                 Detention charges, idle equipment, and dispatcher rework are the three most expensive
-                habits in the trailer yard. TrailerFlow Pro attacks all three at once.
+                habits in the trailer yard. Me Do Logistics attacks all three at once.
               </p>
             </div>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
@@ -330,7 +383,7 @@ function Landing() {
 
       <footer className="border-t border-border py-10">
         <div className="mx-auto max-w-7xl px-6 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} TrailerFlow Pro · Vital Transportation Corporation
+          © {new Date().getFullYear()} Me Do Logistics · Vital Transportation Corporation
         </div>
       </footer>
     </div>
