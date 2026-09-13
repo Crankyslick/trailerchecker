@@ -25,7 +25,9 @@ import {
   EyeOff,
   DollarSign,
   Calendar,
+  Check,
 } from "lucide-react";
+import { PRODUCTS } from "@/lib/products";
 import dashboardHero from "@/assets/dashboard-hero.jpg";
 import yardShot from "@/assets/yard-screenshot.jpg";
 
