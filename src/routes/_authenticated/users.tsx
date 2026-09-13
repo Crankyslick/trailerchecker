@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { UserCog, ShieldCheck, Loader2 } from "lucide-react";
+import { UserCog, ShieldCheck, Loader2, MailPlus, Trash2, Clock, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, type AppRole } from "@/hooks/use-auth";
@@ -22,9 +23,13 @@ const ROLES: { id: AppRole; label: string; desc: string }[] = [
 ];
 
 type Member = { id: string; email: string | null; full_name: string | null; role: AppRole | null };
+type Invite = { id: string; email: string; role: AppRole; accepted_at: string | null; created_at: string };
 
 function UsersPage() {
   const { isAdmin, org, user } = useCurrentUser();
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<AppRole>("dispatcher");
+  const [inviting, setInviting] = useState(false);
 
   const { data: members = [], isLoading, refetch } = useQuery({
     queryKey: ["org-members", org?.id],
@@ -39,6 +44,20 @@ function UsersPage() {
     },
   });
 
+  const { data: invites = [], refetch: refetchInvites } = useQuery({
+    queryKey: ["tenant-invites", org?.id],
+    enabled: Boolean(org?.id) && isAdmin,
+    queryFn: async (): Promise<Invite[]> => {
+      const { data, error } = await supabase
+        .from("tenant_invites")
+        .select("id, email, role, accepted_at, created_at")
+        .eq("tenant_id", org!.id)
+        .order("created_at", { ascending: false });
+      if (error) { console.error(error.message); return []; }
+      return (data ?? []) as Invite[];
+    },
+  });
+
   async function setRole(memberId: string, role: AppRole) {
     try {
       const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", memberId);
@@ -47,6 +66,41 @@ function UsersPage() {
       if (error) throw new Error(error.message);
       toast.success("Role updated");
       void refetch();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  async function sendInvite() {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email || !org?.id) return;
+    if (members.some((m) => m.email?.toLowerCase() === email)) {
+      toast.error("That person is already a member.");
+      return;
+    }
+    setInviting(true);
+    try {
+      const { error } = await supabase.from("tenant_invites").upsert(
+        { tenant_id: org.id, email, role: inviteRole, invited_by: user?.id ?? null, accepted_at: null },
+        { onConflict: "tenant_id,email" },
+      );
+      if (error) throw new Error(error.message);
+      toast.success(`Invite saved for ${email}. They join this organization when they sign up with that email.`);
+      setInviteEmail("");
+      void refetchInvites();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  async function revokeInvite(invite: Invite) {
+    try {
+      const { error } = await supabase.from("tenant_invites").delete().eq("id", invite.id);
+      if (error) throw new Error(error.message);
+      toast.success(`Invite for ${invite.email} revoked.`);
+      void refetchInvites();
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -69,6 +123,68 @@ function UsersPage() {
         </p>
       )}
 
+      {isAdmin && (
+        <div className="kpi-card space-y-3 p-5">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <MailPlus className="h-4 w-4 text-primary" /> Invite a teammate
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            They will join <span className="font-medium text-foreground">{org?.name ?? "your organization"}</span> automatically
+            when they sign up with the invited email — no separate account setup.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="teammate@company.com"
+              className="flex-1 rounded-md border border-border bg-surface-2 px-3 py-2.5 text-sm outline-none focus:border-primary/60"
+            />
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as AppRole)}
+              className="rounded-md border border-border bg-surface-2 px-3 py-2.5 text-sm outline-none focus:border-primary/60"
+            >
+              {ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+            </select>
+            <button
+              onClick={sendInvite}
+              disabled={inviting || !inviteEmail.trim()}
+              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              {inviting && <Loader2 className="h-4 w-4 animate-spin" />} Send invite
+            </button>
+          </div>
+
+          {invites.length > 0 && (
+            <div className="divide-y divide-border/40 rounded-md border border-border/60">
+              {invites.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <div className="truncate font-mono text-xs">{inv.email}</div>
+                    <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <span>{ROLES.find((r) => r.id === inv.role)?.label ?? inv.role}</span>
+                      {inv.accepted_at ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-400"><CheckCircle2 className="h-3 w-3" /> Joined</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-amber-400"><Clock className="h-3 w-3" /> Pending</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => revokeInvite(inv)}
+                    title="Revoke invite"
+                    className="rounded p-1.5 text-muted-foreground hover:bg-surface-2 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="kpi-card overflow-hidden">
         {isLoading ? (
           <div className="grid place-items-center py-12"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
@@ -84,7 +200,7 @@ function UsersPage() {
               </thead>
               <tbody>
                 {members.length === 0 && (
-                  <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No teammates yet — invite them to sign up.</td></tr>
+                  <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No teammates yet — invite them above.</td></tr>
                 )}
                 {members.map((m) => (
                   <tr key={m.id} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
