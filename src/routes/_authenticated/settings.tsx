@@ -75,6 +75,7 @@ function SettingsPage() {
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2"><SettingsIcon className="h-6 w-6 text-primary" /> Settings</h1>
         <p className="text-sm text-muted-foreground">Compliance thresholds and bidirectional Google Sheet sync.</p>
       </div>
+      <ProductsCard />
 
       <div className="kpi-card p-5 space-y-4">
         <h2 className="text-sm font-semibold">Compliance Rule</h2>
