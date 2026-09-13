@@ -85,7 +85,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
         }).eq("id", captured.load_id);
       }
 
-      await supabase.from("trailer_events").insert({
+      await supabase.from("legacy_trailer_events").insert({
         load_id: captured?.load_id ?? null,
         trailer_number: trailer,
         event_type: "Dispatched",

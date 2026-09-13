@@ -23,7 +23,7 @@ export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
     setSubmitting(true);
     try {
       const arrival = new Date().toISOString();
-      const { error } = await supabase.from("yard_check_ins").insert({
+      const { error } = await supabase.from("legacy_yard_check_ins").insert({
         trailer_number: trailer.trim(),
         arrival_at: arrival,
         note: note.trim() || null,

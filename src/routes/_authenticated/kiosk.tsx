@@ -48,7 +48,7 @@ function Kiosk() {
     if (!t) { toast.error("Enter a trailer #"); return; }
     setBusy(true);
     try {
-      const { error } = await supabase.from("yard_check_ins").insert({
+      const { error } = await supabase.from("legacy_yard_check_ins").insert({
         trailer_number: t,
         inbound_load_id: loadId.trim() || null,
         arrival_at: new Date().toISOString(),
@@ -67,7 +67,7 @@ function Kiosk() {
     setBusy(true);
     try {
       const { error } = await supabase
-        .from("yard_check_ins")
+        .from("legacy_yard_check_ins")
         .update({ checked_out_at: new Date().toISOString() })
         .eq("id", row.id);
       if (error) throw new Error(error.message);

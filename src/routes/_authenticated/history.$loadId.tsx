@@ -16,7 +16,7 @@ function HistoryDetail() {
     queryFn: async () => {
       const [{ data: load }, { data: events }] = await Promise.all([
         supabase.from("loads").select("*").eq("id", loadId).maybeSingle(),
-        supabase.from("trailer_events").select("*").eq("load_id", loadId).order("created_at", { ascending: true }),
+        supabase.from("legacy_trailer_events").select("*").eq("load_id", loadId).order("created_at", { ascending: true }),
       ]);
       return { load, events: events ?? [] };
     },

@@ -528,7 +528,7 @@ function YardTicker() {
   async function checkIn(e: React.FormEvent) {
     e.preventDefault();
     if (!trailer.trim()) { toast.error("Trailer # required"); return; }
-    const { data, error } = await supabase.from("yard_check_ins").insert({
+    const { data, error } = await supabase.from("legacy_yard_check_ins").insert({
       trailer_number: trailer.trim(),
       inbound_load_id: loadId.trim() || null,
       note: note.trim() || null,
@@ -542,7 +542,7 @@ function YardTicker() {
   }
 
   async function checkOut(id: string, trailerNum: string) {
-    const { data, error } = await supabase.from("yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
+    const { data, error } = await supabase.from("legacy_yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
     if (error) toast.error(error.message);
     else { toast.success(`Trailer ${trailerNum} dispatched out of yard`); fireWebhook("yard.check_out", { id, row: data }); }
   }
