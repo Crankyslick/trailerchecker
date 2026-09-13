@@ -7,9 +7,8 @@ import { lovable } from "@/integrations/lovable";
 import { PRODUCTS, parseProductParam, type ProductKey } from "@/lib/products";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    product: typeof search.product === "string" ? search.product : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { product?: string } =>
+    typeof search.product === "string" ? { product: search.product } : {},
   head: () => ({
     meta: [
       { title: "Sign in — Me Do Logistics" },
