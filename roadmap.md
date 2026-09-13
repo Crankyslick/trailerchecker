@@ -20,8 +20,11 @@ safety was achieved with a shadow-then-flip inside one database.
 - [x] Stage 4 — verification: zero mismatches on trailer numbers, yard timers,
       status and schedule dates; typecheck clean; signed-in click-through of
       dashboard, dispatch board, kiosk and history with no console errors.
-- [ ] Stage 5 — cutover to the merged Me Do Logistics UI. BLOCKED on user:
-      - which verticals to ship (trailer-only vs. also drayage/QuickBooks)
-      - driver free-text vs. linked driver records
-      - chosen cutover date (not same-day)
+- [x] Scope decided: trailer/yard only. Drayage + QuickBooks is a separate,
+      later go-live (needs QBO OAuth, second role set, container/chassis flows).
+- [x] Drivers linked: trailer_loads.driver_id -> drivers(id), indexed, backfilled
+      by exact name match. 10/10 loads with a driver linked, 0 unmatched.
+      Free-text `driver` column retained alongside for traceability.
+- [ ] Stage 5 — cutover to the trailer/yard UI. BLOCKED on user: cutover date
+      (light-volume day, announced ahead to drivers/dispatchers).
 - [ ] Stage 6 — drop legacy tables, only after Stage 5 is confirmed in daily use.
