@@ -1,17 +1,21 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Truck, Loader2, Mail, Lock, User } from "lucide-react";
+import { Truck, Loader2, Mail, Lock, User, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { PRODUCTS, parseProductParam, type ProductKey } from "@/lib/products";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    product: typeof search.product === "string" ? search.product : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — Me Do Logistics" },
-      { name: "description", content: "Sign in to the Me Do Logistics compliance control tower for dispatch, yard, and gate operations." },
+      { name: "description", content: "Sign in to Me Do Logistics for trailer, yard and drayage container operations." },
       { property: "og:title", content: "Sign in — Me Do Logistics" },
-      { property: "og:description", content: "Secure access to your yard compliance control tower." },
+      { property: "og:description", content: "Secure access to your trailer, yard and drayage operations." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -21,11 +25,17 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const search = Route.useSearch();
+  const [mode, setMode] = useState<"signin" | "signup">(search.product ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [company, setCompany] = useState("");
+  const [picked, setPicked] = useState<ProductKey[]>(parseProductParam(search.product));
   const [busy, setBusy] = useState(false);
+
+  const toggleProduct = (key: ProductKey) =>
+    setPicked((cur) => (cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key]));
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
