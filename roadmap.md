@@ -25,6 +25,12 @@ safety was achieved with a shadow-then-flip inside one database.
 - [x] Drivers linked: trailer_loads.driver_id -> drivers(id), indexed, backfilled
       by exact name match. 10/10 loads with a driver linked, 0 unmatched.
       Free-text `driver` column retained alongside for traceability.
-- [ ] Stage 5 — cutover to the trailer/yard UI. BLOCKED on user: cutover date
-      (light-volume day, announced ahead to drivers/dispatchers).
-- [ ] Stage 6 — drop legacy tables, only after Stage 5 is confirmed in daily use.
+- [x] Stage 5 — CUTOVER DONE (2026-09-13). App reads/writes trailer_loads,
+      trailer_events, yard_check_ins. Mirrored triggers added on trailer_loads
+      (yard auto-stamp, status/trailer/location events, driver_id auto-link).
+      LoadRow/LoadStatus types repointed at trailer_loads/trailer_load_status.
+      Verified signed in: 136 loads, 128 archived, 8 active, no console errors.
+      sync_config (Sheets settings) intentionally left on the legacy table.
+- [ ] Stage 6 — drop legacy tables (loads, legacy_trailer_events,
+      legacy_yard_check_ins, sync_config migration) after 1-2 weeks of clean
+      daily use. Legacy rows remain untouched as the live fallback.
