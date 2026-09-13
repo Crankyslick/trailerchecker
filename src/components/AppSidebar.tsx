@@ -1,21 +1,38 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarClock, History, Users, UserCog, Settings, Truck, Smartphone } from "lucide-react";
+import { LayoutDashboard, CalendarClock, History, Users, UserCog, Settings, Truck, Smartphone, Container } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { useTenantProducts } from "@/hooks/use-products";
+import type { ProductKey } from "@/lib/products";
 
-const items = [
-  { to: "/dashboard", label: "Control Tower", icon: LayoutDashboard, roles: ["admin", "dispatcher"] },
-  { to: "/tomorrow", label: "Tomorrow Board", icon: CalendarClock, roles: ["admin", "dispatcher"] },
-  { to: "/kiosk", label: "Gate Kiosk", icon: Smartphone, roles: ["admin", "dispatcher", "guard"] },
-  { to: "/history", label: "History", icon: History, roles: ["admin", "dispatcher"] },
-  { to: "/drivers", label: "Drivers", icon: Users, roles: ["admin", "dispatcher"] },
-  { to: "/users", label: "Users", icon: UserCog, roles: ["admin"] },
-  { to: "/settings", label: "Settings", icon: Settings, roles: ["admin"] },
+type Item = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  roles: readonly string[];
+  product?: ProductKey;
+};
+
+const items: readonly Item[] = [
+  { to: "/dashboard", label: "Control Tower", icon: LayoutDashboard, roles: ["owner", "admin", "dispatcher"], product: "trailer" },
+  { to: "/tomorrow", label: "Tomorrow Board", icon: CalendarClock, roles: ["owner", "admin", "dispatcher"], product: "trailer" },
+  { to: "/kiosk", label: "Gate Kiosk", icon: Smartphone, roles: ["owner", "admin", "dispatcher", "guard"], product: "trailer" },
+  { to: "/history", label: "History", icon: History, roles: ["owner", "admin", "dispatcher"], product: "trailer" },
+  { to: "/containers", label: "Container Board", icon: Container, roles: ["owner", "admin", "dispatcher"], product: "drayage" },
+  { to: "/drivers", label: "Drivers", icon: Users, roles: ["owner", "admin", "dispatcher"] },
+  { to: "/users", label: "Users", icon: UserCog, roles: ["owner", "admin"] },
+  { to: "/settings", label: "Settings", icon: Settings, roles: ["owner", "admin"] },
 ] as const;
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { roles, org } = useCurrentUser();
-  const visible = items.filter((it) => roles.length === 0 || it.roles.some((r) => roles.includes(r as never)));
+  const { has, loading } = useTenantProducts();
+
+  const visible = items.filter((it) => {
+    const roleOk = roles.length === 0 || it.roles.some((r) => roles.includes(r as never));
+    const productOk = !it.product || loading || has(it.product);
+    return roleOk && productOk;
+  });
 
   return (
     <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-border bg-surface/40 backdrop-blur">
@@ -25,7 +42,7 @@ export function AppSidebar() {
         </div>
         <div className="min-w-0 leading-tight">
           <div className="truncate text-sm font-bold tracking-tight">Me Do Logistics</div>
-          <div className="truncate text-[10px] text-muted-foreground">{org?.name ?? "Yard 589 · Compliance"}</div>
+          <div className="truncate text-[10px] text-muted-foreground">{org?.name ?? "Operations"}</div>
         </div>
       </div>
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
@@ -45,7 +62,7 @@ export function AppSidebar() {
         })}
       </nav>
       <div className="px-3 py-3 border-t border-border text-[10px] text-muted-foreground">
-        v1.0 · Ahmed Beshir
+        v1.0 · Me Do Logistics
       </div>
     </aside>
   );
