@@ -133,22 +133,22 @@ function Landing() {
                 Proven at Yard 589 · Chambersburg PA DC
               </span>
               <h1 className="mt-8 text-5xl font-black leading-[1.02] tracking-tight md:text-7xl">
-                <span className="text-gradient">The Modern Drayage</span>
+                <span className="text-gradient">Two products.</span>
                 <br />
-                Operating System
+                One logistics platform.
               </h1>
               <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-                Manage trailers, drivers, dispatch, and yard operations in one system.
+                Run trailer and yard operations, port drayage, or both — sign up for only what you need.
               </p>
               <div className="mt-12 flex flex-wrap justify-center gap-4">
-                <Link
-                  to="/auth"
+                <a
+                  href="#products"
                   className="inline-flex items-center gap-2 rounded-full bg-brand-gradient px-8 py-4 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110"
                 >
-                  Start Free Trial <ArrowRight className="h-4 w-4" />
-                </Link>
+                  Choose your product <ArrowRight className="h-4 w-4" />
+                </a>
                 <a
-                  href="mailto:sales@trailerchecker.com?subject=Book%20a%20demo"
+                  href="mailto:sales@medologistics.com?subject=Book%20a%20demo"
                   className="inline-flex items-center rounded-full border border-border px-8 py-4 text-base font-semibold hover:bg-surface-2/60"
                 >
                   Book a Demo
