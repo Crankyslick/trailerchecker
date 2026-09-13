@@ -58,6 +58,7 @@ export type Database = {
           id: string
           name: string
           slug: string | null
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -65,6 +66,7 @@ export type Database = {
           id?: string
           name: string
           slug?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -72,9 +74,18 @@ export type Database = {
           id?: string
           name?: string
           slug?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "companies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       drivers: {
         Row: {
@@ -891,6 +902,7 @@ export type Database = {
     }
     Functions: {
       can_dispatch: { Args: never; Returns: boolean }
+      current_company_id: { Args: never; Returns: string }
       current_tenant_id: { Args: never; Returns: string }
       current_user_has_any_role: {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
@@ -907,7 +919,13 @@ export type Database = {
       is_staff: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "dispatcher" | "guard" | "billing" | "driver"
+      app_role:
+        | "admin"
+        | "dispatcher"
+        | "guard"
+        | "billing"
+        | "driver"
+        | "owner"
       legacy_trailer_location:
         | "DC"
         | "Store"
@@ -1068,7 +1086,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "dispatcher", "guard", "billing", "driver"],
+      app_role: ["admin", "dispatcher", "guard", "billing", "driver", "owner"],
       legacy_trailer_location: [
         "DC",
         "Store",
