@@ -9,7 +9,7 @@ import { useCurrentUser, type AppRole } from "@/hooks/use-auth";
 export const Route = createFileRoute("/_authenticated/users")({
   head: () => ({
     meta: [
-      { title: "Users — TrailerFlow Pro" },
+      { title: "Users — Me Do Logistics" },
       { name: "description", content: "Manage dispatchers, DC managers, and gate guards in your organization." },
     ],
   }),

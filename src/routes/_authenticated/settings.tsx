@@ -8,7 +8,7 @@ import { getSheetHeaders } from "@/lib/sheets.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — TrailerFlow Pro" }] }),
+  head: () => ({ meta: [{ title: "Settings — Me Do Logistics" }] }),
   component: SettingsPage,
 });
 

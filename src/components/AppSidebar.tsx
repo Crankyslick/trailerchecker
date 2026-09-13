@@ -24,7 +24,7 @@ export function AppSidebar() {
           <Truck className="h-5 w-5" />
         </div>
         <div className="min-w-0 leading-tight">
-          <div className="truncate text-sm font-bold tracking-tight">TrailerFlow Pro</div>
+          <div className="truncate text-sm font-bold tracking-tight">Me Do Logistics</div>
           <div className="truncate text-[10px] text-muted-foreground">{org?.name ?? "Yard 589 · Compliance"}</div>
         </div>
       </div>

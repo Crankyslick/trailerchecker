@@ -32,13 +32,13 @@ import yardShot from "@/assets/yard-screenshot.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
+      { title: "Me Do Logistics — Trailer, Dispatch & Yard Management" },
       {
         name: "description",
         content:
           "Manage trailers, drivers, dispatch, and yard operations in one system. Start a free trial — no credit card required.",
       },
-      { property: "og:title", content: "TrailerFlow Pro — Trailer, Dispatch & Yard Management" },
+      { property: "og:title", content: "Me Do Logistics — Trailer, Dispatch & Yard Management" },
       {
         property: "og:description",
         content:
@@ -103,7 +103,7 @@ function Landing() {
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-gradient text-primary-foreground shadow-lg shadow-primary/20">
               <Truck className="h-5 w-5" />
             </div>
-            <span className="truncate text-sm font-bold tracking-tight">TrailerFlow Pro</span>
+            <span className="truncate text-sm font-bold tracking-tight">Me Do Logistics</span>
           </div>
           <div className="flex items-center gap-2">
             <a
@@ -160,7 +160,7 @@ function Landing() {
             <div className="mx-auto mt-20 max-w-5xl overflow-hidden rounded-2xl border border-border shadow-2xl shadow-primary/10">
               <img
                 src={dashboardHero}
-                alt="TrailerFlow Pro dispatch dashboard showing live loads, KPI tiles, and trailer status"
+                alt="Me Do Logistics dispatch dashboard showing live loads, KPI tiles, and trailer status"
                 width={1600}
                 height={1008}
                 className="w-full"
@@ -257,7 +257,7 @@ function Landing() {
               </h2>
               <p className="mt-4 text-base text-muted-foreground">
                 Detention charges, idle equipment, and dispatcher rework are the three most expensive
-                habits in the trailer yard. TrailerFlow Pro attacks all three at once.
+                habits in the trailer yard. Me Do Logistics attacks all three at once.
               </p>
             </div>
             <div className="mt-12 grid gap-4 md:grid-cols-3">
@@ -330,7 +330,7 @@ function Landing() {
 
       <footer className="border-t border-border py-10">
         <div className="mx-auto max-w-7xl px-6 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} TrailerFlow Pro · Vital Transportation Corporation
+          © {new Date().getFullYear()} Me Do Logistics · Vital Transportation Corporation
         </div>
       </footer>
     </div>
