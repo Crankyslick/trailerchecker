@@ -54,7 +54,7 @@ export function useYardCheckIns() {
     queryKey: ["yard_check_ins"],
     queryFn: async (): Promise<YardCheckIn[]> => {
       const { data, error } = await supabase
-        .from("yard_check_ins")
+        .from("legacy_yard_check_ins")
         .select("*")
         .is("checked_out_at", null)
         .order("arrival_at", { ascending: true });
@@ -67,7 +67,7 @@ export function useYardCheckIns() {
     initialData: [] as YardCheckIn[],
   });
 
-  useEffect(() => subscribe("yard_check_ins", () => { void query.refetch(); }), []);
+  useEffect(() => subscribe("legacy_yard_check_ins", () => { void query.refetch(); }), []);
 
   return query;
 }
