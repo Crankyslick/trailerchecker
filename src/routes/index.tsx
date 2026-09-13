@@ -169,6 +169,57 @@ function Landing() {
           </div>
         </section>
 
+        {/* PRODUCTS */}
+        <section id="products" className="border-b border-border py-28">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="chip border border-primary/30 bg-primary/10 text-primary">Pick one, or both</span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl">
+                Buy only the operation you run
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Each product is sold, activated and billed on its own. Add the second one later in a click.
+              </p>
+            </div>
+            <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
+              {PRODUCTS.map((p) => (
+                <div key={p.key} className="kpi-card flex flex-col p-8">
+                  <h3 className="text-xl font-bold tracking-tight">{p.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>
+                  <div className="mt-6 flex items-baseline gap-2">
+                    <span className="text-4xl font-black tracking-tight">{p.price}</span>
+                    <span className="text-sm text-muted-foreground">{p.priceUnit}</span>
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{p.blurb}</p>
+                  <ul className="mt-6 flex-1 space-y-2.5">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-sm">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to="/auth"
+                    search={{ product: p.key }}
+                    className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110"
+                  >
+                    Start free trial <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+            <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted-foreground">
+              Need both?{" "}
+              <Link to="/auth" search={{ product: "trailer,drayage" }} className="font-semibold text-primary hover:underline">
+                Start with the full platform
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+
+
         {/* PROBLEMS */}
 <section className="border-b border-border py-28">
           <div className="mx-auto max-w-7xl px-6">
