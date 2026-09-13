@@ -531,6 +531,44 @@ export type Database = {
           },
         ]
       }
+      tenant_products: {
+        Row: {
+          created_at: string
+          id: string
+          product: Database["public"]["Enums"]["product_key"]
+          status: string
+          tenant_id: string
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product: Database["public"]["Enums"]["product_key"]
+          status?: string
+          tenant_id: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product?: Database["public"]["Enums"]["product_key"]
+          status?: string
+          tenant_id?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
@@ -955,6 +993,10 @@ export type Database = {
       }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      tenant_has_product: {
+        Args: { _product: Database["public"]["Enums"]["product_key"] }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
@@ -983,6 +1025,7 @@ export type Database = {
         | "Completed"
         | "Delayed"
         | "Exception"
+      product_key: "trailer" | "drayage"
       trailer_load_status:
         | "Assigned"
         | "Heading To DC"
@@ -1146,6 +1189,7 @@ export const Constants = {
         "Delayed",
         "Exception",
       ],
+      product_key: ["trailer", "drayage"],
       trailer_load_status: [
         "Assigned",
         "Heading To DC",
