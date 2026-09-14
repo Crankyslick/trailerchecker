@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, TestTube2, Loader2, Check, Package } from "lucide-react";
+import { Settings as SettingsIcon, TestTube2, Loader2, Check, Package, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
+import { useSheetSyncStatus, useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
+import { describeEntry, discardOutboxEntry, requeueAllFailed, requeueOutboxEntry } from "@/lib/sheet-outbox";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateWebhookCache } from "@/lib/webhook";
@@ -140,6 +142,8 @@ function SettingsPage() {
           </div>
         )}
       </div>
+
+      <SyncQueueCard />
 
       <div className="kpi-card p-5 space-y-4">
         <div>
