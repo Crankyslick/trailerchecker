@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { X, Send, UserPlus, ShieldAlert, Loader2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useLoads } from "@/hooks/use-loads";
 import { useDrivers } from "@/hooks/use-drivers";
-import { writeCellsByHeader } from "@/lib/sheets.functions";
+import { queueSheetUpdate } from "@/lib/sheet-outbox";
+import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
@@ -28,7 +28,7 @@ function estDate(offsetDays = 0): string {
 export function DispatchModal({ open, onClose, trailer, yard, previousDriver, onDispatched }: Props) {
   const { data: loads = [] } = useLoads();
   const { data: rosterDrivers = [] } = useDrivers();
-  const writeCells = useServerFn(writeCellsByHeader);
+  const drain = useDrainSheetOutbox();
 
   const [selected, setSelected] = useState<string>("");
   const [customName, setCustomName] = useState("");
@@ -92,25 +92,14 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
         note: `Trailer ${trailer} dispatched from ${yard} → ${NEXT_DESTINATION}. Driver: ${driverName}${previousDriver ? ` · Returned by ${previousDriver}` : ""}${custom ? " (custom)" : ""}`,
       });
 
-      // Fire dynamic Sheet writeback (matches by Load ID)
+      // Queue the Sheet writeback (durable: retried until it lands)
       if (captured?.load_id && (captured.schedule_id || captured.trip_id)) {
-        try {
-          const res = await writeCells({
-            data: {
-              matchColumn: "Load ID",
-              matchValue: captured.load_id,
-              updates: {
-                "Driver": driverName,
-                "RDC Trailer": trailer,
-                "Pickup Cutoff Time": captured.cutoff ?? "",
-              },
-            },
-          });
-          if (res.ok && res.matched) toast.success(`Sheet row ${res.rowNumber} updated`);
-          else if (res && !res.matched) toast.info(res.reason ?? "No matching sheet row");
-        } catch (e) {
-          toast.warning(`Sheet writeback skipped: ${(e as Error).message}`);
-        }
+        await queueSheetUpdate("Load ID", captured.load_id, {
+          "Driver": driverName,
+          "RDC Trailer": trailer,
+          "Pickup Cutoff Time": captured.cutoff ?? "",
+        });
+        void drain.mutateAsync().catch(() => undefined);
       }
 
       toast.success(`Trailer ${trailer} dispatched to ${NEXT_DESTINATION}`);

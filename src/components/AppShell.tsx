@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
 
 function timeAgo(iso: string | null) {
   if (!iso) return "never";
@@ -25,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [sync, setSync] = useState<{ url: string | null; last: string | null }>({ url: null, last: null });
   const [, tick] = useState(0);
   const { profile, roles, org } = useCurrentUser();
+  useSheetOutboxWorker();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

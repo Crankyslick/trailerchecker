@@ -7,6 +7,7 @@ import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
+import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { toast } from "sonner";
 import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
@@ -797,6 +798,7 @@ function departureDate(r: ParsedRow): string | null {
 
 function IngestionTool() {
   const { data: loads = [] } = useLoads();
+  const drainOutbox = useDrainSheetOutbox();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const { rows: parsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
@@ -857,10 +859,10 @@ function IngestionTool() {
     const normalizedRows = parsed.map(normalizeForWebhook);
     fireWebhook("dlm.sync", { count: parsed.length, updates, inserts, rows: normalizedRows });
 
-    // Bidirectional writeback to Google Sheet — batch update rows keyed by Load ID
-    // using dynamic header resolution. Errors are non-fatal (DB sync still succeeded).
+    // Bidirectional writeback to Google Sheet — queued per Load ID so a slow or
+    // unavailable sheet never loses an ingest; the queue retries in the background.
     try {
-      const { batchWriteByHeader } = await import("@/lib/sheets.functions");
+      const { queueSheetUpdates } = await import("@/lib/sheet-outbox");
       const rows = parsed
         .filter((r) => r["Load ID"])
         .map((r) => ({
@@ -876,16 +878,12 @@ function IngestionTool() {
           },
         }));
       if (rows.length > 0) {
-        const res = await batchWriteByHeader({ data: { matchColumn: "Load ID", rows } });
-        if (!res.ok) {
-          toast.warning(res.warnings[0] ?? "Sheet writeback skipped");
-        } else {
-          const matched = res.results.filter((x) => x.matched).length;
-          toast.success(`Sheet writeback · ${matched}/${rows.length} rows matched · ${res.written} cells updated`);
-        }
+        const queued = await queueSheetUpdates("Load ID", rows);
+        toast.success(`Sheet writeback queued · ${queued} row(s)`);
+        void drainOutbox.mutateAsync().catch(() => undefined);
       }
     } catch (e) {
-      toast.warning(`Sheet writeback skipped: ${(e as Error).message}`);
+      toast.warning(`Sheet writeback could not be queued: ${(e as Error).message}`);
     }
 
     setBusy(false);

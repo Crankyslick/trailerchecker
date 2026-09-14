@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, TestTube2, Loader2, Check, Package } from "lucide-react";
+import { Settings as SettingsIcon, TestTube2, Loader2, Check, Package, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
+import { useSheetSyncStatus, useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
+import { describeEntry, discardOutboxEntry, requeueAllFailed, requeueOutboxEntry } from "@/lib/sheet-outbox";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateWebhookCache } from "@/lib/webhook";
@@ -141,6 +143,8 @@ function SettingsPage() {
         )}
       </div>
 
+      <SyncQueueCard />
+
       <div className="kpi-card p-5 space-y-4">
         <div>
           <h2 className="text-sm font-semibold">Billing & Plans</h2>
@@ -222,6 +226,111 @@ function ProductsCard() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function SyncQueueCard() {
+  const { stats, problems } = useSheetSyncStatus();
+  const drain = useDrainSheetOutbox();
+  const pending = stats.data.pending;
+  const failed = stats.data.failed;
+
+  async function retryAll() {
+    try {
+      await requeueAllFailed();
+      await drain.mutateAsync();
+      toast.success("Retrying every stuck update");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  async function retryOne(id: string) {
+    try {
+      await requeueOutboxEntry(id);
+      await drain.mutateAsync();
+      toast.success("Retried");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  async function discard(id: string) {
+    try {
+      await discardOutboxEntry(id);
+      void problems.refetch();
+      void stats.refetch();
+      toast.success("Removed from the queue");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  return (
+    <div className="kpi-card p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold">Sheet Sync Queue</h2>
+          <p className="text-xs text-muted-foreground">
+            Every update to the sheet is queued first and retried automatically, so nothing is lost
+            when the sheet is slow, busy or offline.
+          </p>
+        </div>
+        <button onClick={() => drain.mutate()} disabled={drain.isPending}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-md border border-primary/40 text-primary text-sm hover:bg-primary/10 disabled:opacity-50">
+          {drain.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Sync now
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-md border border-border bg-surface-2/40 p-3">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Waiting</div>
+          <div className="text-xl font-semibold tabular-nums">{pending}</div>
+        </div>
+        <div className={`rounded-md border p-3 ${failed > 0 ? "border-destructive/40 bg-destructive/10" : "border-border bg-surface-2/40"}`}>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Needs attention</div>
+          <div className="text-xl font-semibold tabular-nums">{failed}</div>
+        </div>
+      </div>
+
+      {failed > 0 && (
+        <button onClick={retryAll}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+          <RefreshCw className="h-3.5 w-3.5" /> Retry all stuck updates
+        </button>
+      )}
+
+      {problems.data.length > 0 && (
+        <div className="rounded-md border border-border divide-y divide-border">
+          {problems.data.map((e) => (
+            <div key={e.id} className="flex items-start gap-3 p-3 text-sm">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium truncate">{describeEntry(e)}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {e.status === "failed" ? (
+                    <span className="inline-flex items-center gap-1 text-destructive">
+                      <AlertTriangle className="h-3 w-3" /> {e.last_error ?? "Could not be sent"}
+                    </span>
+                  ) : (
+                    <>Waiting · attempt {e.attempts + 1}</>
+                  )}
+                </div>
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <button onClick={() => retryOne(e.id)} title="Retry"
+                  className="rounded p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => discard(e.id)} title="Remove"
+                  className="rounded p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

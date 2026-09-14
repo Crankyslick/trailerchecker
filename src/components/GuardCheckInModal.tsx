@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { X, Warehouse, Loader2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { appendRowByHeader } from "@/lib/sheets.functions";
+import { queueSheetAppend } from "@/lib/sheet-outbox";
+import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 
 type Props = { open: boolean; onClose: () => void; onSaved?: () => void };
 
@@ -14,7 +14,7 @@ export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
   const [yard, setYard] = useState<typeof YARDS[number]>("589 Chambersburg");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const append = useServerFn(appendRowByHeader);
+  const drain = useDrainSheetOutbox();
 
   if (!open) return null;
 
@@ -30,27 +30,19 @@ export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
       });
       if (error) throw new Error(error.message);
 
-      // Best-effort Sheet append with dynamic header mapping
-      try {
-        const res = await append({
-          data: {
-            record: {
-              "Trailer #": trailer.trim(),
-              "TRL Location": yard,
-              "STR RTRN TRL#": trailer.trim(),
-              "Status": "Checked In",
-              "Alert Status": "Guard Shack",
-              "Carrier Comments": note.trim() || `Arrived at ${yard}`,
-              "Updated By": "Guard Shack",
-              "Expected Pickup": arrival,
-            },
-          },
-        });
-        if (res.ok) toast.success(`Trailer ${trailer.trim()} logged · appended to sheet ${res.updatedRange ?? ""}`);
-        else toast.warning(`Saved locally. ${res.warnings[0] ?? "Sheet append skipped."}`);
-      } catch (e) {
-        toast.warning(`Saved locally. Sheet append skipped: ${(e as Error).message}`);
-      }
+      // Durable Sheet append — queued, then retried until it lands
+      await queueSheetAppend({
+        "Trailer #": trailer.trim(),
+        "TRL Location": yard,
+        "STR RTRN TRL#": trailer.trim(),
+        "Status": "Checked In",
+        "Alert Status": "Guard Shack",
+        "Carrier Comments": note.trim() || `Arrived at ${yard}`,
+        "Updated By": "Guard Shack",
+        "Expected Pickup": arrival,
+      });
+      void drain.mutateAsync().catch(() => undefined);
+      toast.success(`Trailer ${trailer.trim()} logged · queued for the sheet`);
 
       setTrailer(""); setNote("");
       onSaved?.();

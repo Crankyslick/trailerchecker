@@ -21,6 +21,7 @@ const TENANT_TABLES = [
   "yard_check_ins",
   "trailer_clients",
   "trailer_sync_config",
+  "sheet_sync_outbox",
   "loads",
   "drivers",
   "clients",
