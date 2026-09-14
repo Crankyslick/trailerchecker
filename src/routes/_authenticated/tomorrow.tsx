@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
+import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { toast } from "sonner";
 import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
