@@ -7,6 +7,9 @@ import { lovable } from "@/integrations/lovable";
 import { PRODUCTS, parseProductParam, type ProductKey } from "@/lib/products";
 
 export const Route = createFileRoute("/auth")({
+  // Client-only: initial UI state derives from the ?product= search param and
+  // the live auth session, which SSR cannot reproduce (hydration mismatch).
+  ssr: false,
   validateSearch: (search: Record<string, unknown>): { product?: string } =>
     typeof search.product === "string" ? { product: search.product } : {},
   head: () => ({
