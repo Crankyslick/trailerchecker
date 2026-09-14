@@ -7,6 +7,7 @@ import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
+import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { toast } from "sonner";
 import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
@@ -797,6 +798,7 @@ function departureDate(r: ParsedRow): string | null {
 
 function IngestionTool() {
   const { data: loads = [] } = useLoads();
+  const drainOutbox = useDrainSheetOutbox();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const { rows: parsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
