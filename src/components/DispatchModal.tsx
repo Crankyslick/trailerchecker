@@ -28,7 +28,7 @@ function estDate(offsetDays = 0): string {
 export function DispatchModal({ open, onClose, trailer, yard, previousDriver, onDispatched }: Props) {
   const { data: loads = [] } = useLoads();
   const { data: rosterDrivers = [] } = useDrivers();
-  const writeCells = useServerFn(writeCellsByHeader);
+  const drain = useDrainSheetOutbox();
 
   const [selected, setSelected] = useState<string>("");
   const [customName, setCustomName] = useState("");

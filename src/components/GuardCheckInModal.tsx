@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { X, Warehouse, Loader2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { appendRowByHeader } from "@/lib/sheets.functions";
+import { queueSheetAppend } from "@/lib/sheet-outbox";
+import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 
 type Props = { open: boolean; onClose: () => void; onSaved?: () => void };
 
