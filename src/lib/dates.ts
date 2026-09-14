@@ -19,7 +19,7 @@ export function toEstIsoDate(s: string | undefined | null): string | null {
     return `${y}-${mo.padStart(2, "0")}-${da.padStart(2, "0")}`;
   }
   const ymd = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (ymd && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+  if (ymd && !hasOffset) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
 
   // 2) Anything else (ISO w/ offset, "Nov 12, 2025 08:30"): convert into ET.
   const d = new Date(raw);
