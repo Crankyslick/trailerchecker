@@ -9,8 +9,11 @@ export function toEstIsoDate(s: string | undefined | null): string | null {
   if (!raw) return null;
 
   // 1) Explicit wall-clock strings without a timezone offset: take the date as-is.
+  // A tz offset only counts when the string also contains a time portion —
+  // otherwise the "-2026" in "7-30-2026" looks like an offset.
+  const hasOffset = /[zZ]/.test(raw) || (/:/.test(raw) && /[+-]\d{2}:?\d{2}$/.test(raw));
   const mdy = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
-  if (mdy && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)) {
+  if (mdy && !hasOffset) {
     const [, mo, da, yr] = mdy;
     const y = yr.length === 2 ? `20${yr}` : yr;
     return `${y}-${mo.padStart(2, "0")}-${da.padStart(2, "0")}`;
