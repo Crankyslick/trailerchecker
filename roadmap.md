@@ -48,3 +48,15 @@ safety was achieved with a shadow-then-flip inside one database.
       Billing/invoicing and QuickBooks still a later phase.
 - [ ] Vendasta listing readiness: per-product pricing page, demo account,
       activation webhook (/api/public/vendasta) once Vendasta creds exist.
+
+# Reliability hardening (post-audit)
+
+- [x] Automated tests: 50 passing (date parsing, yard aging, product rules,
+      anonymous access denied on every tenant table) + Playwright smoke test.
+- [x] Durable two-way Sheets sync: sheet_sync_outbox queue (company-scoped RLS),
+      processSheetOutbox drain with exponential backoff (1/5/15/60/180m, 6 tries),
+      unmatched row = permanent failure, background worker in AppShell,
+      Sheet Sync Queue panel in Settings (counts, retry one/all, discard).
+      Dispatch, guard check-in and DLM bulk ingest all queue instead of
+      fire-and-forget.
+- [ ] Supervised 1-2 week pilot before the sheet stops being system of record.
