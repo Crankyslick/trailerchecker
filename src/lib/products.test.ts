@@ -44,12 +44,11 @@ describe("product catalog", () => {
 
   it("trailer product unlocks the dispatch/yard routes", () => {
     const t = productByKey("trailer");
-    for (const r of ["/dashboard", "/tomorrow", "/kiosk", "/yard"]) {
-      // /yard may live under routes; ensure core dispatch routes are present
-      void r;
-    }
     expect(t.routes).toContain("/dashboard");
+    expect(t.routes).toContain("/tomorrow");
     expect(t.routes).toContain("/kiosk");
+    expect(t.routes).toContain("/history");
+    expect(t.routes).toContain("/drivers");
   });
 
   it("unknown key falls back to the trailer product", () => {
