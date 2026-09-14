@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [sync, setSync] = useState<{ url: string | null; last: string | null }>({ url: null, last: null });
   const [, tick] = useState(0);
   const { profile, roles, org } = useCurrentUser();
+  useSheetOutboxWorker();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
