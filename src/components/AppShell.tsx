@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
 
 function timeAgo(iso: string | null) {
   if (!iso) return "never";
