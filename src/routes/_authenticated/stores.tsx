@@ -30,13 +30,17 @@ function StoreBoard() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Store Board</h1>
-        <p className="text-sm text-muted-foreground">Per-store snapshot — today's loads, drivers, return trailers.</p>
+        <p className="text-sm text-muted-foreground">
+          Per-store snapshot — today's loads, drivers, return trailers.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {groups.map((g) => {
           const todays = g.loads.filter((l) => l.schedule_date === today);
-          const active = g.loads.find((l) => !["Completed", "Returned To DC"].includes(l.status ?? ""));
+          const active = g.loads.find(
+            (l) => !["Completed", "Returned To DC"].includes(l.status ?? ""),
+          );
           return (
             <div key={g.number} className="kpi-card p-5 space-y-4">
               <div className="flex items-start justify-between gap-3">
@@ -68,8 +72,14 @@ function StoreBoard() {
               </div>
 
               <div>
-                <div className="text-[10px] uppercase text-muted-foreground mb-1.5">Current Status</div>
-                {active?.status ? <StatusChip status={active.status} /> : <span className="text-xs text-muted-foreground">No active load</span>}
+                <div className="text-[10px] uppercase text-muted-foreground mb-1.5">
+                  Current Status
+                </div>
+                {active?.status ? (
+                  <StatusChip status={active.status} />
+                ) : (
+                  <span className="text-xs text-muted-foreground">No active load</span>
+                )}
               </div>
 
               <div className="border-t border-border pt-3 text-xs text-muted-foreground flex justify-between">

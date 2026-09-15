@@ -7,6 +7,8 @@ import {
   locationColor,
   LOAD_STATUSES,
   TRAILER_LOCATIONS,
+  yardBadge,
+  YARD_POLICY,
 } from "./loads";
 
 describe("yard aging tiers (<24h green, 24-48h yellow, >48h red)", () => {
@@ -72,5 +74,21 @@ describe("status and location colors", () => {
     expect(statusColor("At Yard")).toContain("warning");
     expect(locationColor("Yard")).toContain("warning");
     expect(locationColor("Returned To DC")).toContain("success");
+  });
+});
+
+describe("shared yard aging policy", () => {
+  it("badges follow the same thresholds as yardTier", () => {
+    expect(yardBadge(1).label).toBe("OK");
+    expect(yardBadge(YARD_POLICY.deadlineHours - 0.1).label).toBe("OK");
+    expect(yardBadge(YARD_POLICY.deadlineHours).label).toBe("OVERDUE");
+    expect(yardBadge(YARD_POLICY.criticalHours).label).toBe("CRITICAL");
+    expect(yardBadge(null).label).toBe("—");
+  });
+
+  it("badge colour matches the tier colour family", () => {
+    expect(yardBadge(1).cls).toContain("success");
+    expect(yardBadge(30).cls).toContain("warning");
+    expect(yardBadge(60).cls).toContain("danger");
   });
 });

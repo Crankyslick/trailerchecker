@@ -1,1312 +1,1303 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
       clients: {
         Row: {
-          contact_info: string | null
-          created_at: string
-          id: string
-          name: string
-          notes: string | null
-          tenant_id: string
-          updated_at: string
-        }
+          contact_info: string | null;
+          created_at: string;
+          id: string;
+          name: string;
+          notes: string | null;
+          tenant_id: string;
+          updated_at: string;
+        };
         Insert: {
-          contact_info?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          notes?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          contact_info?: string | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Update: {
-          contact_info?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          notes?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          contact_info?: string | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "clients_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "clients_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       companies: {
         Row: {
-          created_at: string
-          id: string
-          name: string
-          slug: string | null
-          tenant_id: string
-          updated_at: string
-        }
+          created_at: string;
+          id: string;
+          name: string;
+          slug: string | null;
+          tenant_id: string;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          slug?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          created_at?: string;
+          id?: string;
+          name: string;
+          slug?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          slug?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          created_at?: string;
+          id?: string;
+          name?: string;
+          slug?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "companies_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "companies_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       company_sites: {
         Row: {
-          active: boolean
-          code: string | null
-          company_id: string
-          created_at: string
-          id: string
-          is_default: boolean
-          kind: string
-          name: string
-          updated_at: string
-        }
+          active: boolean;
+          code: string | null;
+          company_id: string;
+          created_at: string;
+          id: string;
+          is_default: boolean;
+          kind: string;
+          name: string;
+          updated_at: string;
+        };
         Insert: {
-          active?: boolean
-          code?: string | null
-          company_id?: string
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          kind?: string
-          name: string
-          updated_at?: string
-        }
+          active?: boolean;
+          code?: string | null;
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          is_default?: boolean;
+          kind?: string;
+          name: string;
+          updated_at?: string;
+        };
         Update: {
-          active?: boolean
-          code?: string | null
-          company_id?: string
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          kind?: string
-          name?: string
-          updated_at?: string
-        }
+          active?: boolean;
+          code?: string | null;
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          is_default?: boolean;
+          kind?: string;
+          name?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "company_sites_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "company_sites_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       container_events: {
         Row: {
-          container_id: string
-          created_at: string
-          event_type: string
-          id: string
-          note: string | null
-          tenant_id: string
-          user_id: string | null
-        }
+          container_id: string;
+          created_at: string;
+          event_type: string;
+          id: string;
+          note: string | null;
+          tenant_id: string;
+          user_id: string | null;
+        };
         Insert: {
-          container_id: string
-          created_at?: string
-          event_type: string
-          id?: string
-          note?: string | null
-          tenant_id?: string
-          user_id?: string | null
-        }
+          container_id: string;
+          created_at?: string;
+          event_type: string;
+          id?: string;
+          note?: string | null;
+          tenant_id?: string;
+          user_id?: string | null;
+        };
         Update: {
-          container_id?: string
-          created_at?: string
-          event_type?: string
-          id?: string
-          note?: string | null
-          tenant_id?: string
-          user_id?: string | null
-        }
+          container_id?: string;
+          created_at?: string;
+          event_type?: string;
+          id?: string;
+          note?: string | null;
+          tenant_id?: string;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "container_events_container_id_fkey"
-            columns: ["container_id"]
-            isOneToOne: false
-            referencedRelation: "containers"
-            referencedColumns: ["id"]
+            foreignKeyName: "container_events_container_id_fkey";
+            columns: ["container_id"];
+            isOneToOne: false;
+            referencedRelation: "containers";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "container_events_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "container_events_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       containers: {
         Row: {
-          appointment_at: string | null
-          bill_of_lading: string | null
-          chassis_number: string | null
-          client_id: string | null
-          container_number: string
-          created_at: string
-          created_by: string | null
-          delivered_at: string | null
-          delivery_location: string | null
-          driver_id: string | null
-          eta: string | null
-          id: string
-          invoiced: boolean
-          last_free_day: string | null
-          notes: string | null
-          pickup_location: string | null
-          port_terminal: string | null
-          rate: number | null
-          returned_at: string | null
-          size: string | null
-          status: Database["public"]["Enums"]["container_status"]
-          steamship_line: string | null
-          tenant_id: string
-          updated_at: string
-        }
+          appointment_at: string | null;
+          bill_of_lading: string | null;
+          chassis_number: string | null;
+          client_id: string | null;
+          container_number: string;
+          created_at: string;
+          created_by: string | null;
+          delivered_at: string | null;
+          delivery_location: string | null;
+          driver_id: string | null;
+          eta: string | null;
+          id: string;
+          invoiced: boolean;
+          last_free_day: string | null;
+          notes: string | null;
+          pickup_location: string | null;
+          port_terminal: string | null;
+          rate: number | null;
+          returned_at: string | null;
+          size: string | null;
+          status: Database["public"]["Enums"]["container_status"];
+          steamship_line: string | null;
+          tenant_id: string;
+          updated_at: string;
+        };
         Insert: {
-          appointment_at?: string | null
-          bill_of_lading?: string | null
-          chassis_number?: string | null
-          client_id?: string | null
-          container_number: string
-          created_at?: string
-          created_by?: string | null
-          delivered_at?: string | null
-          delivery_location?: string | null
-          driver_id?: string | null
-          eta?: string | null
-          id?: string
-          invoiced?: boolean
-          last_free_day?: string | null
-          notes?: string | null
-          pickup_location?: string | null
-          port_terminal?: string | null
-          rate?: number | null
-          returned_at?: string | null
-          size?: string | null
-          status?: Database["public"]["Enums"]["container_status"]
-          steamship_line?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          appointment_at?: string | null;
+          bill_of_lading?: string | null;
+          chassis_number?: string | null;
+          client_id?: string | null;
+          container_number: string;
+          created_at?: string;
+          created_by?: string | null;
+          delivered_at?: string | null;
+          delivery_location?: string | null;
+          driver_id?: string | null;
+          eta?: string | null;
+          id?: string;
+          invoiced?: boolean;
+          last_free_day?: string | null;
+          notes?: string | null;
+          pickup_location?: string | null;
+          port_terminal?: string | null;
+          rate?: number | null;
+          returned_at?: string | null;
+          size?: string | null;
+          status?: Database["public"]["Enums"]["container_status"];
+          steamship_line?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Update: {
-          appointment_at?: string | null
-          bill_of_lading?: string | null
-          chassis_number?: string | null
-          client_id?: string | null
-          container_number?: string
-          created_at?: string
-          created_by?: string | null
-          delivered_at?: string | null
-          delivery_location?: string | null
-          driver_id?: string | null
-          eta?: string | null
-          id?: string
-          invoiced?: boolean
-          last_free_day?: string | null
-          notes?: string | null
-          pickup_location?: string | null
-          port_terminal?: string | null
-          rate?: number | null
-          returned_at?: string | null
-          size?: string | null
-          status?: Database["public"]["Enums"]["container_status"]
-          steamship_line?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          appointment_at?: string | null;
+          bill_of_lading?: string | null;
+          chassis_number?: string | null;
+          client_id?: string | null;
+          container_number?: string;
+          created_at?: string;
+          created_by?: string | null;
+          delivered_at?: string | null;
+          delivery_location?: string | null;
+          driver_id?: string | null;
+          eta?: string | null;
+          id?: string;
+          invoiced?: boolean;
+          last_free_day?: string | null;
+          notes?: string | null;
+          pickup_location?: string | null;
+          port_terminal?: string | null;
+          rate?: number | null;
+          returned_at?: string | null;
+          size?: string | null;
+          status?: Database["public"]["Enums"]["container_status"];
+          steamship_line?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "containers_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            foreignKeyName: "containers_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "containers_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "drivers"
-            referencedColumns: ["id"]
+            foreignKeyName: "containers_driver_id_fkey";
+            columns: ["driver_id"];
+            isOneToOne: false;
+            referencedRelation: "drivers";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "containers_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "containers_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       drivers: {
         Row: {
-          active: boolean
-          created_at: string
-          id: string
-          name: string
-          phone: string | null
-          tenant_id: string
-          updated_at: string
-        }
+          active: boolean;
+          created_at: string;
+          id: string;
+          name: string;
+          phone: string | null;
+          tenant_id: string;
+          updated_at: string;
+        };
         Insert: {
-          active?: boolean
-          created_at?: string
-          id?: string
-          name: string
-          phone?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          name: string;
+          phone?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Update: {
-          active?: boolean
-          created_at?: string
-          id?: string
-          name?: string
-          phone?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          phone?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "drivers_org_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "drivers_org_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       entities: {
         Row: {
-          country: string | null
-          created_at: string
-          id: string
-          name: string
-          parent_tenant_id: string
-          settings: Json
-          updated_at: string
-        }
+          country: string | null;
+          created_at: string;
+          id: string;
+          name: string;
+          parent_tenant_id: string;
+          settings: Json;
+          updated_at: string;
+        };
         Insert: {
-          country?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          parent_tenant_id: string
-          settings?: Json
-          updated_at?: string
-        }
+          country?: string | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          parent_tenant_id: string;
+          settings?: Json;
+          updated_at?: string;
+        };
         Update: {
-          country?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          parent_tenant_id?: string
-          settings?: Json
-          updated_at?: string
-        }
+          country?: string | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          parent_tenant_id?: string;
+          settings?: Json;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "entities_parent_tenant_id_fkey"
-            columns: ["parent_tenant_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "entities_parent_tenant_id_fkey";
+            columns: ["parent_tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       legacy_trailer_events: {
         Row: {
-          created_at: string
-          event_type: string
-          id: string
-          load_id: string | null
-          notes: string | null
-          tenant_id: string
-          trailer_number: string | null
-        }
+          created_at: string;
+          event_type: string;
+          id: string;
+          load_id: string | null;
+          notes: string | null;
+          tenant_id: string;
+          trailer_number: string | null;
+        };
         Insert: {
-          created_at?: string
-          event_type: string
-          id?: string
-          load_id?: string | null
-          notes?: string | null
-          tenant_id?: string
-          trailer_number?: string | null
-        }
+          created_at?: string;
+          event_type: string;
+          id?: string;
+          load_id?: string | null;
+          notes?: string | null;
+          tenant_id?: string;
+          trailer_number?: string | null;
+        };
         Update: {
-          created_at?: string
-          event_type?: string
-          id?: string
-          load_id?: string | null
-          notes?: string | null
-          tenant_id?: string
-          trailer_number?: string | null
-        }
+          created_at?: string;
+          event_type?: string;
+          id?: string;
+          load_id?: string | null;
+          notes?: string | null;
+          tenant_id?: string;
+          trailer_number?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "trailer_events_load_id_fkey"
-            columns: ["load_id"]
-            isOneToOne: false
-            referencedRelation: "loads"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_events_load_id_fkey";
+            columns: ["load_id"];
+            isOneToOne: false;
+            referencedRelation: "loads";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "trailer_events_org_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_events_org_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       legacy_yard_check_ins: {
         Row: {
-          arrival_at: string
-          checked_out_at: string | null
-          created_at: string
-          id: string
-          inbound_load_id: string | null
-          note: string | null
-          tenant_id: string
-          trailer_number: string
-        }
+          arrival_at: string;
+          checked_out_at: string | null;
+          created_at: string;
+          id: string;
+          inbound_load_id: string | null;
+          note: string | null;
+          tenant_id: string;
+          trailer_number: string;
+        };
         Insert: {
-          arrival_at?: string
-          checked_out_at?: string | null
-          created_at?: string
-          id?: string
-          inbound_load_id?: string | null
-          note?: string | null
-          tenant_id?: string
-          trailer_number: string
-        }
+          arrival_at?: string;
+          checked_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          inbound_load_id?: string | null;
+          note?: string | null;
+          tenant_id?: string;
+          trailer_number: string;
+        };
         Update: {
-          arrival_at?: string
-          checked_out_at?: string | null
-          created_at?: string
-          id?: string
-          inbound_load_id?: string | null
-          note?: string | null
-          tenant_id?: string
-          trailer_number?: string
-        }
+          arrival_at?: string;
+          checked_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          inbound_load_id?: string | null;
+          note?: string | null;
+          tenant_id?: string;
+          trailer_number?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "yard_check_ins_org_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "yard_check_ins_org_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       loads: {
         Row: {
-          alert_status: string | null
-          arrival_date: string | null
-          arrival_day: string | null
-          arrival_time: string | null
-          carrier_comments: string | null
-          category: string | null
-          client_id: string | null
-          comments: string | null
-          created_at: string
-          cutoff_date: string | null
-          cutoff_day: string | null
-          cutoff_time: string | null
-          delivery_defect_reason: string | null
-          delivery_sequence: number | null
-          driver: string | null
-          expected_delivery: string | null
-          expected_pickup: string | null
-          has_sweep: boolean | null
-          id: string
-          invoiced: boolean | null
-          origin_id: string | null
-          origin_name: string | null
-          outbound_trailer: string | null
-          pickup_defect_reason: string | null
-          pro_number: string | null
-          return_trailer: string | null
-          return_trailer_location:
-            | Database["public"]["Enums"]["legacy_trailer_location"]
-            | null
-          schedule_date: string | null
-          schedule_id: string
-          status: Database["public"]["Enums"]["load_status"] | null
-          str_name: string | null
-          str_number: string | null
-          str_return_trailer_started_at: string | null
-          str_trl_location: string | null
-          target_load_id: string | null
-          tenant_id: string
-          total_distance: string | null
-          trip_id: string | null
-          trl_location_code: string | null
-          unload_date: string | null
-          unload_day: string | null
-          unload_time: string | null
-          unload_type: string | null
-          updated_at: string
-          updated_by: string | null
-          yard_arrival_at: string | null
-        }
+          alert_status: string | null;
+          arrival_date: string | null;
+          arrival_day: string | null;
+          arrival_time: string | null;
+          carrier_comments: string | null;
+          category: string | null;
+          client_id: string | null;
+          comments: string | null;
+          created_at: string;
+          cutoff_date: string | null;
+          cutoff_day: string | null;
+          cutoff_time: string | null;
+          delivery_defect_reason: string | null;
+          delivery_sequence: number | null;
+          driver: string | null;
+          expected_delivery: string | null;
+          expected_pickup: string | null;
+          has_sweep: boolean | null;
+          id: string;
+          invoiced: boolean | null;
+          origin_id: string | null;
+          origin_name: string | null;
+          outbound_trailer: string | null;
+          pickup_defect_reason: string | null;
+          pro_number: string | null;
+          return_trailer: string | null;
+          return_trailer_location: Database["public"]["Enums"]["legacy_trailer_location"] | null;
+          schedule_date: string | null;
+          schedule_id: string;
+          status: Database["public"]["Enums"]["load_status"] | null;
+          str_name: string | null;
+          str_number: string | null;
+          str_return_trailer_started_at: string | null;
+          str_trl_location: string | null;
+          target_load_id: string | null;
+          tenant_id: string;
+          total_distance: string | null;
+          trip_id: string | null;
+          trl_location_code: string | null;
+          unload_date: string | null;
+          unload_day: string | null;
+          unload_time: string | null;
+          unload_type: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          yard_arrival_at: string | null;
+        };
         Insert: {
-          alert_status?: string | null
-          arrival_date?: string | null
-          arrival_day?: string | null
-          arrival_time?: string | null
-          carrier_comments?: string | null
-          category?: string | null
-          client_id?: string | null
-          comments?: string | null
-          created_at?: string
-          cutoff_date?: string | null
-          cutoff_day?: string | null
-          cutoff_time?: string | null
-          delivery_defect_reason?: string | null
-          delivery_sequence?: number | null
-          driver?: string | null
-          expected_delivery?: string | null
-          expected_pickup?: string | null
-          has_sweep?: boolean | null
-          id?: string
-          invoiced?: boolean | null
-          origin_id?: string | null
-          origin_name?: string | null
-          outbound_trailer?: string | null
-          pickup_defect_reason?: string | null
-          pro_number?: string | null
-          return_trailer?: string | null
-          return_trailer_location?:
-            | Database["public"]["Enums"]["legacy_trailer_location"]
-            | null
-          schedule_date?: string | null
-          schedule_id: string
-          status?: Database["public"]["Enums"]["load_status"] | null
-          str_name?: string | null
-          str_number?: string | null
-          str_return_trailer_started_at?: string | null
-          str_trl_location?: string | null
-          target_load_id?: string | null
-          tenant_id?: string
-          total_distance?: string | null
-          trip_id?: string | null
-          trl_location_code?: string | null
-          unload_date?: string | null
-          unload_day?: string | null
-          unload_time?: string | null
-          unload_type?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          yard_arrival_at?: string | null
-        }
+          alert_status?: string | null;
+          arrival_date?: string | null;
+          arrival_day?: string | null;
+          arrival_time?: string | null;
+          carrier_comments?: string | null;
+          category?: string | null;
+          client_id?: string | null;
+          comments?: string | null;
+          created_at?: string;
+          cutoff_date?: string | null;
+          cutoff_day?: string | null;
+          cutoff_time?: string | null;
+          delivery_defect_reason?: string | null;
+          delivery_sequence?: number | null;
+          driver?: string | null;
+          expected_delivery?: string | null;
+          expected_pickup?: string | null;
+          has_sweep?: boolean | null;
+          id?: string;
+          invoiced?: boolean | null;
+          origin_id?: string | null;
+          origin_name?: string | null;
+          outbound_trailer?: string | null;
+          pickup_defect_reason?: string | null;
+          pro_number?: string | null;
+          return_trailer?: string | null;
+          return_trailer_location?: Database["public"]["Enums"]["legacy_trailer_location"] | null;
+          schedule_date?: string | null;
+          schedule_id: string;
+          status?: Database["public"]["Enums"]["load_status"] | null;
+          str_name?: string | null;
+          str_number?: string | null;
+          str_return_trailer_started_at?: string | null;
+          str_trl_location?: string | null;
+          target_load_id?: string | null;
+          tenant_id?: string;
+          total_distance?: string | null;
+          trip_id?: string | null;
+          trl_location_code?: string | null;
+          unload_date?: string | null;
+          unload_day?: string | null;
+          unload_time?: string | null;
+          unload_type?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          yard_arrival_at?: string | null;
+        };
         Update: {
-          alert_status?: string | null
-          arrival_date?: string | null
-          arrival_day?: string | null
-          arrival_time?: string | null
-          carrier_comments?: string | null
-          category?: string | null
-          client_id?: string | null
-          comments?: string | null
-          created_at?: string
-          cutoff_date?: string | null
-          cutoff_day?: string | null
-          cutoff_time?: string | null
-          delivery_defect_reason?: string | null
-          delivery_sequence?: number | null
-          driver?: string | null
-          expected_delivery?: string | null
-          expected_pickup?: string | null
-          has_sweep?: boolean | null
-          id?: string
-          invoiced?: boolean | null
-          origin_id?: string | null
-          origin_name?: string | null
-          outbound_trailer?: string | null
-          pickup_defect_reason?: string | null
-          pro_number?: string | null
-          return_trailer?: string | null
-          return_trailer_location?:
-            | Database["public"]["Enums"]["legacy_trailer_location"]
-            | null
-          schedule_date?: string | null
-          schedule_id?: string
-          status?: Database["public"]["Enums"]["load_status"] | null
-          str_name?: string | null
-          str_number?: string | null
-          str_return_trailer_started_at?: string | null
-          str_trl_location?: string | null
-          target_load_id?: string | null
-          tenant_id?: string
-          total_distance?: string | null
-          trip_id?: string | null
-          trl_location_code?: string | null
-          unload_date?: string | null
-          unload_day?: string | null
-          unload_time?: string | null
-          unload_type?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          yard_arrival_at?: string | null
-        }
+          alert_status?: string | null;
+          arrival_date?: string | null;
+          arrival_day?: string | null;
+          arrival_time?: string | null;
+          carrier_comments?: string | null;
+          category?: string | null;
+          client_id?: string | null;
+          comments?: string | null;
+          created_at?: string;
+          cutoff_date?: string | null;
+          cutoff_day?: string | null;
+          cutoff_time?: string | null;
+          delivery_defect_reason?: string | null;
+          delivery_sequence?: number | null;
+          driver?: string | null;
+          expected_delivery?: string | null;
+          expected_pickup?: string | null;
+          has_sweep?: boolean | null;
+          id?: string;
+          invoiced?: boolean | null;
+          origin_id?: string | null;
+          origin_name?: string | null;
+          outbound_trailer?: string | null;
+          pickup_defect_reason?: string | null;
+          pro_number?: string | null;
+          return_trailer?: string | null;
+          return_trailer_location?: Database["public"]["Enums"]["legacy_trailer_location"] | null;
+          schedule_date?: string | null;
+          schedule_id?: string;
+          status?: Database["public"]["Enums"]["load_status"] | null;
+          str_name?: string | null;
+          str_number?: string | null;
+          str_return_trailer_started_at?: string | null;
+          str_trl_location?: string | null;
+          target_load_id?: string | null;
+          tenant_id?: string;
+          total_distance?: string | null;
+          trip_id?: string | null;
+          trl_location_code?: string | null;
+          unload_date?: string | null;
+          unload_day?: string | null;
+          unload_time?: string | null;
+          unload_type?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          yard_arrival_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "loads_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
+            foreignKeyName: "loads_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "loads_org_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "loads_org_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       profiles: {
         Row: {
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          tenant_id: string | null
-          updated_at: string
-        }
+          created_at: string;
+          email: string | null;
+          full_name: string | null;
+          id: string;
+          tenant_id: string | null;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id: string
-          tenant_id?: string | null
-          updated_at?: string
-        }
+          created_at?: string;
+          email?: string | null;
+          full_name?: string | null;
+          id: string;
+          tenant_id?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          tenant_id?: string | null
-          updated_at?: string
-        }
+          created_at?: string;
+          email?: string | null;
+          full_name?: string | null;
+          id?: string;
+          tenant_id?: string | null;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "profiles_org_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "profiles_org_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       sheet_sync_outbox: {
         Row: {
-          attempts: number
-          company_id: string
-          completed_at: string | null
-          created_at: string
-          id: string
-          kind: string
-          last_error: string | null
-          match_column: string | null
-          match_value: string | null
-          next_attempt_at: string
-          payload: Json
-          status: string
-          updated_at: string
-        }
+          attempts: number;
+          company_id: string;
+          completed_at: string | null;
+          created_at: string;
+          id: string;
+          kind: string;
+          last_error: string | null;
+          match_column: string | null;
+          match_value: string | null;
+          next_attempt_at: string;
+          payload: Json;
+          status: string;
+          updated_at: string;
+        };
         Insert: {
-          attempts?: number
-          company_id?: string
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          kind: string
-          last_error?: string | null
-          match_column?: string | null
-          match_value?: string | null
-          next_attempt_at?: string
-          payload?: Json
-          status?: string
-          updated_at?: string
-        }
+          attempts?: number;
+          company_id?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          last_error?: string | null;
+          match_column?: string | null;
+          match_value?: string | null;
+          next_attempt_at?: string;
+          payload?: Json;
+          status?: string;
+          updated_at?: string;
+        };
         Update: {
-          attempts?: number
-          company_id?: string
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          kind?: string
-          last_error?: string | null
-          match_column?: string | null
-          match_value?: string | null
-          next_attempt_at?: string
-          payload?: Json
-          status?: string
-          updated_at?: string
-        }
+          attempts?: number;
+          company_id?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          last_error?: string | null;
+          match_column?: string | null;
+          match_value?: string | null;
+          next_attempt_at?: string;
+          payload?: Json;
+          status?: string;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "sheet_sync_outbox_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "sheet_sync_outbox_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       sync_config: {
         Row: {
-          endpoint_url: string | null
-          id: number
-          last_synced_at: string | null
-          sheet_name: string | null
-          spreadsheet_id: string | null
-          tenant_id: string
-          updated_at: string
-          webhook_url: string | null
-        }
+          endpoint_url: string | null;
+          id: number;
+          last_synced_at: string | null;
+          sheet_name: string | null;
+          spreadsheet_id: string | null;
+          tenant_id: string;
+          updated_at: string;
+          webhook_url: string | null;
+        };
         Insert: {
-          endpoint_url?: string | null
-          id?: number
-          last_synced_at?: string | null
-          sheet_name?: string | null
-          spreadsheet_id?: string | null
-          tenant_id?: string
-          updated_at?: string
-          webhook_url?: string | null
-        }
+          endpoint_url?: string | null;
+          id?: number;
+          last_synced_at?: string | null;
+          sheet_name?: string | null;
+          spreadsheet_id?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+          webhook_url?: string | null;
+        };
         Update: {
-          endpoint_url?: string | null
-          id?: number
-          last_synced_at?: string | null
-          sheet_name?: string | null
-          spreadsheet_id?: string | null
-          tenant_id?: string
-          updated_at?: string
-          webhook_url?: string | null
-        }
+          endpoint_url?: string | null;
+          id?: number;
+          last_synced_at?: string | null;
+          sheet_name?: string | null;
+          spreadsheet_id?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+          webhook_url?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "sync_config_org_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "sync_config_org_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       tenant_invites: {
         Row: {
-          accepted_at: string | null
-          created_at: string
-          email: string
-          id: string
-          invited_by: string | null
-          role: Database["public"]["Enums"]["app_role"]
-          tenant_id: string
-        }
+          accepted_at: string | null;
+          created_at: string;
+          email: string;
+          id: string;
+          invited_by: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          tenant_id: string;
+        };
         Insert: {
-          accepted_at?: string | null
-          created_at?: string
-          email: string
-          id?: string
-          invited_by?: string | null
-          role: Database["public"]["Enums"]["app_role"]
-          tenant_id: string
-        }
+          accepted_at?: string | null;
+          created_at?: string;
+          email: string;
+          id?: string;
+          invited_by?: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          tenant_id: string;
+        };
         Update: {
-          accepted_at?: string | null
-          created_at?: string
-          email?: string
-          id?: string
-          invited_by?: string | null
-          role?: Database["public"]["Enums"]["app_role"]
-          tenant_id?: string
-        }
+          accepted_at?: string | null;
+          created_at?: string;
+          email?: string;
+          id?: string;
+          invited_by?: string | null;
+          role?: Database["public"]["Enums"]["app_role"];
+          tenant_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "tenant_invites_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "tenant_invites_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       tenant_products: {
         Row: {
-          created_at: string
-          id: string
-          product: Database["public"]["Enums"]["product_key"]
-          status: string
-          tenant_id: string
-          trial_ends_at: string | null
-          updated_at: string
-        }
+          created_at: string;
+          id: string;
+          product: Database["public"]["Enums"]["product_key"];
+          status: string;
+          tenant_id: string;
+          trial_ends_at: string | null;
+          updated_at: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          product: Database["public"]["Enums"]["product_key"]
-          status?: string
-          tenant_id: string
-          trial_ends_at?: string | null
-          updated_at?: string
-        }
+          created_at?: string;
+          id?: string;
+          product: Database["public"]["Enums"]["product_key"];
+          status?: string;
+          tenant_id: string;
+          trial_ends_at?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          product?: Database["public"]["Enums"]["product_key"]
-          status?: string
-          tenant_id?: string
-          trial_ends_at?: string | null
-          updated_at?: string
-        }
+          created_at?: string;
+          id?: string;
+          product?: Database["public"]["Enums"]["product_key"];
+          status?: string;
+          tenant_id?: string;
+          trial_ends_at?: string | null;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "tenant_products_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            foreignKeyName: "tenant_products_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       tenants: {
         Row: {
-          created_at: string
-          id: string
-          name: string
-          onboarded: boolean
-          plan: string
-          updated_at: string
-          yard_count: number
-        }
+          created_at: string;
+          id: string;
+          name: string;
+          onboarded: boolean;
+          plan: string;
+          updated_at: string;
+          yard_count: number;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          onboarded?: boolean
-          plan?: string
-          updated_at?: string
-          yard_count?: number
-        }
+          created_at?: string;
+          id?: string;
+          name: string;
+          onboarded?: boolean;
+          plan?: string;
+          updated_at?: string;
+          yard_count?: number;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          onboarded?: boolean
-          plan?: string
-          updated_at?: string
-          yard_count?: number
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          id?: string;
+          name?: string;
+          onboarded?: boolean;
+          plan?: string;
+          updated_at?: string;
+          yard_count?: number;
+        };
+        Relationships: [];
+      };
       trailer_clients: {
         Row: {
-          company_id: string
-          contact_info: string | null
-          created_at: string
-          id: string
-          name: string
-          notes: string | null
-          updated_at: string
-        }
+          company_id: string;
+          contact_info: string | null;
+          created_at: string;
+          id: string;
+          name: string;
+          notes: string | null;
+          updated_at: string;
+        };
         Insert: {
-          company_id?: string
-          contact_info?: string | null
-          created_at?: string
-          id?: string
-          name: string
-          notes?: string | null
-          updated_at?: string
-        }
+          company_id?: string;
+          contact_info?: string | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          notes?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          company_id?: string
-          contact_info?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          notes?: string | null
-          updated_at?: string
-        }
+          company_id?: string;
+          contact_info?: string | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          notes?: string | null;
+          updated_at?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "trailer_clients_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_clients_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       trailer_events: {
         Row: {
-          created_at: string
-          event_type: string
-          id: string
-          load_id: string | null
-          note: string | null
-          trailer_number: string | null
-          user_id: string | null
-        }
+          command_id: string | null;
+          created_at: string;
+          event_type: string;
+          event_version: number;
+          id: string;
+          load_id: string | null;
+          note: string | null;
+          source: string;
+          trailer_number: string | null;
+          trailer_role: string | null;
+          user_id: string | null;
+        };
         Insert: {
-          created_at?: string
-          event_type: string
-          id?: string
-          load_id?: string | null
-          note?: string | null
-          trailer_number?: string | null
-          user_id?: string | null
-        }
+          command_id?: string | null;
+          created_at?: string;
+          event_type: string;
+          event_version?: number;
+          id?: string;
+          load_id?: string | null;
+          note?: string | null;
+          source?: string;
+          trailer_number?: string | null;
+          trailer_role?: string | null;
+          user_id?: string | null;
+        };
         Update: {
-          created_at?: string
-          event_type?: string
-          id?: string
-          load_id?: string | null
-          note?: string | null
-          trailer_number?: string | null
-          user_id?: string | null
-        }
+          command_id?: string | null;
+          created_at?: string;
+          event_type?: string;
+          event_version?: number;
+          id?: string;
+          load_id?: string | null;
+          note?: string | null;
+          source?: string;
+          trailer_number?: string | null;
+          trailer_role?: string | null;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "trailer_events_load_id_fkey1"
-            columns: ["load_id"]
-            isOneToOne: false
-            referencedRelation: "trailer_loads"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_events_load_id_fkey1";
+            columns: ["load_id"];
+            isOneToOne: false;
+            referencedRelation: "trailer_loads";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       trailer_loads: {
         Row: {
-          alert_status: string | null
-          arrival_date: string | null
-          arrival_day: string | null
-          arrival_time: string | null
-          carrier_comments: string | null
-          category: string | null
-          client_id: string | null
-          comments: string | null
-          company_id: string
-          created_at: string
-          created_by: string | null
-          cutoff_date: string | null
-          cutoff_day: string | null
-          cutoff_time: string | null
-          delivery_defect_reason: string | null
-          delivery_sequence: number | null
-          driver: string | null
-          driver_id: string | null
-          expected_delivery: string | null
-          expected_pickup: string | null
-          has_sweep: boolean
-          id: string
-          invoiced: boolean | null
-          legacy_load_id: string | null
-          origin_id: string | null
-          origin_name: string | null
-          outbound_trailer: string | null
-          pickup_defect_reason: string | null
-          pro_number: string | null
-          return_trailer: string | null
-          return_trailer_location:
-            | Database["public"]["Enums"]["trailer_location"]
-            | null
-          schedule_date: string | null
-          schedule_id: string
-          status: Database["public"]["Enums"]["trailer_load_status"]
-          str_name: string | null
-          str_number: string | null
-          str_return_trailer_started_at: string | null
-          str_trl_location: string | null
-          target_load_id: string | null
-          total_distance: string | null
-          trip_id: string | null
-          trl_location_code: string | null
-          unload_date: string | null
-          unload_day: string | null
-          unload_time: string | null
-          unload_type: string | null
-          updated_at: string
-          updated_by: string | null
-          yard_arrival_at: string | null
-        }
+          alert_status: string | null;
+          arrival_date: string | null;
+          arrival_day: string | null;
+          arrival_time: string | null;
+          carrier_comments: string | null;
+          category: string | null;
+          client_id: string | null;
+          comments: string | null;
+          company_id: string;
+          completed_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          cutoff_date: string | null;
+          cutoff_day: string | null;
+          cutoff_time: string | null;
+          delivery_defect_reason: string | null;
+          delivery_sequence: number | null;
+          driver: string | null;
+          driver_id: string | null;
+          expected_delivery: string | null;
+          expected_pickup: string | null;
+          has_sweep: boolean;
+          id: string;
+          invoiced: boolean | null;
+          legacy_load_id: string | null;
+          origin_id: string | null;
+          origin_name: string | null;
+          outbound_trailer: string | null;
+          pickup_defect_reason: string | null;
+          pro_number: string | null;
+          return_trailer: string | null;
+          return_trailer_location: Database["public"]["Enums"]["trailer_location"] | null;
+          schedule_date: string | null;
+          schedule_id: string;
+          status: Database["public"]["Enums"]["trailer_load_status"];
+          str_name: string | null;
+          str_number: string | null;
+          str_return_trailer_started_at: string | null;
+          str_trl_location: string | null;
+          target_load_id: string | null;
+          total_distance: string | null;
+          trip_id: string | null;
+          trl_location_code: string | null;
+          unload_date: string | null;
+          unload_day: string | null;
+          unload_time: string | null;
+          unload_type: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          yard_arrival_at: string | null;
+        };
         Insert: {
-          alert_status?: string | null
-          arrival_date?: string | null
-          arrival_day?: string | null
-          arrival_time?: string | null
-          carrier_comments?: string | null
-          category?: string | null
-          client_id?: string | null
-          comments?: string | null
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          cutoff_date?: string | null
-          cutoff_day?: string | null
-          cutoff_time?: string | null
-          delivery_defect_reason?: string | null
-          delivery_sequence?: number | null
-          driver?: string | null
-          driver_id?: string | null
-          expected_delivery?: string | null
-          expected_pickup?: string | null
-          has_sweep?: boolean
-          id?: string
-          invoiced?: boolean | null
-          legacy_load_id?: string | null
-          origin_id?: string | null
-          origin_name?: string | null
-          outbound_trailer?: string | null
-          pickup_defect_reason?: string | null
-          pro_number?: string | null
-          return_trailer?: string | null
-          return_trailer_location?:
-            | Database["public"]["Enums"]["trailer_location"]
-            | null
-          schedule_date?: string | null
-          schedule_id: string
-          status?: Database["public"]["Enums"]["trailer_load_status"]
-          str_name?: string | null
-          str_number?: string | null
-          str_return_trailer_started_at?: string | null
-          str_trl_location?: string | null
-          target_load_id?: string | null
-          total_distance?: string | null
-          trip_id?: string | null
-          trl_location_code?: string | null
-          unload_date?: string | null
-          unload_day?: string | null
-          unload_time?: string | null
-          unload_type?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          yard_arrival_at?: string | null
-        }
+          alert_status?: string | null;
+          arrival_date?: string | null;
+          arrival_day?: string | null;
+          arrival_time?: string | null;
+          carrier_comments?: string | null;
+          category?: string | null;
+          client_id?: string | null;
+          comments?: string | null;
+          company_id?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          cutoff_date?: string | null;
+          cutoff_day?: string | null;
+          cutoff_time?: string | null;
+          delivery_defect_reason?: string | null;
+          delivery_sequence?: number | null;
+          driver?: string | null;
+          driver_id?: string | null;
+          expected_delivery?: string | null;
+          expected_pickup?: string | null;
+          has_sweep?: boolean;
+          id?: string;
+          invoiced?: boolean | null;
+          legacy_load_id?: string | null;
+          origin_id?: string | null;
+          origin_name?: string | null;
+          outbound_trailer?: string | null;
+          pickup_defect_reason?: string | null;
+          pro_number?: string | null;
+          return_trailer?: string | null;
+          return_trailer_location?: Database["public"]["Enums"]["trailer_location"] | null;
+          schedule_date?: string | null;
+          schedule_id: string;
+          status?: Database["public"]["Enums"]["trailer_load_status"];
+          str_name?: string | null;
+          str_number?: string | null;
+          str_return_trailer_started_at?: string | null;
+          str_trl_location?: string | null;
+          target_load_id?: string | null;
+          total_distance?: string | null;
+          trip_id?: string | null;
+          trl_location_code?: string | null;
+          unload_date?: string | null;
+          unload_day?: string | null;
+          unload_time?: string | null;
+          unload_type?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          yard_arrival_at?: string | null;
+        };
         Update: {
-          alert_status?: string | null
-          arrival_date?: string | null
-          arrival_day?: string | null
-          arrival_time?: string | null
-          carrier_comments?: string | null
-          category?: string | null
-          client_id?: string | null
-          comments?: string | null
-          company_id?: string
-          created_at?: string
-          created_by?: string | null
-          cutoff_date?: string | null
-          cutoff_day?: string | null
-          cutoff_time?: string | null
-          delivery_defect_reason?: string | null
-          delivery_sequence?: number | null
-          driver?: string | null
-          driver_id?: string | null
-          expected_delivery?: string | null
-          expected_pickup?: string | null
-          has_sweep?: boolean
-          id?: string
-          invoiced?: boolean | null
-          legacy_load_id?: string | null
-          origin_id?: string | null
-          origin_name?: string | null
-          outbound_trailer?: string | null
-          pickup_defect_reason?: string | null
-          pro_number?: string | null
-          return_trailer?: string | null
-          return_trailer_location?:
-            | Database["public"]["Enums"]["trailer_location"]
-            | null
-          schedule_date?: string | null
-          schedule_id?: string
-          status?: Database["public"]["Enums"]["trailer_load_status"]
-          str_name?: string | null
-          str_number?: string | null
-          str_return_trailer_started_at?: string | null
-          str_trl_location?: string | null
-          target_load_id?: string | null
-          total_distance?: string | null
-          trip_id?: string | null
-          trl_location_code?: string | null
-          unload_date?: string | null
-          unload_day?: string | null
-          unload_time?: string | null
-          unload_type?: string | null
-          updated_at?: string
-          updated_by?: string | null
-          yard_arrival_at?: string | null
-        }
+          alert_status?: string | null;
+          arrival_date?: string | null;
+          arrival_day?: string | null;
+          arrival_time?: string | null;
+          carrier_comments?: string | null;
+          category?: string | null;
+          client_id?: string | null;
+          comments?: string | null;
+          company_id?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          cutoff_date?: string | null;
+          cutoff_day?: string | null;
+          cutoff_time?: string | null;
+          delivery_defect_reason?: string | null;
+          delivery_sequence?: number | null;
+          driver?: string | null;
+          driver_id?: string | null;
+          expected_delivery?: string | null;
+          expected_pickup?: string | null;
+          has_sweep?: boolean;
+          id?: string;
+          invoiced?: boolean | null;
+          legacy_load_id?: string | null;
+          origin_id?: string | null;
+          origin_name?: string | null;
+          outbound_trailer?: string | null;
+          pickup_defect_reason?: string | null;
+          pro_number?: string | null;
+          return_trailer?: string | null;
+          return_trailer_location?: Database["public"]["Enums"]["trailer_location"] | null;
+          schedule_date?: string | null;
+          schedule_id?: string;
+          status?: Database["public"]["Enums"]["trailer_load_status"];
+          str_name?: string | null;
+          str_number?: string | null;
+          str_return_trailer_started_at?: string | null;
+          str_trl_location?: string | null;
+          target_load_id?: string | null;
+          total_distance?: string | null;
+          trip_id?: string | null;
+          trl_location_code?: string | null;
+          unload_date?: string | null;
+          unload_day?: string | null;
+          unload_time?: string | null;
+          unload_type?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          yard_arrival_at?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "trailer_loads_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "trailer_clients"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_loads_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "trailer_clients";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "trailer_loads_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_loads_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "trailer_loads_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "drivers"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_loads_driver_id_fkey";
+            columns: ["driver_id"];
+            isOneToOne: false;
+            referencedRelation: "drivers";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       trailer_sync_config: {
         Row: {
-          company_id: string
-          created_at: string
-          id: string
-          last_sync_status: string | null
-          last_synced_at: string | null
-          sheet_name: string | null
-          spreadsheet_id: string | null
-          updated_at: string
-          webhook_url: string | null
-        }
+          company_id: string;
+          created_at: string;
+          id: string;
+          last_sync_status: string | null;
+          last_synced_at: string | null;
+          sheet_name: string | null;
+          spreadsheet_id: string | null;
+          updated_at: string;
+          webhook_url: string | null;
+        };
         Insert: {
-          company_id?: string
-          created_at?: string
-          id?: string
-          last_sync_status?: string | null
-          last_synced_at?: string | null
-          sheet_name?: string | null
-          spreadsheet_id?: string | null
-          updated_at?: string
-          webhook_url?: string | null
-        }
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          last_sync_status?: string | null;
+          last_synced_at?: string | null;
+          sheet_name?: string | null;
+          spreadsheet_id?: string | null;
+          updated_at?: string;
+          webhook_url?: string | null;
+        };
         Update: {
-          company_id?: string
-          created_at?: string
-          id?: string
-          last_sync_status?: string | null
-          last_synced_at?: string | null
-          sheet_name?: string | null
-          spreadsheet_id?: string | null
-          updated_at?: string
-          webhook_url?: string | null
-        }
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          last_sync_status?: string | null;
+          last_synced_at?: string | null;
+          sheet_name?: string | null;
+          spreadsheet_id?: string | null;
+          updated_at?: string;
+          webhook_url?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "trailer_sync_config_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "trailer_sync_config_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       user_roles: {
         Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at: string;
+          id: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at?: string;
+          id?: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          id?: string;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       yard_check_ins: {
         Row: {
-          arrival_at: string
-          checked_out_at: string | null
-          company_id: string
-          created_at: string
-          id: string
-          idempotency_key: string | null
-          inbound_load_id: string | null
-          note: string | null
-          trailer_norm: string | null
-          trailer_number: string
-        }
+          arrival_at: string;
+          checked_out_at: string | null;
+          company_id: string;
+          created_at: string;
+          id: string;
+          idempotency_key: string | null;
+          inbound_load_id: string | null;
+          note: string | null;
+          trailer_norm: string | null;
+          trailer_number: string;
+        };
         Insert: {
-          arrival_at?: string
-          checked_out_at?: string | null
-          company_id?: string
-          created_at?: string
-          id?: string
-          idempotency_key?: string | null
-          inbound_load_id?: string | null
-          note?: string | null
-          trailer_norm?: string | null
-          trailer_number: string
-        }
+          arrival_at?: string;
+          checked_out_at?: string | null;
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          idempotency_key?: string | null;
+          inbound_load_id?: string | null;
+          note?: string | null;
+          trailer_norm?: string | null;
+          trailer_number: string;
+        };
         Update: {
-          arrival_at?: string
-          checked_out_at?: string | null
-          company_id?: string
-          created_at?: string
-          id?: string
-          idempotency_key?: string | null
-          inbound_load_id?: string | null
-          note?: string | null
-          trailer_norm?: string | null
-          trailer_number?: string
-        }
+          arrival_at?: string;
+          checked_out_at?: string | null;
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          idempotency_key?: string | null;
+          inbound_load_id?: string | null;
+          note?: string | null;
+          trailer_norm?: string | null;
+          trailer_number?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "yard_check_ins_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
+            foreignKeyName: "yard_check_ins_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "yard_check_ins_inbound_load_id_fkey"
-            columns: ["inbound_load_id"]
-            isOneToOne: false
-            referencedRelation: "trailer_loads"
-            referencedColumns: ["id"]
+            foreignKeyName: "yard_check_ins_inbound_load_id_fkey";
+            columns: ["inbound_load_id"];
+            isOneToOne: false;
+            referencedRelation: "trailer_loads";
+            referencedColumns: ["id"];
           },
-        ]
-      }
-    }
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      can_dispatch: { Args: never; Returns: boolean }
-      current_company_id: { Args: never; Returns: string }
-      current_tenant_id: { Args: never; Returns: string }
+      can_dispatch: { Args: never; Returns: boolean };
+      current_company_id: { Args: never; Returns: string };
+      current_tenant_id: { Args: never; Returns: string };
       current_user_has_any_role: {
-        Args: { _roles: Database["public"]["Enums"]["app_role"][] }
-        Returns: boolean
-      }
+        Args: { _roles: Database["public"]["Enums"]["app_role"][] };
+        Returns: boolean;
+      };
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_dispatcher_or_admin: { Args: never; Returns: boolean }
-      is_staff: { Args: never; Returns: boolean }
+          _role: Database["public"]["Enums"]["app_role"];
+          _user_id: string;
+        };
+        Returns: boolean;
+      };
+      is_dispatcher_or_admin: { Args: never; Returns: boolean };
+      is_staff: { Args: never; Returns: boolean };
       tenant_has_product: {
-        Args: { _product: Database["public"]["Enums"]["product_key"] }
-        Returns: boolean
-      }
+        Args: { _product: Database["public"]["Enums"]["product_key"] };
+        Returns: boolean;
+      };
       yard_check_in: {
         Args: {
-          p_idempotency_key?: string
-          p_load_id?: string
-          p_note?: string
-          p_trailer: string
-        }
+          p_idempotency_key?: string;
+          p_load_id?: string;
+          p_note?: string;
+          p_trailer: string;
+        };
         Returns: {
-          arrival_at: string
-          checked_out_at: string | null
-          company_id: string
-          created_at: string
-          id: string
-          idempotency_key: string | null
-          inbound_load_id: string | null
-          note: string | null
-          trailer_norm: string | null
-          trailer_number: string
-        }
+          arrival_at: string;
+          checked_out_at: string | null;
+          company_id: string;
+          created_at: string;
+          id: string;
+          idempotency_key: string | null;
+          inbound_load_id: string | null;
+          note: string | null;
+          trailer_norm: string | null;
+          trailer_number: string;
+        };
         SetofOptions: {
-          from: "*"
-          to: "yard_check_ins"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+          from: "*";
+          to: "yard_check_ins";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       yard_check_out: {
-        Args: { p_id: string }
+        Args: { p_id: string };
         Returns: {
-          arrival_at: string
-          checked_out_at: string | null
-          company_id: string
-          created_at: string
-          id: string
-          idempotency_key: string | null
-          inbound_load_id: string | null
-          note: string | null
-          trailer_norm: string | null
-          trailer_number: string
-        }
+          arrival_at: string;
+          checked_out_at: string | null;
+          company_id: string;
+          created_at: string;
+          id: string;
+          idempotency_key: string | null;
+          inbound_load_id: string | null;
+          note: string | null;
+          trailer_norm: string | null;
+          trailer_number: string;
+        };
         SetofOptions: {
-          from: "*"
-          to: "yard_check_ins"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-    }
+          from: "*";
+          to: "yard_check_ins";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+    };
     Enums: {
-      app_role:
-        | "admin"
-        | "dispatcher"
-        | "guard"
-        | "billing"
-        | "driver"
-        | "owner"
+      app_role: "admin" | "dispatcher" | "guard" | "billing" | "driver" | "owner";
       container_status:
         | "Available"
         | "Dispatched"
@@ -1318,13 +1309,8 @@ export type Database = {
         | "Returned"
         | "Completed"
         | "Delayed"
-        | "Exception"
-      legacy_trailer_location:
-        | "DC"
-        | "Store"
-        | "Returning"
-        | "Yard"
-        | "Returned To DC"
+        | "Exception";
+      legacy_trailer_location: "DC" | "Store" | "Returning" | "Yard" | "Returned To DC";
       load_status:
         | "Assigned"
         | "Heading To DC"
@@ -1337,8 +1323,8 @@ export type Database = {
         | "Returned To DC"
         | "Completed"
         | "Delayed"
-        | "Exception"
-      product_key: "trailer" | "drayage"
+        | "Exception";
+      product_key: "trailer" | "drayage";
       trailer_load_status:
         | "Assigned"
         | "Heading To DC"
@@ -1351,131 +1337,129 @@ export type Database = {
         | "Returned To DC"
         | "Completed"
         | "Delayed"
-        | "Exception"
-      trailer_location: "DC" | "Store" | "Returning" | "Yard" | "Returned To DC"
-    }
+        | "Exception";
+      trailer_location: "DC" | "Store" | "Returning" | "Yard" | "Returned To DC";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   public: {
@@ -1494,13 +1478,7 @@ export const Constants = {
         "Delayed",
         "Exception",
       ],
-      legacy_trailer_location: [
-        "DC",
-        "Store",
-        "Returning",
-        "Yard",
-        "Returned To DC",
-      ],
+      legacy_trailer_location: ["DC", "Store", "Returning", "Yard", "Returned To DC"],
       load_status: [
         "Assigned",
         "Heading To DC",
@@ -1533,4 +1511,4 @@ export const Constants = {
       trailer_location: ["DC", "Store", "Returning", "Yard", "Returned To DC"],
     },
   },
-} as const
+} as const;

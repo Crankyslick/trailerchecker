@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { reportDataHealth } from "@/lib/data-health";
 
 export type Driver = {
   id: string;
@@ -16,14 +17,19 @@ export function useDrivers() {
     queryKey: ["drivers"],
     queryFn: async (): Promise<Driver[]> => {
       const { data, error } = await supabase.from("drivers").select("*").order("name");
-      if (error) {
-        console.error("[useDrivers]", error.message);
-        return [];
-      }
+      if (error) throw new Error(error.message);
       return (data ?? []) as Driver[];
     },
-    initialData: [] as Driver[],
+    retry: 2,
+    placeholderData: keepPreviousData,
   });
+
+  useEffect(() => {
+    reportDataHealth("drivers", {
+      error: query.error ? (query.error as Error).message : null,
+      updatedAt: query.dataUpdatedAt || null,
+    });
+  }, [query.error, query.dataUpdatedAt]);
 
   useEffect(() => {
     let ch: ReturnType<typeof supabase.channel> | undefined;
@@ -36,11 +42,14 @@ export function useDrivers() {
       console.error("[useDrivers] realtime subscribe failed", e);
     }
     return () => {
-      try { if (ch) supabase.removeChannel(ch); } catch { /* noop */ }
+      try {
+        if (ch) supabase.removeChannel(ch);
+      } catch {
+        /* noop */
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return query;
 }
-

@@ -42,7 +42,9 @@ export function useYardCheckIn() {
       if (error) throw new Error(error.message);
       return data as unknown as YardCheckIn;
     },
-    onSuccess: () => { void invalidate(); },
+    onSuccess: () => {
+      void invalidate();
+    },
   });
 }
 
@@ -55,7 +57,9 @@ export function useYardCheckOut() {
       if (error) throw new Error(error.message);
       return data as unknown as YardCheckIn;
     },
-    onSuccess: () => { void invalidate(); },
+    onSuccess: () => {
+      void invalidate();
+    },
   });
 }
 
@@ -82,7 +86,9 @@ export function useReturnToDC() {
       }
       return rows[0];
     },
-    onSettled: () => { void invalidate(); },
+    onSettled: () => {
+      void invalidate();
+    },
   });
 }
 

@@ -27,10 +27,18 @@ type Cells = Record<string, string | number | null>;
 export async function queueSheetUpdate(matchColumn: string, matchValue: string, updates: Cells) {
   const { data, error } = await supabase
     .from("sheet_sync_outbox")
-    .insert({ kind: "update", match_column: matchColumn, match_value: matchValue, payload: { updates } })
+    .insert({
+      kind: "update",
+      match_column: matchColumn,
+      match_value: matchValue,
+      payload: { updates },
+    })
     .select("id")
     .maybeSingle();
-  if (error) { console.error("[outbox:update]", error.message); return null; }
+  if (error) {
+    console.error("[outbox:update]", error.message);
+    return null;
+  }
   return (data as { id: string } | null)?.id ?? null;
 }
 
@@ -41,7 +49,10 @@ export async function queueSheetAppend(record: Cells) {
     .insert({ kind: "append", payload: { record } })
     .select("id")
     .maybeSingle();
-  if (error) { console.error("[outbox:append]", error.message); return null; }
+  if (error) {
+    console.error("[outbox:append]", error.message);
+    return null;
+  }
   return (data as { id: string } | null)?.id ?? null;
 }
 
@@ -59,15 +70,24 @@ export async function queueSheetUpdates(
       payload: { updates: r.updates },
     })),
   );
-  if (error) { console.error("[outbox:batch]", error.message); return 0; }
+  if (error) {
+    console.error("[outbox:batch]", error.message);
+    return 0;
+  }
   return rows.length;
 }
 
 /** Counts for the sync health panel. */
 export async function fetchOutboxStats() {
   const [pending, failed] = await Promise.all([
-    supabase.from("sheet_sync_outbox").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("sheet_sync_outbox").select("id", { count: "exact", head: true }).eq("status", "failed"),
+    supabase
+      .from("sheet_sync_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase
+      .from("sheet_sync_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed"),
   ]);
   return { pending: pending.count ?? 0, failed: failed.count ?? 0 };
 }
@@ -76,11 +96,16 @@ export async function fetchOutboxStats() {
 export async function fetchOutboxProblems(limit = 10) {
   const { data, error } = await supabase
     .from("sheet_sync_outbox")
-    .select("id, kind, match_column, match_value, payload, status, attempts, last_error, next_attempt_at, created_at")
+    .select(
+      "id, kind, match_column, match_value, payload, status, attempts, last_error, next_attempt_at, created_at",
+    )
     .in("status", ["pending", "failed"])
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error) { console.error("[outbox:problems]", error.message); return [] as OutboxEntry[]; }
+  if (error) {
+    console.error("[outbox:problems]", error.message);
+    return [] as OutboxEntry[];
+  }
   return (data ?? []) as unknown as OutboxEntry[];
 }
 
@@ -88,7 +113,12 @@ export async function fetchOutboxProblems(limit = 10) {
 export async function requeueOutboxEntry(id: string) {
   const { error } = await supabase
     .from("sheet_sync_outbox")
-    .update({ status: "pending", attempts: 0, next_attempt_at: new Date().toISOString(), last_error: null })
+    .update({
+      status: "pending",
+      attempts: 0,
+      next_attempt_at: new Date().toISOString(),
+      last_error: null,
+    })
     .eq("id", id);
   if (error) throw new Error(error.message);
 }
@@ -97,7 +127,12 @@ export async function requeueOutboxEntry(id: string) {
 export async function requeueAllFailed() {
   const { error } = await supabase
     .from("sheet_sync_outbox")
-    .update({ status: "pending", attempts: 0, next_attempt_at: new Date().toISOString(), last_error: null })
+    .update({
+      status: "pending",
+      attempts: 0,
+      next_attempt_at: new Date().toISOString(),
+      last_error: null,
+    })
     .eq("status", "failed");
   if (error) throw new Error(error.message);
 }

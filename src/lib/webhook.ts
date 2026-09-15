@@ -27,5 +27,7 @@ export async function fireWebhook(event: string, payload: Record<string, unknown
       body,
     }).catch(() => {});
     void markSynced();
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 }

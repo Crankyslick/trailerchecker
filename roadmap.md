@@ -60,16 +60,24 @@ safety was achieved with a shadow-then-flip inside one database.
       Dispatch, guard check-in and DLM bulk ingest all queue instead of
       fire-and-forget.
 - [ ] Supervised 1-2 week pilot before the sheet stops being system of record.
-- [x] P1 workflow audit (01-09):
-      - Check-ins go through yard_check_in / yard_check_out database commands:
-        explicit company + load references, normalized trailer number,
-        idempotency key, partial unique index on active check-ins.
-      - Yard "Return to DC" is a mutation hook: verifies exactly one row
-        changed, disables while pending, refreshes the board.
-      - Route-level product/role guards (src/lib/route-guard.ts) on every
-        screen; RLS remains the authoritative control.
-      - Yard sites stored in company_sites; dispatch destination and gate
-        check-in yard list come from the company default, not hard-coded.
-      - Sheet settings read/written only from trailer_sync_config via
-        src/lib/sync-config.ts; legacy sync_config no longer used by the app.
-      - trailer_loads.yard_arrival_at documented as the canonical yard timer.
+- [x] P1 workflow audit (01-09): - Check-ins go through yard_check_in / yard_check_out database commands:
+      explicit company + load references, normalized trailer number,
+      idempotency key, partial unique index on active check-ins. - Yard "Return to DC" is a mutation hook: verifies exactly one row
+      changed, disables while pending, refreshes the board. - Route-level product/role guards (src/lib/route-guard.ts) on every
+      screen; RLS remains the authoritative control. - Yard sites stored in company_sites; dispatch destination and gate
+      check-in yard list come from the company default, not hard-coded. - Sheet settings read/written only from trailer_sync_config via
+      src/lib/sync-config.ts; legacy sync_config no longer used by the app. - trailer_loads.yard_arrival_at documented as the canonical yard timer.
+
+## Reliability audit P2-01…P2-12 (done)
+- [x] P2-01 Query errors surfaced (no silent empty lists) + stale/offline banner; edits and Return to DC blocked while data is unavailable
+- [x] P2-02 Realtime channel status tracked, bounded backoff reconnect, last-refresh time in banner
+- [x] P2-03 Board query limited to a 14-day active window with server-side filters; history paginated (50/page)
+- [x] P2-04 Server-side indexed search across loads (incl. comments/status/archived) and the event timeline, paginated
+- [x] P2-05 trailer_loads.completed_at stamped by trigger + backfilled; reports chart completions by actual completion day (America/New_York)
+- [x] P2-06 Single YARD_POLICY (24h deadline / 48h critical) shared by board, yard page, ticker and reports
+- [x] P2-07 Inline edits commit explicitly (Enter or ✓), blur cancels, saving/saved/failed indicator, dedupe + rollback
+- [x] P2-08 Drivers are retired (deactivated), never deleted; retire warns when loads reference them
+- [x] P2-09 trailer_events.trailer_role records outbound vs return per transition
+- [x] P2-10 trailer_events gains source, event_version, unique command_id; corrections recorded as 'Correction' events
+- [x] P2-11 Prettier pass; eslint clean apart from one auto-generated file
+- [x] P2-12 bun is the single package manager (packageManager pinned, package-lock.json removed)

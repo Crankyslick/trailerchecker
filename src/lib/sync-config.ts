@@ -23,7 +23,9 @@ export const SYNC_CONFIG_TABLE = "trailer_sync_config" as const;
 export async function readSyncConfig(): Promise<SyncConfig | null> {
   const { data, error } = await supabase
     .from(SYNC_CONFIG_TABLE)
-    .select("id, company_id, spreadsheet_id, sheet_name, webhook_url, last_synced_at, last_sync_status")
+    .select(
+      "id, company_id, spreadsheet_id, sheet_name, webhook_url, last_synced_at, last_sync_status",
+    )
     .limit(1)
     .maybeSingle();
   if (error) {

@@ -33,7 +33,9 @@ async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> 
   const lovKey = process.env.LOVABLE_API_KEY;
   const connKey = process.env.GOOGLE_SHEETS_API_KEY_1 ?? process.env.GOOGLE_SHEETS_API_KEY;
   if (!lovKey || !connKey) {
-    throw new Error("Google Sheets connection not configured. Connect the Google Sheets connector in Lovable.");
+    throw new Error(
+      "Google Sheets connection not configured. Connect the Google Sheets connector in Lovable.",
+    );
   }
   const res = await fetch(`${GATEWAY}${path}`, {
     ...init,
@@ -51,14 +53,22 @@ const NOT_CONFIGURED = "Google Sheet not configured — set the Spreadsheet ID i
 
 type SheetConfig = { spreadsheet_id: string; sheet_name: string };
 type HeaderMap = Record<string, { index: number; letter: string; original: string }>;
-type Headers = { map: HeaderMap; headers: string[]; warnings: string[]; sheet_name: string; spreadsheet_id: string };
+type Headers = {
+  map: HeaderMap;
+  headers: string[];
+  warnings: string[];
+  sheet_name: string;
+  spreadsheet_id: string;
+};
 
 /** Returns the sheet target for a company, or null when none is configured. */
 async function readConfig(companyId?: string | null): Promise<SheetConfig | null> {
   // Sheet settings are admin-only under RLS; this server-side read uses the
   // service client and returns nothing but the spreadsheet target.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let q = supabaseAdmin.from("trailer_sync_config").select("spreadsheet_id, sheet_name, company_id");
+  let q = supabaseAdmin
+    .from("trailer_sync_config")
+    .select("spreadsheet_id, sheet_name, company_id");
   if (companyId) q = q.eq("company_id", companyId);
   const { data, error } = await q.limit(1).maybeSingle();
   if (error) throw new Error(error.message);
@@ -129,9 +139,18 @@ export const resolveColumns = createServerFn({ method: "POST" })
 type UpdateMap = Record<string, string | number | null>;
 
 /** Internal: locate a row by match column value. Returns the 1-based row number. */
-async function findRow(cfg: SheetConfig, headers: Headers, matchColumn: string, matchValue: string) {
+async function findRow(
+  cfg: SheetConfig,
+  headers: Headers,
+  matchColumn: string,
+  matchValue: string,
+) {
   const matchCol = headers.map[normalizeHeader(matchColumn)];
-  if (!matchCol) return { row: null as number | null, reason: `Match column "${matchColumn}" not found in sheet.` };
+  if (!matchCol)
+    return {
+      row: null as number | null,
+      reason: `Match column "${matchColumn}" not found in sheet.`,
+    };
   const colRange = `${cfg.sheet_name}!${matchCol.letter}2:${matchCol.letter}`;
   const colRes = await gwFetch(`/spreadsheets/${cfg.spreadsheet_id}/values/${colRange}`);
   if (!colRes.ok) {
@@ -141,11 +160,18 @@ async function findRow(cfg: SheetConfig, headers: Headers, matchColumn: string, 
   const values = ((await colRes.json()) as { values?: string[][] }).values ?? [];
   const target = String(matchValue).trim();
   const idx = values.findIndex((r) => (r[0] ?? "").toString().trim() === target);
-  if (idx === -1) return { row: null as number | null, reason: `No row where "${matchColumn}" = "${matchValue}".` };
+  if (idx === -1)
+    return {
+      row: null as number | null,
+      reason: `No row where "${matchColumn}" = "${matchValue}".`,
+    };
   return { row: idx + 2, reason: null as string | null };
 }
 
-async function batchUpdate(cfg: SheetConfig, dataRanges: Array<{ range: string; values: string[][] }>) {
+async function batchUpdate(
+  cfg: SheetConfig,
+  dataRanges: Array<{ range: string; values: string[][] }>,
+) {
   if (dataRanges.length === 0) return;
   const buRes = await gwFetch(`/spreadsheets/${cfg.spreadsheet_id}/values:batchUpdate`, {
     method: "POST",
@@ -158,7 +184,10 @@ async function batchUpdate(cfg: SheetConfig, dataRanges: Array<{ range: string; 
 }
 
 /** Internal: write cells for one row matched by a column value. */
-async function doWriteCells(cfg: SheetConfig, args: { matchColumn: string; matchValue: string; updates: UpdateMap }) {
+async function doWriteCells(
+  cfg: SheetConfig,
+  args: { matchColumn: string; matchValue: string; updates: UpdateMap },
+) {
   const headers = await fetchHeaders(cfg);
   const located = await findRow(cfg, headers, args.matchColumn, args.matchValue);
   if (!located.row) return { ok: false, matched: false, reason: located.reason ?? "Row not found" };
@@ -166,7 +195,10 @@ async function doWriteCells(cfg: SheetConfig, args: { matchColumn: string; match
   const warnings: string[] = [];
   for (const [colName, val] of Object.entries(args.updates)) {
     const col = headers.map[normalizeHeader(colName)];
-    if (!col) { warnings.push(`Column "${colName}" not found — skipped`); continue; }
+    if (!col) {
+      warnings.push(`Column "${colName}" not found — skipped`);
+      continue;
+    }
     dataRanges.push({
       range: `${cfg.sheet_name}!${col.letter}${located.row}`,
       values: [[val == null ? "" : String(val)]],
@@ -183,7 +215,10 @@ async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
   const row: string[] = new Array(headers.headers.length).fill("");
   for (const [k, v] of Object.entries(record)) {
     const col = headers.map[normalizeHeader(k)];
-    if (!col) { warnings.push(`Column "${k}" not found — skipped`); continue; }
+    if (!col) {
+      warnings.push(`Column "${k}" not found — skipped`);
+      continue;
+    }
     row[col.index] = v == null ? "" : String(v);
   }
   const appendRes = await gwFetch(
@@ -229,10 +264,10 @@ export const appendRowByHeader = createServerFn({ method: "POST" })
  * DLM bulk parser to writeback trailer/driver/status per Load ID in one call.
  */
 export const batchWriteByHeader = createServerFn({ method: "POST" })
-  .inputValidator((data: {
-    matchColumn: string;
-    rows: Array<{ matchValue: string; updates: UpdateMap }>;
-  }) => data)
+  .inputValidator(
+    (data: { matchColumn: string; rows: Array<{ matchValue: string; updates: UpdateMap }> }) =>
+      data,
+  )
   .handler(async ({ data }) => {
     const cfg = await readConfig();
     if (!cfg) {
@@ -265,11 +300,17 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
     const warnings = new Set<string>();
     for (const r of data.rows) {
       const rowNum = index.get(String(r.matchValue).trim());
-      if (!rowNum) { results.push({ matchValue: r.matchValue, matched: false }); continue; }
+      if (!rowNum) {
+        results.push({ matchValue: r.matchValue, matched: false });
+        continue;
+      }
       results.push({ matchValue: r.matchValue, matched: true, row: rowNum });
       for (const [colName, val] of Object.entries(r.updates)) {
         const col = headers.map[normalizeHeader(colName)];
-        if (!col) { warnings.add(`Column "${colName}" not found`); continue; }
+        if (!col) {
+          warnings.add(`Column "${colName}" not found`);
+          continue;
+        }
         dataRanges.push({
           range: `${cfg.sheet_name}!${col.letter}${rowNum}`,
           values: [[val == null ? "" : String(val)]],
@@ -315,14 +356,26 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const pending = (rows ?? []) as unknown as OutboxRow[];
-    if (pending.length === 0) return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
+    if (pending.length === 0)
+      return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
 
-    const cfg = await readConfig((pending[0] as unknown as { company_id?: string }).company_id ?? null);
+    const cfg = await readConfig(
+      (pending[0] as unknown as { company_id?: string }).company_id ?? null,
+    );
     if (!cfg) {
-      return { processed: 0, done: 0, failed: 0, retrying: pending.length, configured: false, reason: NOT_CONFIGURED };
+      return {
+        processed: 0,
+        done: 0,
+        failed: 0,
+        retrying: pending.length,
+        configured: false,
+        reason: NOT_CONFIGURED,
+      };
     }
 
-    let done = 0, failed = 0, retrying = 0;
+    let done = 0,
+      failed = 0,
+      retrying = 0;
     for (const row of pending) {
       try {
         if (row.kind === "append") {
@@ -335,33 +388,43 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
           });
           // A missing row is a permanent outcome, not a transient failure.
           if (!res.matched) {
-            await db.from("sheet_sync_outbox").update({
-              status: "failed",
-              attempts: row.attempts + 1,
-              last_error: res.reason ?? "No matching sheet row",
-            }).eq("id", row.id);
+            await db
+              .from("sheet_sync_outbox")
+              .update({
+                status: "failed",
+                attempts: row.attempts + 1,
+                last_error: res.reason ?? "No matching sheet row",
+              })
+              .eq("id", row.id);
             failed++;
             continue;
           }
         }
-        await db.from("sheet_sync_outbox").update({
-          status: "done",
-          attempts: row.attempts + 1,
-          last_error: null,
-          completed_at: new Date().toISOString(),
-        }).eq("id", row.id);
+        await db
+          .from("sheet_sync_outbox")
+          .update({
+            status: "done",
+            attempts: row.attempts + 1,
+            last_error: null,
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
         done++;
       } catch (e) {
         const attempts = row.attempts + 1;
         const exhausted = attempts >= MAX_ATTEMPTS;
         const delay = BACKOFF_MIN[Math.min(attempts, BACKOFF_MIN.length - 1)] ?? 180;
-        await db.from("sheet_sync_outbox").update({
-          status: exhausted ? "failed" : "pending",
-          attempts,
-          last_error: (e as Error).message.slice(0, 500),
-          next_attempt_at: new Date(Date.now() + delay * 60_000).toISOString(),
-        }).eq("id", row.id);
-        if (exhausted) failed++; else retrying++;
+        await db
+          .from("sheet_sync_outbox")
+          .update({
+            status: exhausted ? "failed" : "pending",
+            attempts,
+            last_error: (e as Error).message.slice(0, 500),
+            next_attempt_at: new Date(Date.now() + delay * 60_000).toISOString(),
+          })
+          .eq("id", row.id);
+        if (exhausted) failed++;
+        else retrying++;
       }
     }
     return { processed: pending.length, done, failed, retrying, configured: true };

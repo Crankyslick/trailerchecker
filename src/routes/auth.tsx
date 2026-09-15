@@ -15,9 +15,15 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Me Do Logistics" },
-      { name: "description", content: "Sign in to Me Do Logistics for trailer, yard and drayage container operations." },
+      {
+        name: "description",
+        content: "Sign in to Me Do Logistics for trailer, yard and drayage container operations.",
+      },
       { property: "og:title", content: "Sign in — Me Do Logistics" },
-      { property: "og:description", content: "Secure access to your trailer, yard and drayage operations." },
+      {
+        property: "og:description",
+        content: "Secure access to your trailer, yard and drayage operations.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -40,9 +46,12 @@ function AuthPage() {
     setPicked((cur) => (cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key]));
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session) navigate({ to: "/dashboard", replace: true });
-    }).catch(() => undefined);
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (data?.session) navigate({ to: "/dashboard", replace: true });
+      })
+      .catch(() => undefined);
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       if (s) navigate({ to: "/dashboard", replace: true });
     });
@@ -54,7 +63,10 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        if (picked.length === 0) { toast.error("Pick at least one product to start."); return; }
+        if (picked.length === 0) {
+          toast.error("Pick at least one product to start.");
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -110,7 +122,9 @@ function AuthPage() {
             {mode === "signin" ? "Sign in to your yard" : "Create your account"}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            {mode === "signin" ? "Dispatchers, DC managers, and gate guards." : "First account becomes the DC Manager / Admin."}
+            {mode === "signin"
+              ? "Dispatchers, DC managers, and gate guards."
+              : "First account becomes the DC Manager / Admin."}
           </p>
 
           <button
@@ -118,10 +132,22 @@ function AuthPage() {
             className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface-2/60 px-3 py-2.5 text-sm font-medium hover:bg-surface-2"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9z" />
-              <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z" />
-              <path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.6V6.7H1.4a12 12 0 0 0 0 10.7l4-3z" />
-              <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.7l4 3.1C6.3 6.9 8.9 4.8 12 4.8z" />
+              <path
+                fill="#4285F4"
+                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.4 14.4a7.2 7.2 0 0 1 0-4.6V6.7H1.4a12 12 0 0 0 0 10.7l4-3z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.7l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"
+              />
             </svg>
             Continue with Google
           </button>
@@ -133,28 +159,66 @@ function AuthPage() {
           <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
               <>
-                <Field icon={User} placeholder="Full name" value={fullName} onChange={setFullName} type="text" />
-                <Field icon={Truck} placeholder="Company name" value={company} onChange={setCompany} type="text" />
+                <Field
+                  icon={User}
+                  placeholder="Full name"
+                  value={fullName}
+                  onChange={setFullName}
+                  type="text"
+                />
+                <Field
+                  icon={Truck}
+                  placeholder="Company name"
+                  value={company}
+                  onChange={setCompany}
+                  type="text"
+                />
               </>
             )}
-            <Field icon={Mail} placeholder="you@company.com" value={email} onChange={setEmail} type="email" required />
-            <Field icon={Lock} placeholder="Password" value={password} onChange={setPassword} type="password" required />
+            <Field
+              icon={Mail}
+              placeholder="you@company.com"
+              value={email}
+              onChange={setEmail}
+              type="email"
+              required
+            />
+            <Field
+              icon={Lock}
+              placeholder="Password"
+              value={password}
+              onChange={setPassword}
+              type="password"
+              required
+            />
             {mode === "signup" && (
               <div className="space-y-2 pt-1">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Choose your products</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Choose your products
+                </div>
                 {PRODUCTS.map((p) => {
                   const on = picked.includes(p.key);
                   return (
-                    <button key={p.key} type="button" onClick={() => toggleProduct(p.key)}
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => toggleProduct(p.key)}
                       className={`flex w-full items-start gap-3 rounded-md border p-3 text-left transition ${
-                        on ? "border-primary/50 bg-primary/10" : "border-border bg-surface-2/40 hover:bg-surface-2"
-                      }`}>
-                      <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border ${on ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
+                        on
+                          ? "border-primary/50 bg-primary/10"
+                          : "border-border bg-surface-2/40 hover:bg-surface-2"
+                      }`}
+                    >
+                      <span
+                        className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border ${on ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}
+                      >
                         {on && <Check className="h-3 w-3" />}
                       </span>
                       <span className="min-w-0">
                         <span className="block text-sm font-semibold">{p.name}</span>
-                        <span className="block text-[11px] text-muted-foreground">{p.tagline} · {p.price} {p.priceUnit}</span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          {p.tagline} · {p.price} {p.priceUnit}
+                        </span>
                       </span>
                     </button>
                   );
@@ -180,7 +244,9 @@ function AuthPage() {
         </div>
 
         <p className="mt-4 text-center text-[11px] text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">← Back to pricing</Link>
+          <Link to="/" className="hover:text-foreground">
+            ← Back to pricing
+          </Link>
         </p>
       </div>
     </div>
@@ -188,10 +254,19 @@ function AuthPage() {
 }
 
 function Field({
-  icon: Icon, placeholder, value, onChange, type, required,
+  icon: Icon,
+  placeholder,
+  value,
+  onChange,
+  type,
+  required,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  placeholder: string; value: string; onChange: (v: string) => void; type: string; required?: boolean;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  type: string;
+  required?: boolean;
 }) {
   return (
     <label className="flex items-center gap-2 rounded-md border border-border bg-surface-2/40 px-3 focus-within:border-primary/60">

@@ -34,7 +34,8 @@ export function checkAccess(
   access: { roles: AppRole[]; products: ProductKey[] },
   opts: GuardOptions,
 ): { ok: true } | { ok: false; reason: "product" | "role" } {
-  if (opts.product && !access.products.includes(opts.product)) return { ok: false, reason: "product" };
+  if (opts.product && !access.products.includes(opts.product))
+    return { ok: false, reason: "product" };
   if (opts.roles?.length) {
     const privileged = access.roles.some((r) => opts.roles!.includes(r));
     if (!privileged) return { ok: false, reason: "role" };

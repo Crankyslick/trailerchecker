@@ -1,11 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, CartesianGrid,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  CartesianGrid,
 } from "recharts";
-import { useLoads } from "@/hooks/use-loads";
-import { yardHours, yardTier } from "@/lib/loads";
+import { useLoadsRange, estToday, isoDaysAgo } from "@/hooks/use-loads";
+import { yardHours, yardTier, type LoadRow } from "@/lib/loads";
 import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/reports")({
@@ -16,8 +25,23 @@ export const Route = createFileRoute("/_authenticated/reports")({
 
 const COLORS = ["oklch(0.72 0.18 150)", "oklch(0.82 0.17 85)", "oklch(0.65 0.22 25)"];
 
+/** Reporting day for a completion moment, in the operating timezone. */
+function reportingDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(iso));
+}
+
+function completedAt(l: LoadRow): string | null {
+  return (l as LoadRow & { completed_at: string | null }).completed_at ?? null;
+}
+
 function Reports() {
-  const { data: loads = [] } = useLoads();
+  const [days, setDays] = useState(30);
+  const { data: loads = [] } = useLoadsRange(isoDaysAgo(days), estToday());
 
   const byStore = useMemo(() => {
     const m = new Map<string, number>();
@@ -28,14 +52,22 @@ function Reports() {
     return Array.from(m.entries()).map(([store, count]) => ({ store, count }));
   }, [loads]);
 
+  // Completion volume comes from the recorded completion moment, not the
+  // scheduled day, so the chart reflects when work actually finished.
   const completedByDay = useMemo(() => {
+    const cutoff = isoDaysAgo(days);
     const m = new Map<string, number>();
-    loads.filter((l) => l.status === "Completed").forEach((l) => {
-      const d = l.schedule_date ?? "";
+    loads.forEach((l) => {
+      const ts = completedAt(l);
+      if (!ts) return;
+      const d = reportingDay(ts);
+      if (d < cutoff) return;
       m.set(d, (m.get(d) ?? 0) + 1);
     });
-    return Array.from(m.entries()).sort().map(([day, count]) => ({ day, count }));
-  }, [loads]);
+    return Array.from(m.entries())
+      .sort()
+      .map(([day, count]) => ({ day, count }));
+  }, [loads, days]);
 
   const yardTiers = useMemo(() => {
     const yard = loads.filter((l) => l.return_trailer_location === "Yard");
@@ -59,15 +91,29 @@ function Reports() {
       if (!l.driver) return;
       m.set(l.driver, (m.get(l.driver) ?? 0) + 1);
     });
-    return Array.from(m.entries()).map(([driver, count]) => ({ driver, count }))
+    return Array.from(m.entries())
+      .map(([driver, count]) => ({ driver, count }))
       .sort((a, b) => b.count - a.count);
   }, [loads]);
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-        <p className="text-sm text-muted-foreground">Performance signals across stores, drivers and yard aging.</p>
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+          <p className="text-sm text-muted-foreground">
+            Performance signals across stores, drivers and yard aging.
+          </p>
+        </div>
+        <select
+          value={days}
+          onChange={(e) => setDays(Number(e.target.value))}
+          className="bg-surface-2 border border-border rounded px-2 py-2 text-sm"
+        >
+          <option value={7}>Last 7 days</option>
+          <option value={30}>Last 30 days</option>
+          <option value={90}>Last 90 days</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -77,7 +123,9 @@ function Reports() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="store" stroke="var(--muted-foreground)" fontSize={11} />
               <YAxis stroke="var(--muted-foreground)" fontSize={11} />
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }} />
+              <Tooltip
+                contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              />
               <Bar dataKey="count" fill="oklch(0.82 0.15 200)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -89,7 +137,9 @@ function Reports() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={11} />
               <YAxis stroke="var(--muted-foreground)" fontSize={11} />
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }} />
+              <Tooltip
+                contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              />
               <Bar dataKey="count" fill="oklch(0.72 0.18 150)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -98,10 +148,21 @@ function Reports() {
         <ChartCard title="Yard Trailer Aging">
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={yardTiers} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90} paddingAngle={3}>
-                {yardTiers.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+              <Pie
+                data={yardTiers}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={50}
+                outerRadius={90}
+                paddingAngle={3}
+              >
+                {yardTiers.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i]} />
+                ))}
               </Pie>
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }} />
+              <Tooltip
+                contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -112,8 +173,16 @@ function Reports() {
             <BarChart data={driverWorkload} layout="vertical" margin={{ left: 30 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} />
-              <YAxis dataKey="driver" type="category" stroke="var(--muted-foreground)" fontSize={11} width={100} />
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }} />
+              <YAxis
+                dataKey="driver"
+                type="category"
+                stroke="var(--muted-foreground)"
+                fontSize={11}
+                width={100}
+              />
+              <Tooltip
+                contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              />
               <Bar dataKey="count" fill="oklch(0.72 0.15 290)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -126,7 +195,9 @@ function Reports() {
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="kpi-card p-4">
-      <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground mb-3">{title}</h2>
+      <h2 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground mb-3">
+        {title}
+      </h2>
       {children}
     </div>
   );
