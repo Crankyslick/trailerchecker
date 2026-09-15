@@ -3,7 +3,7 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
-import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
+import { fireWebhook } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS, YARD_POLICY, yardBadge } from "@/lib/loads";
 import { useDataWritable } from "@/lib/data-health";
