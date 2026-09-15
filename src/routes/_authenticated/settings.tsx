@@ -50,7 +50,7 @@ function SettingsPage() {
 
   useEffect(() => {
     (async () => {
-      const row = await readSyncConfig();
+      const row = await readAdminSyncConfig();
       if (row) {
         setWebhook(row.webhook_url ?? "");
         setSpreadsheetId(row.spreadsheet_id ?? "");
