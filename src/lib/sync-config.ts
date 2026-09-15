@@ -72,19 +72,19 @@ export async function saveSyncConfig(patch: {
   webhook_url?: string | null;
 }) {
   const current = await readAdminSyncConfig();
-  const { error } = await supabase.rpc("admin_save_sync_config", {
+  const args = {
     p_spreadsheet_id:
       patch.spreadsheet_id !== undefined
         ? patch.spreadsheet_id
         : (current?.spreadsheet_id ?? null),
     p_sheet_name:
-      patch.sheet_name !== undefined
-        ? patch.sheet_name
-        : (current?.sheet_name ?? "Sheet1"),
+      patch.sheet_name !== undefined ? patch.sheet_name : (current?.sheet_name ?? "Sheet1"),
     p_webhook_url:
-      patch.webhook_url !== undefined
-        ? patch.webhook_url
-        : (current?.webhook_url ?? null),
-  });
+      patch.webhook_url !== undefined ? patch.webhook_url : (current?.webhook_url ?? null),
+  };
+  // The generated RPC type marks the arguments as non-null, but the function
+  // accepts nulls (null keeps / clears values); cast past the stale signature.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase.rpc("admin_save_sync_config", args as any);
   if (error) throw new Error(error.message);
 }

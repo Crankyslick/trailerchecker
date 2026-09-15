@@ -10,11 +10,22 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function stampSynced(company: string, status = "ok") {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+async function readWebhookUrl(
+  supabaseAdmin: import("@supabase/supabase-js").SupabaseClient,
+  company: string,
+): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from("sync_secrets")
+    .select("webhook_url")
+    .eq("company_id", company)
+    .maybeSingle();
+  return (data as { webhook_url: string | null } | null)?.webhook_url ?? null;
+}
+
+async function stampSynced(supabaseAdmin: import("@supabase/supabase-js").SupabaseClient, company: string) {
   await supabaseAdmin
     .from("trailer_sync_config")
-    .update({ last_synced_at: new Date().toISOString(), last_sync_status: status })
+    .update({ last_synced_at: new Date().toISOString(), last_sync_status: "ok" })
     .eq("company_id", company);
 }
 
@@ -33,12 +44,7 @@ export const fireWebhookEvent = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: company, error } = await context.supabase.rpc("current_company_id");
     if (error || !company) return { sent: false };
-    const { data } = await supabaseAdmin
-      .from("sync_secrets")
-      .select("webhook_url")
-      .eq("company_id", company as string)
-      .maybeSingle();
-    const url = (data as { webhook_url: string | null } | null)?.webhook_url;
+    const url = await readWebhookUrl(supabaseAdmin, company as string);
     if (!url) return { sent: false };
     try {
       await fetch(url, {
@@ -53,7 +59,7 @@ export const fireWebhookEvent = createServerFn({ method: "POST" })
     } catch {
       return { sent: false };
     }
-    await stampSynced(company as string);
+    await stampSynced(supabaseAdmin, company as string);
     return { sent: true };
   });
 
@@ -69,12 +75,7 @@ export const testSyncWebhook = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: company, error } = await context.supabase.rpc("current_company_id");
     if (error || !company) return { sent: false };
-    const { data } = await supabaseAdmin
-      .from("sync_secrets")
-      .select("webhook_url")
-      .eq("company_id", company as string)
-      .maybeSingle();
-    const url = (data as { webhook_url: string | null } | null)?.webhook_url;
+    const url = await readWebhookUrl(supabaseAdmin, company as string);
     if (!url) return { sent: false };
     await fetch(url, {
       method: "POST",
@@ -85,6 +86,6 @@ export const testSyncWebhook = createServerFn({ method: "POST" })
         at: new Date().toISOString(),
       }),
     });
-    await stampSynced(company as string);
+    await stampSynced(supabaseAdmin, company as string);
     return { sent: true };
   });
