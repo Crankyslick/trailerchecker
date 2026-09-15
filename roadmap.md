@@ -81,3 +81,16 @@ safety was achieved with a shadow-then-flip inside one database.
 - [x] P2-10 trailer_events gains source, event_version, unique command_id; corrections recorded as 'Correction' events
 - [x] P2-11 Prettier pass; eslint clean apart from one auto-generated file
 - [x] P2-12 bun is the single package manager (packageManager pinned, package-lock.json removed)
+
+## Release-blocking audit P0 (done)
+- [x] P0-01 Dispatch is one transactional database command (dispatch_trailer):
+      the load update and the trailer history entry commit together; the client
+      checks the returned error and only reports success after commit.
+- [x] P0-02 Every dispatch requires a real scheduled load (enforced in the
+      command, not just the UI); the modal now asks for the load when the driver
+      is ad-hoc, and the command is idempotent via command_id.
+- [x] P0-03 Automated tests in place (52 passing) + Playwright smoke test.
+- [x] P2-12 / packaging: bun is the only package manager (pinned via
+      packageManager, bun.lock only, overrides for js-yaml + nanoid),
+      documented in README with the CI command set.
+- [x] Ops: GET /api/public/health readiness probe (200 ok / 503 degraded).
