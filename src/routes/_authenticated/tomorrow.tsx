@@ -1161,10 +1161,39 @@ function resolveHeaderIdx(h: DlmKey, firstNorm: string[]): number {
   return -1;
 }
 
+/**
+ * Placeholder values dispatchers commonly leave in the Load ID column. These
+ * are never a real Load ID and must be corrected before anything is saved.
+ */
+const PLACEHOLDER_LOAD_IDS = new Set([
+  "N/A",
+  "NA",
+  "TLS",
+  "TBD",
+  "NULL",
+  "NONE",
+  "PENDING",
+  "-",
+  "--",
+]);
+
+/** A real Target Load ID is numeric and at least 6 digits. */
+export function isValidLoadId(v?: string | null): boolean {
+  const s = (v ?? "").trim();
+  if (!s || PLACEHOLDER_LOAD_IDS.has(s.toUpperCase())) return false;
+  return /^\d{6,}$/.test(s);
+}
+
+/** Deterministic-ish numeric Load ID used when the paste has no usable one. */
+export function generateLoadId(seed = 0): string {
+  const base = Date.now() % 100_000_000;
+  return `9${String((base + seed * 7) % 100_000_000).padStart(8, "0")}`;
+}
+
 /** Build a stable unique key: Load ID when present & not N/A, else Schedule ID-Trip ID. */
 function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
   const lid = (row["Load ID"] ?? "").trim();
-  if (lid && lid.toUpperCase() !== "N/A") return lid;
+  if (isValidLoadId(lid)) return lid;
   const sid = (row["Schedule ID"] ?? "").trim();
   const tid = (row["Trip ID"] ?? "").trim();
   if (sid && tid) return `${sid}-${tid}`;
@@ -1172,6 +1201,7 @@ function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
   if (tid) return tid;
   return "";
 }
+
 
 function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; usedHeader: boolean } {
   const lines = text
@@ -1233,7 +1263,38 @@ function IngestionTool() {
   const drainOutbox = useDrainSheetOutbox();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const { rows: parsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
+  const [idFixes, setIdFixes] = useState<Record<number, string>>({});
+  const { rows: rawParsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
+
+  // Strict Load ID validation: a placeholder ("TLS", "N/A") or a missing value
+  // must be corrected — typed in or auto-generated — before anything is saved.
+  const parsed = useMemo(
+    () =>
+      rawParsed.map((r, i) => {
+        const fix = (idFixes[i] ?? "").trim();
+        const raw = (r["Load ID"] ?? "").trim();
+        const loadId = isValidLoadId(fix) ? fix : isValidLoadId(raw) ? raw : "";
+        return {
+          ...r,
+          "Load ID": loadId || undefined,
+          __key: loadId || r.__key,
+          __needsId: !loadId,
+          __rawLoadId: raw,
+        } as ParsedRow & { __needsId: boolean; __rawLoadId: string };
+      }),
+    [rawParsed, idFixes],
+  );
+  const needsId = parsed.filter((r) => r.__needsId).length;
+
+  function autoGenerateIds() {
+    setIdFixes((prev) => {
+      const next = { ...prev };
+      parsed.forEach((r, i) => {
+        if (r.__needsId) next[i] = generateLoadId(i + 1);
+      });
+      return next;
+    });
+  }
 
   const existingIds = useMemo(
     () =>
@@ -1247,6 +1308,7 @@ function IngestionTool() {
   const updates = parsed.filter((r) => r.__key && existingIds.has(r.__key)).length;
   const inserts = parsed.filter((r) => r.__key && !existingIds.has(r.__key)).length;
   const skipped = parsed.length - updates - inserts;
+
 
   /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
   function normalizeForWebhook(r: ParsedRow) {
@@ -1265,9 +1327,16 @@ function IngestionTool() {
       toast.error("Nothing to sync");
       return;
     }
+    if (needsId > 0) {
+      toast.error(
+        `${needsId} row(s) have a missing or invalid Load ID — correct them or auto-generate first.`,
+      );
+      return;
+    }
     setBusy(true);
     let ok = 0,
       fail = 0;
+
     for (const r of parsed) {
       const key = r.__key;
       if (!key) {
@@ -1321,15 +1390,20 @@ function IngestionTool() {
         .map((r) => ({
           matchValue: r["Load ID"]!,
           updates: {
+            // Load ID and Trip ID are always sent so an appended (upserted)
+            // row carries its identifiers, not just the operational columns.
+            "Load ID": r["Load ID"] ?? "",
+            "Trip ID": r["Trip ID"] ?? "",
+            "Schedule ID": r["Schedule ID"] ?? "",
             "Trailer #": r["Trailer #"] ?? "",
             "RDC Trailer": r["Trailer #"] ?? "",
             Status: r["Status"] ?? "",
             "Alert Status": r["Alert Status"] ?? "",
-            "Trip ID": r["Trip ID"] ?? "",
             Driver: r["Updated By"] ?? "",
             "Carrier Comments": r["Carrier Comments"] ?? "",
           },
         }));
+
       if (rows.length > 0) {
         const queued = await queueSheetUpdates("Load ID", rows);
         toast.success(`Sheet writeback queued · ${queued} row(s)`);
@@ -1387,6 +1461,22 @@ function IngestionTool() {
           </div>
         </div>
 
+        {needsId > 0 && (
+          <div className="rounded border border-warning/40 bg-warning/10 px-3 py-2 flex items-center justify-between gap-3">
+            <div className="text-xs text-warning">
+              <b>{needsId}</b> row(s) have a missing or invalid Load ID (placeholders like{" "}
+              <code className="font-mono">TLS</code> or <code className="font-mono">N/A</code> are
+              not accepted). Type the correct Load ID in the preview below, or auto-generate one.
+            </div>
+            <button
+              onClick={autoGenerateIds}
+              className="shrink-0 px-3 py-1.5 rounded-md border border-warning/40 text-warning text-xs font-medium hover:bg-warning/15"
+            >
+              Auto-generate Load IDs
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
             {usedHeader
@@ -1395,12 +1485,13 @@ function IngestionTool() {
           </div>
           <button
             onClick={executeSync}
-            disabled={busy || parsed.length === 0}
+            disabled={busy || parsed.length === 0 || needsId > 0}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
           >
             <ClipboardPaste className="h-4 w-4" /> {busy ? "Syncing…" : "Execute Sync"}
           </button>
         </div>
+
       </div>
 
       {parsed.length > 0 && (
