@@ -81,10 +81,32 @@ export function DispatchModal({
     return [...seen.values()];
   }, [loads]);
 
+  // Every dispatch must attach to a real scheduled load so trailer history
+  // stays traceable — these are the loads a trailer can be dispatched against.
+  const assignable = useMemo(() => {
+    const today = estDate(0);
+    const tomorrow = estDate(1);
+    return loads
+      .filter((l) => {
+        const d = l.schedule_date ?? l.cutoff_date;
+        return d === today || d === tomorrow;
+      })
+      .map((l) => ({
+        load_id: l.id,
+        schedule_id: l.schedule_id ?? null,
+        trip_id: (l as unknown as { trip_id: string | null }).trip_id ?? null,
+        cutoff: l.cutoff_time ?? null,
+        date: l.schedule_date ?? l.cutoff_date ?? null,
+        driver: l.driver ?? null,
+        store: l.str_name ?? l.str_number ?? null,
+      }));
+  }, [loads]);
+
   useEffect(() => {
     if (open) {
       setSelected("");
       setCustomName("");
+      setManualLoadId("");
     }
   }, [open]);
 
@@ -93,44 +115,39 @@ export function DispatchModal({
   const custom = selected === "__custom__";
   const chosen = custom ? null : candidates.find((c) => c.name === selected);
   const driverName = custom ? customName.trim() : (chosen?.name ?? "");
+  const loadId = chosen?.load_id ?? manualLoadId;
+  const targetLoad = assignable.find((l) => l.load_id === loadId) ?? null;
+  const canSubmit = Boolean(driverName) && Boolean(loadId);
 
   async function submit() {
     if (!driverName) {
       toast.error("Pick a driver or enter a custom name.");
       return;
     }
+    if (!loadId) {
+      toast.error("Select the scheduled load this trailer is dispatched against.");
+      return;
+    }
     setSubmitting(true);
     try {
-      // Look up matching load row (if scheduled) to capture Load ID / Trip ID
-      const captured = chosen ?? null;
-
-      // Persist assignment locally: try to update the scheduled load row if found;
-      // otherwise create an ad-hoc dispatch note in trailer_events.
-      if (captured?.load_id) {
-        await supabase
-          .from("trailer_loads")
-          .update({
-            outbound_trailer: trailer,
-            driver: driverName,
-            return_trailer_location: "Store",
-            status: "Assigned",
-          })
-          .eq("id", captured.load_id);
-      }
-
-      await supabase.from("trailer_events").insert({
-        load_id: captured?.load_id ?? null,
-        trailer_number: trailer,
-        event_type: "Dispatched",
-        note: `Trailer ${trailer} dispatched from ${yard} → ${nextDestination}. Driver: ${driverName}${previousDriver ? ` · Returned by ${previousDriver}` : ""}${custom ? " (custom)" : ""}`,
+      // One transactional database command: the load update and the trailer
+      // history entry commit together, or neither is written.
+      const { error } = await supabase.rpc("dispatch_trailer", {
+        p_load_id: loadId,
+        p_trailer: trailer,
+        p_driver: driverName,
+        p_destination: nextDestination,
+        p_previous_driver: previousDriver ?? null,
+        p_command_id: `dispatch:${loadId}:${trailer}:${driverName}`,
       });
+      if (error) throw new Error(error.message);
 
       // Queue the Sheet writeback (durable: retried until it lands)
-      if (captured?.load_id && (captured.schedule_id || captured.trip_id)) {
-        await queueSheetUpdate("Load ID", captured.load_id, {
+      if (targetLoad?.schedule_id || targetLoad?.trip_id) {
+        await queueSheetUpdate("Load ID", loadId, {
           Driver: driverName,
           "RDC Trailer": trailer,
-          "Pickup Cutoff Time": captured.cutoff ?? "",
+          "Pickup Cutoff Time": targetLoad?.cutoff ?? "",
         });
         void drain.mutateAsync().catch(() => undefined);
       }
