@@ -1,20 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { X, Warehouse, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useYardCheckIn, newIdempotencyKey } from "@/hooks/use-yard";
+import { useCompanySites } from "@/hooks/use-sites";
 import { queueSheetAppend } from "@/lib/sheet-outbox";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 
 type Props = { open: boolean; onClose: () => void; onSaved?: () => void };
 
-const YARDS = ["Yard 91", "Yard 301", "Paterson Yard", "589 Chambersburg"] as const;
-
 export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
   const [trailer, setTrailer] = useState("");
-  const [yard, setYard] = useState<typeof YARDS[number]>("589 Chambersburg");
+  const { names: yards, defaultSite } = useCompanySites();
+  const [yard, setYard] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const drain = useDrainSheetOutbox();
+  const checkIn = useYardCheckIn();
+  const idemRef = useRef(newIdempotencyKey());
+  const activeYard = yard || defaultSite?.name || "";
 
   if (!open) return null;
 
@@ -22,22 +25,22 @@ export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
     if (!trailer.trim()) { toast.error("Trailer # is required"); return; }
     setSubmitting(true);
     try {
-      const arrival = new Date().toISOString();
-      const { error } = await supabase.from("yard_check_ins").insert({
-        trailer_number: trailer.trim(),
-        arrival_at: arrival,
-        note: note.trim() || null,
+      const row = await checkIn.mutateAsync({
+        trailer: trailer.trim(),
+        note: note.trim() ? `${activeYard} · ${note.trim()}` : `Arrived at ${activeYard}`,
+        idempotencyKey: idemRef.current,
       });
-      if (error) throw new Error(error.message);
+      const arrival = row.arrival_at;
+      idemRef.current = newIdempotencyKey();
 
       // Durable Sheet append — queued, then retried until it lands
       await queueSheetAppend({
         "Trailer #": trailer.trim(),
-        "TRL Location": yard,
+        "TRL Location": activeYard,
         "STR RTRN TRL#": trailer.trim(),
         "Status": "Checked In",
         "Alert Status": "Guard Shack",
-        "Carrier Comments": note.trim() || `Arrived at ${yard}`,
+        "Carrier Comments": note.trim() || `Arrived at ${activeYard}`,
         "Updated By": "Guard Shack",
         "Expected Pickup": arrival,
       });
@@ -70,9 +73,9 @@ export function GuardCheckInModal({ open, onClose, onSaved }: Props) {
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Arrival Yard</label>
-            <select value={yard} onChange={(e) => setYard(e.target.value as typeof YARDS[number])}
+            <select value={activeYard} onChange={(e) => setYard(e.target.value)}
               className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/60">
-              {YARDS.map((y) => <option key={y} value={y}>{y}</option>)}
+              {yards.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
           <div>
