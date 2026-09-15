@@ -325,12 +325,19 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
     });
 
     const dataRanges: Array<{ range: string; values: string[][] }> = [];
-    const results: Array<{ matchValue: string; matched: boolean; row?: number }> = [];
+    const results: Array<{
+      matchValue: string;
+      matched: boolean;
+      row?: number;
+      appended?: boolean;
+    }> = [];
     const warnings = new Set<string>();
+    const toAppend: Array<{ matchValue: string; updates: UpdateMap }> = [];
     for (const r of data.rows) {
       const rowNum = index.get(String(r.matchValue).trim());
       if (!rowNum) {
-        results.push({ matchValue: r.matchValue, matched: false });
+        // Upsert: queue an append for keys the sheet does not have yet.
+        toAppend.push(r);
         continue;
       }
       results.push({ matchValue: r.matchValue, matched: true, row: rowNum });
@@ -347,7 +354,21 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
       }
     }
     await batchUpdate(cfg, dataRanges);
-    return { ok: true, written: dataRanges.length, results, warnings: [...warnings] };
+    let appended = 0;
+    for (const r of toAppend) {
+      const res = await doAppendRow(cfg, { [data.matchColumn]: r.matchValue, ...r.updates });
+      res.warnings.forEach((w) => warnings.add(w));
+      results.push({ matchValue: r.matchValue, matched: false, appended: true });
+      appended++;
+    }
+    return {
+      ok: true,
+      written: dataRanges.length,
+      appended,
+      results,
+      warnings: [...warnings],
+    };
+
   });
 
 /** Backoff schedule in minutes, indexed by attempt count. */
