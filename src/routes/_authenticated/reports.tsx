@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, CartesianGrid,
 } from "recharts";
-import { useLoads } from "@/hooks/use-loads";
-import { yardHours, yardTier } from "@/lib/loads";
+import { useLoadsRange, estToday, isoDaysAgo } from "@/hooks/use-loads";
+import { yardHours, yardTier, type LoadRow } from "@/lib/loads";
 import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/reports")({
@@ -16,8 +16,20 @@ export const Route = createFileRoute("/_authenticated/reports")({
 
 const COLORS = ["oklch(0.72 0.18 150)", "oklch(0.82 0.17 85)", "oklch(0.65 0.22 25)"];
 
+/** Reporting day for a completion moment, in the operating timezone. */
+function reportingDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date(iso));
+}
+
+function completedAt(l: LoadRow): string | null {
+  return (l as LoadRow & { completed_at: string | null }).completed_at ?? null;
+}
+
 function Reports() {
-  const { data: loads = [] } = useLoads();
+  const [days, setDays] = useState(30);
+  const { data: loads = [] } = useLoadsRange(isoDaysAgo(days), estToday());
 
   const byStore = useMemo(() => {
     const m = new Map<string, number>();
@@ -28,14 +40,20 @@ function Reports() {
     return Array.from(m.entries()).map(([store, count]) => ({ store, count }));
   }, [loads]);
 
+  // Completion volume comes from the recorded completion moment, not the
+  // scheduled day, so the chart reflects when work actually finished.
   const completedByDay = useMemo(() => {
+    const cutoff = isoDaysAgo(days);
     const m = new Map<string, number>();
-    loads.filter((l) => l.status === "Completed").forEach((l) => {
-      const d = l.schedule_date ?? "";
+    loads.forEach((l) => {
+      const ts = completedAt(l);
+      if (!ts) return;
+      const d = reportingDay(ts);
+      if (d < cutoff) return;
       m.set(d, (m.get(d) ?? 0) + 1);
     });
     return Array.from(m.entries()).sort().map(([day, count]) => ({ day, count }));
-  }, [loads]);
+  }, [loads, days]);
 
   const yardTiers = useMemo(() => {
     const yard = loads.filter((l) => l.return_trailer_location === "Yard");
@@ -65,9 +83,17 @@ function Reports() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-        <p className="text-sm text-muted-foreground">Performance signals across stores, drivers and yard aging.</p>
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+          <p className="text-sm text-muted-foreground">Performance signals across stores, drivers and yard aging.</p>
+        </div>
+        <select value={days} onChange={(e) => setDays(Number(e.target.value))}
+          className="bg-surface-2 border border-border rounded px-2 py-2 text-sm">
+          <option value={7}>Last 7 days</option>
+          <option value={30}>Last 30 days</option>
+          <option value={90}>Last 90 days</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

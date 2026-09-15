@@ -887,30 +887,42 @@ export type Database = {
       }
       trailer_events: {
         Row: {
+          command_id: string | null
           created_at: string
           event_type: string
+          event_version: number
           id: string
           load_id: string | null
           note: string | null
+          source: string
           trailer_number: string | null
+          trailer_role: string | null
           user_id: string | null
         }
         Insert: {
+          command_id?: string | null
           created_at?: string
           event_type: string
+          event_version?: number
           id?: string
           load_id?: string | null
           note?: string | null
+          source?: string
           trailer_number?: string | null
+          trailer_role?: string | null
           user_id?: string | null
         }
         Update: {
+          command_id?: string | null
           created_at?: string
           event_type?: string
+          event_version?: number
           id?: string
           load_id?: string | null
           note?: string | null
+          source?: string
           trailer_number?: string | null
+          trailer_role?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -934,6 +946,7 @@ export type Database = {
           client_id: string | null
           comments: string | null
           company_id: string
+          completed_at: string | null
           created_at: string
           created_by: string | null
           cutoff_date: string | null
@@ -987,6 +1000,7 @@ export type Database = {
           client_id?: string | null
           comments?: string | null
           company_id?: string
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
           cutoff_date?: string | null
@@ -1040,6 +1054,7 @@ export type Database = {
           client_id?: string | null
           comments?: string | null
           company_id?: string
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
           cutoff_date?: string | null

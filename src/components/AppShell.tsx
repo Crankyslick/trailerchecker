@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
+import { DataHealthBanner } from "@/components/DataHealthBanner";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
 import { readSyncConfig } from "@/lib/sync-config";
@@ -86,7 +87,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+          <DataHealthBanner />
+          {children}
+        </main>
       </div>
     </div>
   );
