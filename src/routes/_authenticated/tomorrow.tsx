@@ -1461,6 +1461,22 @@ function IngestionTool() {
           </div>
         </div>
 
+        {needsId > 0 && (
+          <div className="rounded border border-warning/40 bg-warning/10 px-3 py-2 flex items-center justify-between gap-3">
+            <div className="text-xs text-warning">
+              <b>{needsId}</b> row(s) have a missing or invalid Load ID (placeholders like{" "}
+              <code className="font-mono">TLS</code> or <code className="font-mono">N/A</code> are
+              not accepted). Type the correct Load ID in the preview below, or auto-generate one.
+            </div>
+            <button
+              onClick={autoGenerateIds}
+              className="shrink-0 px-3 py-1.5 rounded-md border border-warning/40 text-warning text-xs font-medium hover:bg-warning/15"
+            >
+              Auto-generate Load IDs
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
             {usedHeader
@@ -1469,12 +1485,13 @@ function IngestionTool() {
           </div>
           <button
             onClick={executeSync}
-            disabled={busy || parsed.length === 0}
+            disabled={busy || parsed.length === 0 || needsId > 0}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
           >
             <ClipboardPaste className="h-4 w-4" /> {busy ? "Syncing…" : "Execute Sync"}
           </button>
         </div>
+
       </div>
 
       {parsed.length > 0 && (
