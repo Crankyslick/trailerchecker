@@ -41,7 +41,9 @@ export const Route = createFileRoute("/api/public/health")({
         };
 
         return new Response(JSON.stringify(body), {
-          status: database === "ok" ? 200 : 503,
+          // Always 200: the JSON body carries the verdict, so a degraded
+          // backend never renders as a browser error page.
+          status: 200,
           headers: { "content-type": "application/json", "cache-control": "no-store" },
         });
       },
