@@ -307,7 +307,7 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
 
     const { data: rows, error } = await db
       .from("sheet_sync_outbox")
-      .select("id, kind, match_column, match_value, payload, attempts")
+      .select("id, kind, match_column, match_value, payload, attempts, company_id")
       .eq("status", "pending")
       .lte("next_attempt_at", new Date().toISOString())
       .order("created_at", { ascending: true })
@@ -317,7 +317,7 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
     const pending = (rows ?? []) as unknown as OutboxRow[];
     if (pending.length === 0) return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
 
-    const cfg = await readConfig();
+    const cfg = await readConfig((pending[0] as unknown as { company_id?: string }).company_id ?? null);
     if (!cfg) {
       return { processed: 0, done: 0, failed: 0, retrying: pending.length, configured: false, reason: NOT_CONFIGURED };
     }
