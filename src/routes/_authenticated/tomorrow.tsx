@@ -1263,7 +1263,38 @@ function IngestionTool() {
   const drainOutbox = useDrainSheetOutbox();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const { rows: parsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
+  const [idFixes, setIdFixes] = useState<Record<number, string>>({});
+  const { rows: rawParsed, usedHeader } = useMemo(() => parseBlock(text), [text]);
+
+  // Strict Load ID validation: a placeholder ("TLS", "N/A") or a missing value
+  // must be corrected — typed in or auto-generated — before anything is saved.
+  const parsed = useMemo(
+    () =>
+      rawParsed.map((r, i) => {
+        const fix = (idFixes[i] ?? "").trim();
+        const raw = (r["Load ID"] ?? "").trim();
+        const loadId = isValidLoadId(fix) ? fix : isValidLoadId(raw) ? raw : "";
+        return {
+          ...r,
+          "Load ID": loadId || undefined,
+          __key: loadId || r.__key,
+          __needsId: !loadId,
+          __rawLoadId: raw,
+        } as ParsedRow & { __needsId: boolean; __rawLoadId: string };
+      }),
+    [rawParsed, idFixes],
+  );
+  const needsId = parsed.filter((r) => r.__needsId).length;
+
+  function autoGenerateIds() {
+    setIdFixes((prev) => {
+      const next = { ...prev };
+      parsed.forEach((r, i) => {
+        if (r.__needsId) next[i] = generateLoadId(i + 1);
+      });
+      return next;
+    });
+  }
 
   const existingIds = useMemo(
     () =>
@@ -1277,6 +1308,7 @@ function IngestionTool() {
   const updates = parsed.filter((r) => r.__key && existingIds.has(r.__key)).length;
   const inserts = parsed.filter((r) => r.__key && !existingIds.has(r.__key)).length;
   const skipped = parsed.length - updates - inserts;
+
 
   /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
   function normalizeForWebhook(r: ParsedRow) {
