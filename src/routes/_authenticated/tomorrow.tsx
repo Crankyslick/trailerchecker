@@ -3,7 +3,7 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
-import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
+import { fireWebhook } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS, YARD_POLICY, yardBadge } from "@/lib/loads";
 import { useDataWritable } from "@/lib/data-health";
@@ -12,7 +12,9 @@ import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { toast } from "sonner";
 import { guard } from "@/lib/route-guard";
-import { readSyncConfig, saveSyncConfig } from "@/lib/sync-config";
+import { useServerFn } from "@tanstack/react-start";
+import { readSyncConfig, readAdminSyncConfig, saveSyncConfig } from "@/lib/sync-config";
+import { testSyncWebhook } from "@/lib/webhook.functions";
 import {
   Truck,
   Warehouse,
@@ -1471,51 +1473,51 @@ function IngestionTool() {
 function SyncPanel() {
   const [endpoint, setEndpoint] = useState("");
   const [webhook, setWebhook] = useState("");
+  const [canEditWebhook, setCanEditWebhook] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const ping = useServerFn(testSyncWebhook);
 
   useEffect(() => {
     (async () => {
       const cfg = await readSyncConfig();
       if (cfg) {
         setEndpoint(cfg.spreadsheet_id ?? "");
-        setWebhook(cfg.webhook_url ?? "");
         setLastSync(cfg.last_synced_at);
+      }
+      // The webhook address is admin-only; dispatchers and guards get an
+      // empty result and see a locked field instead.
+      const admin = await readAdminSyncConfig();
+      if (admin) {
+        setWebhook(admin.webhook_url ?? "");
+        setCanEditWebhook(true);
       }
     })();
   }, []);
 
   async function save() {
     try {
-      await saveSyncConfig({ spreadsheet_id: endpoint || null, webhook_url: webhook || null });
+      await saveSyncConfig({
+        spreadsheet_id: endpoint || null,
+        ...(canEditWebhook ? { webhook_url: webhook || null } : {}),
+      });
       toast.success("Sync settings saved");
-      invalidateWebhookCache();
     } catch (e) {
       toast.error((e as Error).message);
     }
   }
 
   async function testWebhook() {
-    if (!webhook) {
-      toast.error("Enter a webhook URL first");
-      return;
-    }
     setBusy(true);
     try {
-      await fetch(webhook, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event: "test.ping",
-          payload: { hello: "VTC Dispatch" },
-          at: new Date().toISOString(),
-        }),
-      });
-      const now = new Date().toISOString();
-      await saveSyncConfig({ last_synced_at: now });
-      setLastSync(now);
-      toast.success("Ping sent (opaque response — check your Sheet)");
+      const res = await ping();
+      if (!res.sent) {
+        toast.error("No webhook URL is configured yet");
+        return;
+      }
+      const cfg = await readSyncConfig();
+      setLastSync(cfg?.last_synced_at ?? new Date().toISOString());
+      toast.success("Ping sent (check your Sheet)");
     } catch (e) {
       toast.error(`Ping failed: ${(e as Error).message}`);
     } finally {
@@ -1548,10 +1550,12 @@ function SyncPanel() {
           Sheet Webhook URL (writes to sheet)
         </label>
         <input
-          value={webhook}
+          value={canEditWebhook ? webhook : ""}
           onChange={(e) => setWebhook(e.target.value)}
-          placeholder="https://script.google.com/macros/s/AKfyc.../exec"
-          className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50"
+          disabled={!canEditWebhook}
+          placeholder={canEditWebhook ? "https://script.google.com/macros/s/AKfyc.../exec" : "Admins only"}
+          title={canEditWebhook ? undefined : "Only admins can view or change the webhook URL"}
+          className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50 disabled:opacity-60"
         />
       </div>
 
@@ -1576,7 +1580,7 @@ function SyncPanel() {
         </button>
         <button
           onClick={testWebhook}
-          disabled={busy || !webhook}
+          disabled={busy}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} /> Send Test Ping

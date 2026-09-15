@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const load = async () => {
       const cfg = await readSyncConfig();
       setSync({
-        url: cfg?.spreadsheet_id ?? cfg?.webhook_url ?? null,
+        url: cfg?.spreadsheet_id ?? null,
         last: cfg?.last_synced_at ?? null,
       });
     };

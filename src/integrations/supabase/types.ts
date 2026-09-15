@@ -741,6 +741,38 @@ export type Database = {
           },
         ]
       }
+      sync_secrets: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_secrets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_invites: {
         Row: {
           accepted_at: string | null
@@ -1132,7 +1164,6 @@ export type Database = {
           sheet_name: string | null
           spreadsheet_id: string | null
           updated_at: string
-          webhook_url: string | null
         }
         Insert: {
           company_id?: string
@@ -1143,7 +1174,6 @@ export type Database = {
           sheet_name?: string | null
           spreadsheet_id?: string | null
           updated_at?: string
-          webhook_url?: string | null
         }
         Update: {
           company_id?: string
@@ -1154,7 +1184,6 @@ export type Database = {
           sheet_name?: string | null
           spreadsheet_id?: string | null
           updated_at?: string
-          webhook_url?: string | null
         }
         Relationships: [
           {
@@ -1246,6 +1275,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_save_sync_config: {
+        Args: {
+          p_sheet_name: string
+          p_spreadsheet_id: string
+          p_webhook_url: string
+        }
+        Returns: undefined
+      }
+      admin_sync_config: {
+        Args: never
+        Returns: {
+          last_sync_status: string
+          last_synced_at: string
+          sheet_name: string
+          spreadsheet_id: string
+          webhook_url: string
+        }[]
+      }
       can_dispatch: { Args: never; Returns: boolean }
       current_company_id: { Args: never; Returns: string }
       current_tenant_id: { Args: never; Returns: string }
