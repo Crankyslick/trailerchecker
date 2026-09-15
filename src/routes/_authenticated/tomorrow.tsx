@@ -263,8 +263,8 @@ function BoardRow({ load: l, drivers, tomorrow, pastDeadline }: BoardRowProps) {
         <DriverSelect value={l.driver} drivers={drivers} danger={driverOverdue}
           onSave={(v) => updateLoad(l.id, { driver: v })} />
       </td>
-      <td className="py-2 px-3"><EditCell mono value={l.outbound_trailer} placeholder="Trailer #"
-        onSave={(v) => updateLoad(l.id, { outbound_trailer: v })} /></td>
+      <td className="py-2 px-3"><EditCell mono value={l.outbound_trailer} placeholder="Trailer #" disabled={!writable}
+        onSave={(v) => updateLoadOrThrow(l.id, { outbound_trailer: v })} /></td>
       <td className="py-2 px-3 text-xs"><span className="font-mono">{l.origin_id}</span> · <span className="text-muted-foreground">{l.origin_name}</span></td>
       <td className="py-2 px-3 text-xs"><span className="font-mono">{l.str_number}</span> · <span className="text-muted-foreground">{l.str_name}</span></td>
       <td className="py-2 px-3">
