@@ -1161,10 +1161,39 @@ function resolveHeaderIdx(h: DlmKey, firstNorm: string[]): number {
   return -1;
 }
 
+/**
+ * Placeholder values dispatchers commonly leave in the Load ID column. These
+ * are never a real Load ID and must be corrected before anything is saved.
+ */
+const PLACEHOLDER_LOAD_IDS = new Set([
+  "N/A",
+  "NA",
+  "TLS",
+  "TBD",
+  "NULL",
+  "NONE",
+  "PENDING",
+  "-",
+  "--",
+]);
+
+/** A real Target Load ID is numeric and at least 6 digits. */
+export function isValidLoadId(v?: string | null): boolean {
+  const s = (v ?? "").trim();
+  if (!s || PLACEHOLDER_LOAD_IDS.has(s.toUpperCase())) return false;
+  return /^\d{6,}$/.test(s);
+}
+
+/** Deterministic-ish numeric Load ID used when the paste has no usable one. */
+export function generateLoadId(seed = 0): string {
+  const base = Date.now() % 100_000_000;
+  return `9${String((base + seed * 7) % 100_000_000).padStart(8, "0")}`;
+}
+
 /** Build a stable unique key: Load ID when present & not N/A, else Schedule ID-Trip ID. */
 function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
   const lid = (row["Load ID"] ?? "").trim();
-  if (lid && lid.toUpperCase() !== "N/A") return lid;
+  if (isValidLoadId(lid)) return lid;
   const sid = (row["Schedule ID"] ?? "").trim();
   const tid = (row["Trip ID"] ?? "").trim();
   if (sid && tid) return `${sid}-${tid}`;
@@ -1172,6 +1201,7 @@ function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
   if (tid) return tid;
   return "";
 }
+
 
 function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; usedHeader: boolean } {
   const lines = text
