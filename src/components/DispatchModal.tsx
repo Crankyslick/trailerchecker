@@ -45,6 +45,7 @@ export function DispatchModal({
 
   const [selected, setSelected] = useState<string>("");
   const [customName, setCustomName] = useState("");
+  const [manualLoadId, setManualLoadId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // Scheduled candidates: drivers scheduled today or tomorrow, prioritized
