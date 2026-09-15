@@ -268,9 +268,9 @@ function BoardRow({ load: l, drivers, tomorrow, pastDeadline }: BoardRowProps) {
       <td className="py-2 px-3 text-xs"><span className="font-mono">{l.origin_id}</span> · <span className="text-muted-foreground">{l.origin_name}</span></td>
       <td className="py-2 px-3 text-xs"><span className="font-mono">{l.str_number}</span> · <span className="text-muted-foreground">{l.str_name}</span></td>
       <td className="py-2 px-3">
-        <EditCell mono value={l.return_trailer} placeholder="Type trailer #"
+        <EditCell mono value={l.return_trailer} placeholder="Type trailer #" disabled={!writable}
           className={l.return_trailer ? "text-primary font-semibold" : ""}
-          onSave={(v) => updateLoad(l.id, { return_trailer: v })} />
+          onSave={(v) => updateLoadOrThrow(l.id, { return_trailer: v })} />
       </td>
       <td className="py-2 px-3">
         <LocationSelect value={l.return_trailer_location}
