@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "tenant read sync" ON public.sync_config;
