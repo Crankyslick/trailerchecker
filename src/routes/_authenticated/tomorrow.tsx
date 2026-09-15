@@ -1390,15 +1390,20 @@ function IngestionTool() {
         .map((r) => ({
           matchValue: r["Load ID"]!,
           updates: {
+            // Load ID and Trip ID are always sent so an appended (upserted)
+            // row carries its identifiers, not just the operational columns.
+            "Load ID": r["Load ID"] ?? "",
+            "Trip ID": r["Trip ID"] ?? "",
+            "Schedule ID": r["Schedule ID"] ?? "",
             "Trailer #": r["Trailer #"] ?? "",
             "RDC Trailer": r["Trailer #"] ?? "",
             Status: r["Status"] ?? "",
             "Alert Status": r["Alert Status"] ?? "",
-            "Trip ID": r["Trip ID"] ?? "",
             Driver: r["Updated By"] ?? "",
             "Carrier Comments": r["Carrier Comments"] ?? "",
           },
         }));
+
       if (rows.length > 0) {
         const queued = await queueSheetUpdates("Load ID", rows);
         toast.success(`Sheet writeback queued · ${queued} row(s)`);
