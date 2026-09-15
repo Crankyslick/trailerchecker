@@ -19,8 +19,10 @@ export const Route = createFileRoute("/api/public/health")({
           if (!url || !key) throw new Error("backend configuration missing");
           // Reach the data API without reading any row: a healthy service
           // answers the API root, a degraded one does not.
+          const headers: Record<string, string> = { apikey: key };
+          if (!key.startsWith("sb_")) headers["Authorization"] = `Bearer ${key}`;
           const res = await fetch(`${url}/rest/v1/`, {
-            headers: { apikey: key },
+            headers,
             signal: AbortSignal.timeout(5000),
           });
           if (!res.ok) throw new Error(`data api responded ${res.status}`);
