@@ -7,6 +7,8 @@ import {
   locationColor,
   LOAD_STATUSES,
   TRAILER_LOCATIONS,
+  yardBadge,
+  YARD_POLICY,
 } from "./loads";
 
 describe("yard aging tiers (<24h green, 24-48h yellow, >48h red)", () => {
