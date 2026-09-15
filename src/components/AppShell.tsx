@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
+import { readSyncConfig } from "@/lib/sync-config";
 
 function timeAgo(iso: string | null) {
   if (!iso) return "never";
@@ -32,15 +33,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("sync_config").select("endpoint_url,last_synced_at").eq("id", 1).maybeSingle();
-      if (data) setSync({ url: data.endpoint_url, last: data.last_synced_at });
+      const cfg = await readSyncConfig();
+      setSync({ url: cfg?.spreadsheet_id ?? cfg?.webhook_url ?? null, last: cfg?.last_synced_at ?? null });
     };
     void load();
     let ch: ReturnType<typeof supabase.channel> | undefined;
     try {
       ch = supabase
-        .channel(`sync_config-stream-${Math.random().toString(36).slice(2)}`)
-        .on("postgres_changes", { event: "*", schema: "public", table: "sync_config" }, () => { void load(); })
+        .channel(`trailer_sync_config-stream-${Math.random().toString(36).slice(2)}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "trailer_sync_config" }, () => { void load(); })
         .subscribe();
     } catch { /* noop */ }
     const t = setInterval(() => tick((n) => n + 1), 30_000);

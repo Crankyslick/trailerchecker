@@ -1014,23 +1014,23 @@ function SyncPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("sync_config").select("endpoint_url,webhook_url,last_synced_at").eq("id", 1).maybeSingle();
-      if (data) {
-        setEndpoint(data.endpoint_url ?? "");
-        setWebhook((data as { webhook_url: string | null }).webhook_url ?? "");
-        setLastSync(data.last_synced_at);
+      const cfg = await readSyncConfig();
+      if (cfg) {
+        setEndpoint(cfg.spreadsheet_id ?? "");
+        setWebhook(cfg.webhook_url ?? "");
+        setLastSync(cfg.last_synced_at);
       }
     })();
   }, []);
 
   async function save() {
-    const { error } = await supabase.from("sync_config").update({
-      endpoint_url: endpoint || null,
-      webhook_url: webhook || null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", 1);
-    if (error) toast.error(error.message);
-    else { toast.success("Sync settings saved"); invalidateWebhookCache(); }
+    try {
+      await saveSyncConfig({ spreadsheet_id: endpoint || null, webhook_url: webhook || null });
+      toast.success("Sync settings saved");
+      invalidateWebhookCache();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
 
   async function testWebhook() {
@@ -1043,7 +1043,7 @@ function SyncPanel() {
         body: JSON.stringify({ event: "test.ping", payload: { hello: "VTC Dispatch" }, at: new Date().toISOString() }),
       });
       const now = new Date().toISOString();
-      await supabase.from("sync_config").update({ last_synced_at: now, updated_at: now }).eq("id", 1);
+      await saveSyncConfig({ last_synced_at: now });
       setLastSync(now);
       toast.success("Ping sent (opaque response — check your Sheet)");
     } catch (e) { toast.error(`Ping failed: ${(e as Error).message}`); }

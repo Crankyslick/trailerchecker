@@ -6,6 +6,7 @@ import { describeEntry, discardOutboxEntry, requeueAllFailed, requeueOutboxEntry
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateWebhookCache } from "@/lib/webhook";
+import { readSyncConfig, saveSyncConfig } from "@/lib/sync-config";
 import { getSheetHeaders } from "@/lib/sheets.functions";
 import { toast } from "sonner";
 import { PRODUCTS, type ProductKey } from "@/lib/products";
@@ -35,8 +36,7 @@ function SettingsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("sync_config").select("webhook_url, spreadsheet_id, sheet_name").eq("id", 1).maybeSingle();
-      const row = data as { webhook_url: string | null; spreadsheet_id: string | null; sheet_name: string | null } | null;
+      const row = await readSyncConfig();
       if (row) {
         setWebhook(row.webhook_url ?? "");
         setSpreadsheetId(row.spreadsheet_id ?? "");
@@ -47,14 +47,18 @@ function SettingsPage() {
 
   async function save() {
     const cleanId = extractSpreadsheetId(spreadsheetId);
-    const { error } = await supabase.from("sync_config").update({
-      webhook_url: webhook || null,
-      spreadsheet_id: cleanId || null,
-      sheet_name: sheetName || "Sheet1",
-      updated_at: new Date().toISOString(),
-    }).eq("id", 1);
-    if (error) toast.error(error.message);
-    else { setSpreadsheetId(cleanId); toast.success("Settings saved"); invalidateWebhookCache(); }
+    try {
+      await saveSyncConfig({
+        webhook_url: webhook || null,
+        spreadsheet_id: cleanId || null,
+        sheet_name: sheetName || "Sheet1",
+      });
+      setSpreadsheetId(cleanId);
+      toast.success("Settings saved");
+      invalidateWebhookCache();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
 
   async function testConnection() {
