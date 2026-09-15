@@ -10,8 +10,9 @@ import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { toast } from "sonner";
-import {
 import { guard } from "@/lib/route-guard";
+import { readSyncConfig, saveSyncConfig } from "@/lib/sync-config";
+import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
   RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin, ChevronRight,
 } from "lucide-react";
