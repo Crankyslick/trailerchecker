@@ -137,7 +137,7 @@ export function DispatchModal({
         p_trailer: trailer,
         p_driver: driverName,
         p_destination: nextDestination,
-        p_previous_driver: previousDriver ?? null,
+        p_previous_driver: previousDriver ?? undefined,
         p_command_id: `dispatch:${loadId}:${trailer}:${driverName}`,
       });
       if (error) throw new Error(error.message);
