@@ -3,8 +3,8 @@ import { useMemo } from "react";
 import { useLoads, useNowTick } from "@/hooks/use-loads";
 import { yardHours, yardTier } from "@/lib/loads";
 import { YardChip } from "@/components/Chips";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useReturnToDC } from "@/hooks/use-yard";
 import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/yard")({
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/yard")({
 function YardPage() {
   useNowTick(30_000);
   const { data: loads = [] } = useLoads();
+  const returnMutation = useReturnToDC();
 
   const yardLoads = useMemo(() => {
     return loads
@@ -96,9 +97,9 @@ function YardPage() {
                     <td className="py-3 px-4"><YardChip hours={l._hours} /></td>
                     <td className="py-3 px-4"><span className={`chip border ${pillCls}`}>{priority}</span></td>
                     <td className="py-3 px-4 text-right">
-                      <button onClick={() => returnToDC(l.id)}
-                        className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:opacity-90">
-                        Return to DC
+                      <button onClick={() => returnToDC(l.id)} disabled={returnMutation.isPending}
+                        className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50">
+                        {returnMutation.isPending ? "Working…" : "Return to DC"}
                       </button>
                     </td>
                   </tr>
