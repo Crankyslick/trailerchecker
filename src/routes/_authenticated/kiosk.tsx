@@ -50,13 +50,23 @@ function Kiosk() {
     if (!t) { toast.error("Enter a trailer #"); return; }
     setBusy(true);
     try {
-      const { error } = await supabase.from("yard_check_ins").insert({
-        trailer_number: t,
-        arrival_at: new Date().toISOString(),
-        note: `${loadId.trim() ? `Load ${loadId.trim()} · ` : ""}Kiosk check-in by ${profile?.full_name ?? profile?.email ?? "gate"}`,
+      const typed = loadId.trim().toUpperCase();
+      const match = typed
+        ? loads.find((l) =>
+            (l.schedule_id ?? "").toUpperCase() === typed ||
+            (l.target_load_id ?? "").toUpperCase() === typed ||
+            (l.trip_id ?? "").toUpperCase() === typed)
+        : undefined;
+      if (typed && !match) { toast.error(`No load matches ${typed}`); setBusy(false); return; }
+
+      await checkInMutation.mutateAsync({
+        trailer: t,
+        loadId: match?.id ?? null,
+        note: `Kiosk check-in by ${profile?.full_name ?? profile?.email ?? "gate"}`,
+        idempotencyKey: idemRef.current,
       });
-      if (error) throw new Error(error.message);
       toast.success(`${t} checked in`);
+      idemRef.current = newIdempotencyKey();
       void refetch();
       reset();
     } catch (e) {
@@ -67,11 +77,7 @@ function Kiosk() {
   async function checkOut(row: YardCheckIn) {
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("yard_check_ins")
-        .update({ checked_out_at: new Date().toISOString() })
-        .eq("id", row.id);
-      if (error) throw new Error(error.message);
+      await checkOutMutation.mutateAsync(row.id);
       toast.success(`${row.trailer_number} dispatched`);
       void refetch();
     } catch (e) {
