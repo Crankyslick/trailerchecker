@@ -296,7 +296,7 @@ export function DispatchModal({
           </button>
           <button
             onClick={submit}
-            disabled={submitting || (!chosen && !customName.trim())}
+            disabled={submitting || !canSubmit}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 hover:opacity-90"
           >
             {submitting ? (
