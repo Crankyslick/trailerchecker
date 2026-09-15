@@ -537,12 +537,8 @@ function DriversTab() {
 
 /* ---------------- 24-Hour Yard Ticker ---------------- */
 
-function tierForHours(h: number) {
-  if (h >= 24) return { label: "OVERDUE", cls: "bg-danger/20 text-danger border-danger/40 animate-pulse", bar: "bg-danger" };
-  if (h >= 18) return { label: "WARNING", cls: "bg-warning/20 text-warning border-warning/40", bar: "bg-warning" };
-  if (h >= 12) return { label: "ALERT",   cls: "bg-warning/15 text-warning border-warning/30", bar: "bg-warning/70" };
-  return { label: "OK", cls: "bg-success/15 text-success border-success/30", bar: "bg-success" };
-}
+// Single shared aging policy — see YARD_POLICY in src/lib/loads.ts.
+const tierForHours = (h: number) => yardBadge(h);
 function fmtHM(hoursElapsed: number) {
   const totalMin = Math.max(0, Math.floor(hoursElapsed * 60));
   const h = Math.floor(totalMin / 60);
