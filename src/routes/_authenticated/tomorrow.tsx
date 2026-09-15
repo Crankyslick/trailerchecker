@@ -1327,9 +1327,16 @@ function IngestionTool() {
       toast.error("Nothing to sync");
       return;
     }
+    if (needsId > 0) {
+      toast.error(
+        `${needsId} row(s) have a missing or invalid Load ID — correct them or auto-generate first.`,
+      );
+      return;
+    }
     setBusy(true);
     let ok = 0,
       fail = 0;
+
     for (const r of parsed) {
       const key = r.__key;
       if (!key) {
