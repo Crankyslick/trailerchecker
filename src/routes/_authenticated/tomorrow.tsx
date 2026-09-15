@@ -532,9 +532,10 @@ function DriversTab() {
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-surface-2 border border-border hover:bg-surface">
                       {d.active ? "Deactivate" : "Activate"}
                     </button>
-                    <button onClick={() => removeDriver(d)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20">
-                      <Trash2 className="h-3.5 w-3.5" /> Remove
+                    <button onClick={() => retireDriver(d)} disabled={!d.active}
+                      title="Hides the driver from dispatch but keeps their load history"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20 disabled:opacity-40">
+                      <Archive className="h-3.5 w-3.5" /> Retire
                     </button>
                   </td>
                 </tr>
