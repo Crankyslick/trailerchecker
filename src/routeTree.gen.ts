@@ -26,6 +26,7 @@ import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContainersRouteImport } from './routes/_authenticated/containers'
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -113,6 +114,11 @@ const AuthenticatedHistoryIndexRoute =
     path: '/history/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedHistoryLoadIdRoute =
   AuthenticatedHistoryLoadIdRouteImport.update({
     id: '/history/$loadId',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesByTo {
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/history': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesById {
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/yard': typeof AuthenticatedYardRoute
   '/_authenticated/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRouteTypes {
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/yard'
     | '/history/$loadId'
+    | '/api/public/health'
     | '/history/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/yard'
     | '/history/$loadId'
+    | '/api/public/health'
     | '/history'
   id:
     | '__root__'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users'
     | '/_authenticated/yard'
     | '/_authenticated/history/$loadId'
+    | '/api/public/health'
     | '/_authenticated/history/'
   fileRoutesById: FileRoutesById
 }
@@ -244,6 +256,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -367,6 +380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/history/$loadId': {
       id: '/_authenticated/history/$loadId'
       path: '/history/$loadId'
@@ -420,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
