@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { LogIn, LogOut, Search, Warehouse, Loader2, Clock, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useYardCheckIns, type YardCheckIn } from "@/hooks/use-loads";
+import { useLoads, useYardCheckIns, type YardCheckIn } from "@/hooks/use-loads";
+import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { guard } from "@/lib/route-guard";
 
@@ -30,7 +30,11 @@ function hoursIn(iso: string) {
 
 function Kiosk() {
   const { data: active = [], refetch } = useYardCheckIns();
+  const { data: loads = [] } = useLoads();
   const { profile } = useCurrentUser();
+  const checkInMutation = useYardCheckIn();
+  const checkOutMutation = useYardCheckOut();
+  const idemRef = useRef(newIdempotencyKey());
   const [mode, setMode] = useState<Mode>("home");
   const [trailer, setTrailer] = useState("");
   const [loadId, setLoadId] = useState("");
@@ -40,7 +44,7 @@ function Kiosk() {
   const matches = useMemo(() => {
     const q = trailer.trim().toUpperCase();
     if (!q) return rows;
-    return rows.filter((r) => (r?.trailer_number ?? "").toUpperCase().includes(q) || (r?.inbound_load_id ?? "").toUpperCase().includes(q));
+    return rows.filter((r) => (r?.trailer_number ?? "").toUpperCase().includes(q) || (r?.note ?? "").toUpperCase().includes(q));
   }, [rows, trailer]);
 
   const reset = () => { setTrailer(""); setLoadId(""); setMode("home"); };
@@ -128,7 +132,7 @@ function Kiosk() {
                 <div className="truncate font-mono text-xl font-black text-primary">{r?.trailer_number ?? "—"}</div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" /> {hoursIn(r?.arrival_at)} on yard
-                  {r?.inbound_load_id ? ` · load ${r.inbound_load_id}` : ""}
+                  
                 </div>
               </div>
               {mode === "out" && (
