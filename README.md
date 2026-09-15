@@ -522,11 +522,34 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+### Package manager policy
+
+**Bun is the only supported package manager.** It is pinned in `package.json`
+(`"packageManager": "bun@1.3.3"`) and `bun.lock` is the single source of truth.
+Do not add `package-lock.json`, `yarn.lock` or `pnpm-lock.yaml` — two
+independently generated lockfiles cause dependency drift between contributors
+and CI. Transitive security pins live under `overrides` in `package.json`
+(currently `js-yaml ^4.3.2`, `nanoid ^3.3.19`).
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
-npm run dev
+bun install --frozen-lockfile   # CI
+bun install                     # local, may update bun.lock
+bun run dev
 ```
+
+Checks run in CI: `bun run lint`, `bunx tsgo --noEmit`, `bun run test`,
+`bun run build`.
+
+### Health check
+
+`GET /api/public/health` returns `{"status":"ok"}` with HTTP 200 when the
+backend is reachable, and HTTP 503 with a reason when it is not. Point uptime
+monitoring at it.
+
+### Environment
+
+`.env` holds only publishable client configuration managed by Lovable Cloud.
+Privileged keys (service role, database password) are never stored in the
+repository; they are injected as deployment secrets at runtime.
