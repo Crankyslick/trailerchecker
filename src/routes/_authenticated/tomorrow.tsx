@@ -5,7 +5,8 @@ import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
 import { fireWebhook, invalidateWebhookCache } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
-import { TRAILER_LOCATIONS } from "@/lib/loads";
+import { TRAILER_LOCATIONS, YARD_POLICY, yardBadge } from "@/lib/loads";
+import { useDataWritable } from "@/lib/data-health";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
@@ -14,7 +15,7 @@ import { guard } from "@/lib/route-guard";
 import { readSyncConfig, saveSyncConfig } from "@/lib/sync-config";
 import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
-  RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin, ChevronRight,
+  RefreshCw, AlertTriangle, Clock, Users, Plus, Archive, MapPin, ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tomorrow")({
