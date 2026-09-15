@@ -10,23 +10,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-/** Resolve the caller's company webhook address (never exposed to clients). */
-async function resolveWebhookForCaller(
-  supabase: Parameters<Parameters<typeof requireSupabaseAuth>[0]>[0] extends never
-    ? never
-    : any,
-): Promise<string | null> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: company, error } = await supabase.rpc("current_company_id");
-  if (error || !company) return null;
-  const { data } = await supabaseAdmin
-    .from("sync_secrets")
-    .select("webhook_url")
-    .eq("company_id", company as string)
-    .maybeSingle();
-  return (data as { webhook_url: string | null } | null)?.webhook_url ?? null;
-}
-
 async function stampSynced(company: string, status = "ok") {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   await supabaseAdmin
