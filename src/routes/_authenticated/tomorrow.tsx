@@ -278,13 +278,7 @@ function BoardRow({ load: l, drivers, tomorrow, pastDeadline }: BoardRowProps) {
       </td>
       <td className="py-2 px-3">
         {started ? (
-          <span className={`chip border tabular-nums font-mono text-xs ${
-            timerOverdue
-              ? "bg-danger/25 text-danger border-danger/50"
-              : hours! >= 18
-                ? "bg-warning/20 text-warning border-warning/40"
-                : "bg-success/15 text-success border-success/30"
-          }`}>
+          <span className={`chip border tabular-nums font-mono text-xs ${yardBadge(hours).cls}`}>
             <Clock className="h-3 w-3" /> {fmtElapsed(started)}
           </span>
         ) : <span className="text-muted-foreground/60 text-xs">—</span>}
