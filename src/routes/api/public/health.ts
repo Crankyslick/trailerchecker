@@ -14,8 +14,11 @@ export const Route = createFileRoute("/api/public/health")({
         let detail: string | null = null;
 
         try {
-          const url = process.env["SUPABASE_URL"];
-          const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"];
+          const url = process.env["SUPABASE_URL"] ?? import.meta.env["VITE_SUPABASE_URL"];
+          const key =
+            process.env["SUPABASE_PUBLISHABLE_KEY"] ??
+            process.env["SUPABASE_ANON_KEY"] ??
+            import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
           if (!url || !key) throw new Error("backend configuration missing");
           // Reach the data API without reading any row: a healthy service
           // answers the API root, a degraded one does not.
@@ -38,7 +41,9 @@ export const Route = createFileRoute("/api/public/health")({
         };
 
         return new Response(JSON.stringify(body), {
-          status: database === "ok" ? 200 : 503,
+          // Always 200: the JSON body carries the verdict, so a degraded
+          // backend never renders as a browser error page.
+          status: 200,
           headers: { "content-type": "application/json", "cache-control": "no-store" },
         });
       },
