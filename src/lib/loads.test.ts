@@ -74,3 +74,19 @@ describe("status and location colors", () => {
     expect(locationColor("Returned To DC")).toContain("success");
   });
 });
+
+describe("shared yard aging policy", () => {
+  it("badges follow the same thresholds as yardTier", () => {
+    expect(yardBadge(1).label).toBe("OK");
+    expect(yardBadge(YARD_POLICY.deadlineHours - 0.1).label).toBe("OK");
+    expect(yardBadge(YARD_POLICY.deadlineHours).label).toBe("OVERDUE");
+    expect(yardBadge(YARD_POLICY.criticalHours).label).toBe("CRITICAL");
+    expect(yardBadge(null).label).toBe("—");
+  });
+
+  it("badge colour matches the tier colour family", () => {
+    expect(yardBadge(1).cls).toContain("success");
+    expect(yardBadge(30).cls).toContain("warning");
+    expect(yardBadge(60).cls).toContain("danger");
+  });
+});
