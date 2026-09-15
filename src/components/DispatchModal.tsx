@@ -241,6 +241,34 @@ export function DispatchModal({
                 />
               </div>
             )}
+            {!chosen && (
+              <div className="mt-3">
+                <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Scheduled load (required)
+                </label>
+                <select
+                  value={manualLoadId}
+                  onChange={(e) => setManualLoadId(e.target.value)}
+                  className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/60"
+                >
+                  <option value="">— Select the load this trailer runs —</option>
+                  {assignable.map((l) => (
+                    <option key={l.load_id} value={l.load_id}>
+                      {l.schedule_id ?? l.load_id.slice(0, 8)}
+                      {l.date ? ` · ${l.date}` : ""}
+                      {l.store ? ` · ${l.store}` : ""}
+                      {l.driver ? ` · ${l.driver}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {assignable.length === 0 && (
+                  <p className="mt-1 text-xs text-warning">
+                    No loads scheduled for today or tomorrow. Add the load to the board before
+                    dispatching this trailer.
+                  </p>
+                )}
+              </div>
+            )}
             {chosen && (
               <div className="mt-2 rounded border border-primary/30 bg-primary/5 p-2 text-xs">
                 <div className="text-muted-foreground">
