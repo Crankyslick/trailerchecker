@@ -461,12 +461,27 @@ function DriversTab() {
     fireWebhook("driver.update", { id: d.id, row: data });
   }
 
-  async function removeDriver(d: Driver) {
-    if (!confirm(`Remove driver ${d.name}?`)) return;
-    const { error } = await supabase.from("drivers").delete().eq("id", d.id);
+  /**
+   * Drivers are never hard-deleted: historical loads reference them and the
+   * reporting identity must survive. Retiring simply deactivates the record.
+   */
+  async function retireDriver(d: Driver) {
+    if (!d.active) { toast.info(`${d.name} is already inactive.`); return; }
+    const { count, error: countError } = await supabase
+      .from("trailer_loads")
+      .select("id", { count: "exact", head: true })
+      .eq("driver_id", d.id);
+    if (countError) { toast.error(countError.message); return; }
+    const referenced = count ?? 0;
+    if (!confirm(
+      referenced > 0
+        ? `${d.name} is linked to ${referenced} load${referenced === 1 ? "" : "s"}. They'll be retired (hidden from dispatch) but kept on those loads. Continue?`
+        : `Retire ${d.name}? They'll be hidden from the dispatch dropdown.`,
+    )) return;
+    const { data, error } = await supabase.from("drivers").update({ active: false }).eq("id", d.id).select().single();
     if (error) { toast.error(error.message); return; }
-    toast.success("Removed");
-    fireWebhook("driver.delete", { id: d.id, name: d.name });
+    toast.success(`${d.name} retired`);
+    fireWebhook("driver.update", { id: d.id, row: data });
   }
 
   return (
