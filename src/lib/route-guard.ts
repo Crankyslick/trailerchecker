@@ -15,9 +15,6 @@ export function guard(opts: GuardOptions) {
     if (!access) return;
     const result = checkAccess(access, opts);
     if (result.ok) return;
-    throw redirect({
-      to: result.reason === "product" ? "/settings" : "/dashboard",
-      search: result.reason === "product" ? { denied: opts.product } : undefined,
-    });
+    throw redirect({ to: result.reason === "product" ? "/settings" : "/dashboard" });
   };
 }
