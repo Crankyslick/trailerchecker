@@ -25,7 +25,10 @@ export function toEstIsoDate(s: string | undefined | null): string | null {
   const d = new Date(raw);
   if (isNaN(d.getTime())) return null;
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: ET_TZ, year: "numeric", month: "2-digit", day: "2-digit",
+    timeZone: ET_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).formatToParts(d);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
   return `${get("year")}-${get("month")}-${get("day")}`;

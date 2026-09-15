@@ -19,7 +19,7 @@ data migration of the live trailer data into the new shape.
    managed instance; preview and the published site share it. There is no
    branch or second database to rehearse against.
 2. **The zip's data-migration script cannot run as written.** It is a
-   *cross-project* copier that needs service-role keys for both a source and a
+   _cross-project_ copier that needs service-role keys for both a source and a
    target project. Those keys are not accessible here.
 
 Neither is a reason to do a blind same-day replace. The plan below gets the
@@ -27,14 +27,14 @@ same safety guarantees inside one database.
 
 ## Live data as of now
 
-| Table | Rows |
-|---|---|
-| loads | 136 |
-| trailer_events | 138 |
-| drivers | 6 |
-| profiles | 4 |
-| yard_check_ins | 0 |
-| tenants | 1 |
+| Table          | Rows |
+| -------------- | ---- |
+| loads          | 136  |
+| trailer_events | 138  |
+| drivers        | 6    |
+| profiles       | 4    |
+| yard_check_ins | 0    |
+| tenants        | 1    |
 
 The 136 loads are the thing that must survive. Nothing in this plan deletes
 them.

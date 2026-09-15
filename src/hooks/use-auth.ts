@@ -27,14 +27,22 @@ export function useSession() {
 
   useEffect(() => {
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!alive) return;
-      setSession(data?.session ?? null);
-      setLoading(false);
-    }).catch(() => { if (alive) setLoading(false); });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!alive) return;
+        setSession(data?.session ?? null);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (alive) setLoading(false);
+      });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s ?? null));
-    return () => { alive = false; sub?.subscription?.unsubscribe?.(); };
+    return () => {
+      alive = false;
+      sub?.subscription?.unsubscribe?.();
+    };
   }, []);
 
   return { session, user: session?.user ?? null, loading };
@@ -52,7 +60,11 @@ export function useCurrentUser() {
     enabled: Boolean(userId),
     queryFn: async () => {
       const [{ data: profile }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, tenant_id, email, full_name").eq("id", userId!).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id, tenant_id, email, full_name")
+          .eq("id", userId!)
+          .maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", userId!),
       ]);
 

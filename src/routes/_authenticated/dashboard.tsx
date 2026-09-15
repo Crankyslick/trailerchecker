@@ -1,8 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Truck, Warehouse, AlertTriangle, Clock, Activity, ShieldCheck,
-  CalendarDays, Users, PackageX, Gauge, MapPin, Send,
+  Truck,
+  Warehouse,
+  AlertTriangle,
+  Clock,
+  Activity,
+  ShieldCheck,
+  CalendarDays,
+  Users,
+  PackageX,
+  Gauge,
+  MapPin,
+  Send,
 } from "lucide-react";
 import { useLoads } from "@/hooks/use-loads";
 import { useDrivers } from "@/hooks/use-drivers";
@@ -18,7 +28,11 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Control Tower — Me Do Logistics" },
-      { name: "description", content: "Real-time yard compliance, 24h turnaround enforcement, and live trailer dispatch control." },
+      {
+        name: "description",
+        content:
+          "Real-time yard compliance, 24h turnaround enforcement, and live trailer dispatch control.",
+      },
     ],
   }),
   component: ControlTower,
@@ -44,17 +58,63 @@ const YARDS: ActiveTrailer["yard"][] = ["Yard 91", "Yard 301", "Paterson Yard"];
 const COMPLIANCE_HOURS = 24;
 const WARN_HOURS = 18;
 
-function hoursAgo(h: number) { return Date.now() - h * 3_600_000; }
+function hoursAgo(h: number) {
+  return Date.now() - h * 3_600_000;
+}
 
 const SEED: ActiveTrailer[] = [
-  { id: "s1", trailer: "482917", store: "2247", destination: "Riverdale Rt 23", yard: "Yard 91",
-    returnTime: hoursAgo(4.9), nextDriver: "Ahmed Beshir", nextRdcTrailer: "551204", nextSchedule: "SCH-2181", pickupCutoff: "14:30", source: "seed" },
-  { id: "s2", trailer: "553108", store: "1888", destination: "Bethlehem PA", yard: "Yard 301",
-    returnTime: hoursAgo(14.25), nextDriver: null, nextRdcTrailer: "480127", nextSchedule: "SCH-2189", pickupCutoff: "16:00", source: "seed" },
-  { id: "s3", trailer: "617502", store: "3391", destination: "Paterson NJ", yard: "Paterson Yard",
-    returnTime: hoursAgo(19.7), nextDriver: "Miguel Ortiz", nextRdcTrailer: null, nextSchedule: "SCH-2192", pickupCutoff: "12:15", source: "seed" },
-  { id: "s4", trailer: "701845", store: "1120", destination: "Wilkes-Barre PA", yard: "Yard 91",
-    returnTime: hoursAgo(24.8), nextDriver: null, nextRdcTrailer: "552901", nextSchedule: "SCH-2198", pickupCutoff: "10:45", source: "seed" },
+  {
+    id: "s1",
+    trailer: "482917",
+    store: "2247",
+    destination: "Riverdale Rt 23",
+    yard: "Yard 91",
+    returnTime: hoursAgo(4.9),
+    nextDriver: "Ahmed Beshir",
+    nextRdcTrailer: "551204",
+    nextSchedule: "SCH-2181",
+    pickupCutoff: "14:30",
+    source: "seed",
+  },
+  {
+    id: "s2",
+    trailer: "553108",
+    store: "1888",
+    destination: "Bethlehem PA",
+    yard: "Yard 301",
+    returnTime: hoursAgo(14.25),
+    nextDriver: null,
+    nextRdcTrailer: "480127",
+    nextSchedule: "SCH-2189",
+    pickupCutoff: "16:00",
+    source: "seed",
+  },
+  {
+    id: "s3",
+    trailer: "617502",
+    store: "3391",
+    destination: "Paterson NJ",
+    yard: "Paterson Yard",
+    returnTime: hoursAgo(19.7),
+    nextDriver: "Miguel Ortiz",
+    nextRdcTrailer: null,
+    nextSchedule: "SCH-2192",
+    pickupCutoff: "12:15",
+    source: "seed",
+  },
+  {
+    id: "s4",
+    trailer: "701845",
+    store: "1120",
+    destination: "Wilkes-Barre PA",
+    yard: "Yard 91",
+    returnTime: hoursAgo(24.8),
+    nextDriver: null,
+    nextRdcTrailer: "552901",
+    nextSchedule: "SCH-2198",
+    pickupCutoff: "10:45",
+    source: "seed",
+  },
 ];
 
 /* -------------------- 1s ticker -------------------- */
@@ -84,7 +144,12 @@ function fmtHM(totalSec: number): string {
 function estDateParts(offsetDays = 0): string {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + offsetDays);
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
 /* -------------------- Component -------------------- */
@@ -106,7 +171,9 @@ function ControlTower() {
   // render and client hydration, which flips 18h/24h threshold KPIs. Freeze
   // "now" to 0 during SSR, then let it tick on the client after mount.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Merge live loads with return_trailer_location = "Yard" alongside seed mocks.
   const activeTrailers = useMemo<ActiveTrailer[]>(() => {
@@ -114,7 +181,11 @@ function ControlTower() {
     const live: ActiveTrailer[] = rows
       .filter((l) => {
         const t = l as LoadRow & { str_return_trailer_started_at?: string | null };
-        return Boolean(l?.return_trailer) && Boolean(t?.str_return_trailer_started_at) && l?.return_trailer_location === "Yard";
+        return (
+          Boolean(l?.return_trailer) &&
+          Boolean(t?.str_return_trailer_started_at) &&
+          l?.return_trailer_location === "Yard"
+        );
       })
       .map((l, i) => {
         const t = l as LoadRow & { str_return_trailer_started_at?: string | null };
@@ -143,10 +214,14 @@ function ControlTower() {
   const tomorrowsLoads = allLoads.filter((l) => (l?.schedule_date ?? l?.cutoff_date) === tomorrow);
   const driversMissing = tomorrowsLoads.filter((l) => !l?.driver).length;
   const trailersMissing = tomorrowsLoads.filter((l) => !l?.outbound_trailer).length;
-  const coveragePct = tomorrowsLoads.length === 0
-    ? 100
-    : Math.round(((tomorrowsLoads.length - Math.max(driversMissing, trailersMissing)) / tomorrowsLoads.length) * 100);
-
+  const coveragePct =
+    tomorrowsLoads.length === 0
+      ? 100
+      : Math.round(
+          ((tomorrowsLoads.length - Math.max(driversMissing, trailersMissing)) /
+            tomorrowsLoads.length) *
+            100,
+        );
 
   // Compute per-trailer status (recomputes each tick because component re-renders)
   const enriched = activeTrailers.map((t) => {
@@ -158,12 +233,24 @@ function ControlTower() {
 
   const returnedTotal = enriched.length;
   const yardCount = (name: ActiveTrailer["yard"]) => enriched.filter((t) => t.yard === name).length;
-  const over18 = enriched.filter((t) => t.elapsedH >= WARN_HOURS && t.elapsedH < COMPLIANCE_HOURS).length;
+  const over18 = enriched.filter(
+    (t) => t.elapsedH >= WARN_HOURS && t.elapsedH < COMPLIANCE_HOURS,
+  ).length;
   const over24 = enriched.filter((t) => t.elapsedH >= COMPLIANCE_HOURS);
-  const avgSec = enriched.length ? enriched.reduce((s, t) => s + t.elapsedSec, 0) / enriched.length : 0;
-  const compliancePct = enriched.length === 0 ? 100 : Math.round(((enriched.length - over24.length) / enriched.length) * 100);
+  const avgSec = enriched.length
+    ? enriched.reduce((s, t) => s + t.elapsedSec, 0) / enriched.length
+    : 0;
+  const compliancePct =
+    enriched.length === 0
+      ? 100
+      : Math.round(((enriched.length - over24.length) / enriched.length) * 100);
 
-  const [modal, setModal] = useState<{ id: string; trailer: string; yard: string; prevDriver: string | null } | null>(null);
+  const [modal, setModal] = useState<{
+    id: string;
+    trailer: string;
+    yard: string;
+    prevDriver: string | null;
+  } | null>(null);
   const [guardOpen, setGuardOpen] = useState(false);
 
   const dispatch = (id: string, trailer: string, yard: string, prevDriver: string | null) => {
@@ -192,12 +279,15 @@ function ControlTower() {
             <Activity className="h-6 w-6 text-primary" /> Control Tower
           </h1>
           <p className="text-sm text-muted-foreground">
-            Live yard compliance · {COMPLIANCE_HOURS}h turnaround enforced · {enriched.length} active trailers
+            Live yard compliance · {COMPLIANCE_HOURS}h turnaround enforced · {enriched.length}{" "}
+            active trailers
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setGuardOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15">
+          <button
+            onClick={() => setGuardOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/40 bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15"
+          >
             <Warehouse className="h-3.5 w-3.5" /> Guard Check-In
           </button>
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -213,19 +303,41 @@ function ControlTower() {
         <Kpi icon={Warehouse} label="Yard 301" value={yardCount("Yard 301")} />
         <Kpi icon={Warehouse} label="Paterson Yard" value={yardCount("Paterson Yard")} />
         <Kpi icon={Clock} label="Over 18h" value={over18} tone={over18 > 0 ? "warn" : "ok"} />
-        <Kpi icon={AlertTriangle} label="Over 24h" value={over24.length} tone={over24.length > 0 ? "danger" : "ok"} />
+        <Kpi
+          icon={AlertTriangle}
+          label="Over 24h"
+          value={over24.length}
+          tone={over24.length > 0 ? "danger" : "ok"}
+        />
         <Kpi icon={Gauge} label="Avg Yard Duration" value={enriched.length ? fmtHM(avgSec) : "—"} />
         <Kpi icon={CalendarDays} label="Today's Loads" value={todaysLoads} />
         <Kpi icon={CalendarDays} label="Tomorrow's Loads" value={tomorrowsLoads.length} />
-        <Kpi icon={Users} label="Drivers Missing" value={driversMissing} tone={driversMissing > 0 ? "danger" : "ok"} />
-        <Kpi icon={PackageX} label="Trailers Missing" value={trailersMissing} tone={trailersMissing > 0 ? "danger" : "ok"} />
-        <Kpi icon={ShieldCheck} label="Compliance %" value={`${compliancePct}%`} tone={compliancePct === 100 ? "ok" : "warn"} />
+        <Kpi
+          icon={Users}
+          label="Drivers Missing"
+          value={driversMissing}
+          tone={driversMissing > 0 ? "danger" : "ok"}
+        />
+        <Kpi
+          icon={PackageX}
+          label="Trailers Missing"
+          value={trailersMissing}
+          tone={trailersMissing > 0 ? "danger" : "ok"}
+        />
+        <Kpi
+          icon={ShieldCheck}
+          label="Compliance %"
+          value={`${compliancePct}%`}
+          tone={compliancePct === 100 ? "ok" : "warn"}
+        />
       </div>
 
       {/* Yard utilization + critical alerts */}
       <div className="grid md:grid-cols-3 gap-3">
         <div className="kpi-card p-4 md:col-span-1">
-          <h2 className="text-sm font-semibold flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Yard Utilization</h2>
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-primary" /> Yard Utilization
+          </h2>
           <div className="mt-3 space-y-2.5">
             {YARDS.map((y) => {
               const c = yardCount(y);
@@ -245,29 +357,41 @@ function ControlTower() {
           </div>
           <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Coverage (Tomorrow)</span>
-            <span className={`chip border ${coveragePct === 100 ? "bg-success/15 text-success border-success/30" : "bg-warning/15 text-warning border-warning/30"}`}>
+            <span
+              className={`chip border ${coveragePct === 100 ? "bg-success/15 text-success border-success/30" : "bg-warning/15 text-warning border-warning/30"}`}
+            >
               {coveragePct}%
             </span>
           </div>
         </div>
 
-        <div className={`kpi-card p-4 md:col-span-2 border ${over24.length > 0 ? "!border-danger/50 bg-danger/10" : "!border-success/40 bg-success/5"}`}>
+        <div
+          className={`kpi-card p-4 md:col-span-2 border ${over24.length > 0 ? "!border-danger/50 bg-danger/10" : "!border-success/40 bg-success/5"}`}
+        >
           <div className="flex items-center gap-2">
-            {over24.length > 0
-              ? <AlertTriangle className="h-5 w-5 text-danger" />
-              : <ShieldCheck className="h-5 w-5 text-success" />}
+            {over24.length > 0 ? (
+              <AlertTriangle className="h-5 w-5 text-danger" />
+            ) : (
+              <ShieldCheck className="h-5 w-5 text-success" />
+            )}
             <h2 className="text-sm font-semibold">Critical Alerts</h2>
           </div>
           {over24.length === 0 ? (
-            <p className="mt-2 text-sm text-success">Compliance holding steady — 0 trailers past 24 hours.</p>
+            <p className="mt-2 text-sm text-success">
+              Compliance holding steady — 0 trailers past 24 hours.
+            </p>
           ) : (
             <>
               <p className="mt-2 text-sm text-danger font-semibold">
-                {over24.length} trailer{over24.length > 1 ? "s" : ""} past {COMPLIANCE_HOURS}h at Yard 589.
+                {over24.length} trailer{over24.length > 1 ? "s" : ""} past {COMPLIANCE_HOURS}h at
+                Yard 589.
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {over24.map((t) => (
-                  <span key={t.id} className="chip border bg-danger/20 text-danger border-danger/40 font-mono animate-pulse">
+                  <span
+                    key={t.id}
+                    className="chip border bg-danger/20 text-danger border-danger/40 font-mono animate-pulse"
+                  >
                     {t.trailer} · {t.yard} · +{fmtHM(-t.remainingSec)} over
                   </span>
                 ))}
@@ -275,8 +399,12 @@ function ControlTower() {
             </>
           )}
           <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Plan tomorrow's board to close coverage gaps.</span>
-            <Link to="/tomorrow" className="text-primary hover:underline">Open Tomorrow Board →</Link>
+            <span className="text-muted-foreground">
+              Plan tomorrow's board to close coverage gaps.
+            </span>
+            <Link to="/tomorrow" className="text-primary hover:underline">
+              Open Tomorrow Board →
+            </Link>
           </div>
         </div>
       </div>
@@ -286,12 +414,20 @@ function ControlTower() {
         <div className="px-4 py-3 border-b border-border flex items-center justify-between flex-wrap gap-2">
           <div>
             <h2 className="text-sm font-semibold">Live Trailer Control</h2>
-            <p className="text-xs text-muted-foreground">Hours in yard tick up · time to compliance ticks down · every second.</p>
+            <p className="text-xs text-muted-foreground">
+              Hours in yard tick up · time to compliance ticks down · every second.
+            </p>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="chip border bg-success/15 text-success border-success/30">&lt; 18h OK</span>
-            <span className="chip border bg-warning/15 text-warning border-warning/30">18–24h Warn</span>
-            <span className="chip border bg-danger/15 text-danger border-danger/30">≥ 24h Breach</span>
+            <span className="chip border bg-success/15 text-success border-success/30">
+              &lt; 18h OK
+            </span>
+            <span className="chip border bg-warning/15 text-warning border-warning/30">
+              18–24h Warn
+            </span>
+            <span className="chip border bg-danger/15 text-danger border-danger/30">
+              ≥ 24h Breach
+            </span>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -305,7 +441,9 @@ function ControlTower() {
                 <th className="text-left font-medium py-3 px-3">Return Time</th>
                 <th className="text-left font-medium py-3 px-3 min-w-[150px]">Hours in Yard</th>
                 <th className="text-left font-medium py-3 px-3 min-w-[170px]">Time Until Limit</th>
-                <th className="text-left font-medium py-3 px-3 min-w-[160px]">Assigned Next Driver</th>
+                <th className="text-left font-medium py-3 px-3 min-w-[160px]">
+                  Assigned Next Driver
+                </th>
                 <th className="text-left font-medium py-3 px-3">Next RDC Trailer</th>
                 <th className="text-left font-medium py-3 px-3">Next Schedule</th>
                 <th className="text-left font-medium py-3 px-3">Pickup Cutoff</th>
@@ -323,15 +461,29 @@ function ControlTower() {
                     : "bg-success/15 text-success border-success/30";
                 const rowCls = overdue
                   ? "bg-danger/10 hover:bg-danger/15 animate-pulse"
-                  : warn ? "hover:bg-warning/5" : "hover:bg-surface-2/30";
+                  : warn
+                    ? "hover:bg-warning/5"
+                    : "hover:bg-surface-2/30";
                 return (
-                  <tr key={t.id} className={`border-b border-border/40 last:border-0 transition-colors ${rowCls}`}>
-                    <td className="py-2.5 px-3 font-mono font-semibold text-primary">{t.trailer}</td>
+                  <tr
+                    key={t.id}
+                    className={`border-b border-border/40 last:border-0 transition-colors ${rowCls}`}
+                  >
+                    <td className="py-2.5 px-3 font-mono font-semibold text-primary">
+                      {t.trailer}
+                    </td>
                     <td className="py-2.5 px-3 font-mono text-xs">{t.store}</td>
                     <td className="py-2.5 px-3 text-xs text-muted-foreground">{t.destination}</td>
                     <td className="py-2.5 px-3 text-xs">{t.yard}</td>
                     <td className="py-2.5 px-3 text-xs tabular-nums whitespace-nowrap">
-                      {mounted ? new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(t.returnTime)) : "—"}
+                      {mounted
+                        ? new Intl.DateTimeFormat("en-US", {
+                            timeZone: "America/New_York",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          }).format(new Date(t.returnTime))
+                        : "—"}
                     </td>
                     <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
                       <span className={`chip border ${chipCls}`}>
@@ -339,21 +491,37 @@ function ControlTower() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
-                      {overdue
-                        ? <span className="text-danger font-semibold">Expired · {fmtHMS(-t.remainingSec)} over</span>
-                        : <span className={warn ? "text-warning" : "text-foreground"}>Expires in {fmtHMS(t.remainingSec)}</span>}
+                      {overdue ? (
+                        <span className="text-danger font-semibold">
+                          Expired · {fmtHMS(-t.remainingSec)} over
+                        </span>
+                      ) : (
+                        <span className={warn ? "text-warning" : "text-foreground"}>
+                          Expires in {fmtHMS(t.remainingSec)}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2.5 px-3 text-xs">
-                      {t.nextDriver
-                        ? <span className="font-medium">{t.nextDriver}</span>
-                        : <span className="text-danger font-semibold">— Unassigned —</span>}
+                      {t.nextDriver ? (
+                        <span className="font-medium">{t.nextDriver}</span>
+                      ) : (
+                        <span className="text-danger font-semibold">— Unassigned —</span>
+                      )}
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-xs">{t.nextRdcTrailer ?? <span className="text-danger">missing</span>}</td>
-                    <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">{t.nextSchedule ?? "—"}</td>
-                    <td className="py-2.5 px-3 font-mono text-xs tabular-nums">{t.pickupCutoff ?? "—"}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs">
+                      {t.nextRdcTrailer ?? <span className="text-danger">missing</span>}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-xs text-muted-foreground">
+                      {t.nextSchedule ?? "—"}
+                    </td>
+                    <td className="py-2.5 px-3 font-mono text-xs tabular-nums">
+                      {t.pickupCutoff ?? "—"}
+                    </td>
                     <td className="py-2.5 px-3 text-right">
-                      <button onClick={() => dispatch(t.id, t.trailer, t.yard, t.nextDriver)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90">
+                      <button
+                        onClick={() => dispatch(t.id, t.trailer, t.yard, t.nextDriver)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90"
+                      >
                         <Send className="h-3.5 w-3.5" /> Dispatch
                       </button>
                     </td>
@@ -361,14 +529,20 @@ function ControlTower() {
                 );
               })}
               {enriched.length === 0 && (
-                <tr><td colSpan={12} className="py-12 text-center text-muted-foreground">All trailers dispatched. Yard is clear.</td></tr>
+                <tr>
+                  <td colSpan={12} className="py-12 text-center text-muted-foreground">
+                    All trailers dispatched. Yard is clear.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
         <div className="px-4 py-2 border-t border-border text-[11px] text-muted-foreground flex items-center justify-between">
           <span>{drivers.length} drivers available in roster</span>
-          <Link to="/tomorrow" className="text-primary hover:underline">Plan Tomorrow's Board →</Link>
+          <Link to="/tomorrow" className="text-primary hover:underline">
+            Plan Tomorrow's Board →
+          </Link>
         </div>
       </div>
     </div>
@@ -377,24 +551,39 @@ function ControlTower() {
 
 /* -------------------- KPI card -------------------- */
 
-function Kpi({ icon: Icon, label, value, tone = "neutral" }: {
+function Kpi({
+  icon: Icon,
+  label,
+  value,
+  tone = "neutral",
+}: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string | number;
   tone?: "neutral" | "ok" | "warn" | "danger";
 }) {
   const toneCls =
-    tone === "danger" ? "text-danger" :
-    tone === "warn" ? "text-warning" :
-    tone === "ok" ? "text-success" : "text-foreground";
+    tone === "danger"
+      ? "text-danger"
+      : tone === "warn"
+        ? "text-warning"
+        : tone === "ok"
+          ? "text-success"
+          : "text-foreground";
   const iconCls =
-    tone === "danger" ? "text-danger" :
-    tone === "warn" ? "text-warning" :
-    tone === "ok" ? "text-success" : "text-primary";
+    tone === "danger"
+      ? "text-danger"
+      : tone === "warn"
+        ? "text-warning"
+        : tone === "ok"
+          ? "text-success"
+          : "text-primary";
   return (
     <div className="kpi-card p-3.5">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{label}</span>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+          {label}
+        </span>
         <Icon className={`h-4 w-4 ${iconCls}`} />
       </div>
       <div className={`mt-1.5 text-2xl font-bold tabular-nums ${toneCls}`}>{value}</div>

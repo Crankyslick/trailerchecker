@@ -174,7 +174,9 @@ export function useLoadsRange(fromDate: string, toDate: string) {
       const { data, error } = await supabase
         .from("trailer_loads")
         .select("*")
-        .or(`and(schedule_date.gte.${fromDate},schedule_date.lte.${toDate}),completed_at.not.is.null`)
+        .or(
+          `and(schedule_date.gte.${fromDate},schedule_date.lte.${toDate}),completed_at.not.is.null`,
+        )
         .order("schedule_date", { ascending: false, nullsFirst: false })
         .limit(BOARD_ROW_LIMIT);
       if (error) throw new Error(error.message);

@@ -6,13 +6,26 @@ export type LoadStatus = Database["public"]["Enums"]["trailer_load_status"];
 export type TrailerLocation = Database["public"]["Enums"]["trailer_location"];
 
 export const LOAD_STATUSES: LoadStatus[] = [
-  "Assigned","Heading To DC","Loaded","En Route","Delivered",
-  "Picked Up Return Trailer","Returning","At Yard","Returned To DC",
-  "Completed","Delayed","Exception",
+  "Assigned",
+  "Heading To DC",
+  "Loaded",
+  "En Route",
+  "Delivered",
+  "Picked Up Return Trailer",
+  "Returning",
+  "At Yard",
+  "Returned To DC",
+  "Completed",
+  "Delayed",
+  "Exception",
 ];
 
 export const TRAILER_LOCATIONS: TrailerLocation[] = [
-  "DC","Store","Returning","Yard","Returned To DC",
+  "DC",
+  "Store",
+  "Returning",
+  "Yard",
+  "Returned To DC",
 ];
 
 /**
@@ -50,9 +63,17 @@ export function yardBadge(hours: number | null): YardBadge {
         bar: "bg-danger",
       };
     case "yellow":
-      return { label: "OVERDUE", cls: "bg-warning/20 text-warning border-warning/40", bar: "bg-warning" };
+      return {
+        label: "OVERDUE",
+        cls: "bg-warning/20 text-warning border-warning/40",
+        bar: "bg-warning",
+      };
     case "green":
-      return { label: "OK", cls: "bg-success/15 text-success border-success/30", bar: "bg-success" };
+      return {
+        label: "OK",
+        cls: "bg-success/15 text-success border-success/30",
+        bar: "bg-success",
+      };
     default:
       return { label: "—", cls: "bg-muted text-muted-foreground border-border", bar: "bg-muted" };
   }
@@ -89,10 +110,15 @@ export function statusColor(status: LoadStatus): string {
 
 export function locationColor(loc: TrailerLocation): string {
   switch (loc) {
-    case "Yard": return "bg-warning/15 text-warning border-warning/30";
-    case "Returning": return "bg-info/15 text-info border-info/30";
-    case "Store": return "bg-primary/15 text-primary border-primary/30";
-    case "Returned To DC": return "bg-success/15 text-success border-success/30";
-    default: return "bg-muted text-muted-foreground border-border";
+    case "Yard":
+      return "bg-warning/15 text-warning border-warning/30";
+    case "Returning":
+      return "bg-info/15 text-info border-info/30";
+    case "Store":
+      return "bg-primary/15 text-primary border-primary/30";
+    case "Returned To DC":
+      return "bg-success/15 text-success border-success/30";
+    default:
+      return "bg-muted text-muted-foreground border-border";
   }
 }

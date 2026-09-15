@@ -28,17 +28,22 @@ function YardPage() {
   }, [loads]);
 
   const counts = useMemo(() => {
-    let g = 0, y = 0, r = 0;
+    let g = 0,
+      y = 0,
+      r = 0;
     yardLoads.forEach((l) => {
       const t = yardTier(l._hours);
-      if (t === "green") g++; else if (t === "yellow") y++; else if (t === "red") r++;
+      if (t === "green") g++;
+      else if (t === "yellow") y++;
+      else if (t === "red") r++;
     });
     return { g, y, r };
   }, [yardLoads]);
 
   function returnToDC(id: string) {
     returnMutation.mutate(id, {
-      onSuccess: (row) => toast.success(`Trailer ${row.return_trailer ?? ""} returned to DC`.trim()),
+      onSuccess: (row) =>
+        toast.success(`Trailer ${row.return_trailer ?? ""} returned to DC`.trim()),
       onError: (e) => toast.error((e as Error).message),
     });
   }
@@ -47,7 +52,9 @@ function YardPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Yard Inventory</h1>
-        <p className="text-sm text-muted-foreground">Return trailers currently sitting at Chambersburg yard.</p>
+        <p className="text-sm text-muted-foreground">
+          Return trailers currently sitting at Chambersburg yard.
+        </p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -82,26 +89,40 @@ function YardPage() {
             <tbody>
               {yardLoads.map((l) => {
                 const tier = yardTier(l._hours);
-                const priority = tier === "red" ? "Critical" : tier === "yellow" ? "High" : "Normal";
-                const pillCls = tier === "red"
-                  ? "bg-danger/15 text-danger border-danger/30"
-                  : tier === "yellow"
-                  ? "bg-warning/15 text-warning border-warning/30"
-                  : "bg-success/15 text-success border-success/30";
+                const priority =
+                  tier === "red" ? "Critical" : tier === "yellow" ? "High" : "Normal";
+                const pillCls =
+                  tier === "red"
+                    ? "bg-danger/15 text-danger border-danger/30"
+                    : tier === "yellow"
+                      ? "bg-warning/15 text-warning border-warning/30"
+                      : "bg-success/15 text-success border-success/30";
                 return (
-                  <tr key={l.id} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
+                  <tr
+                    key={l.id}
+                    className="border-b border-border/40 last:border-0 hover:bg-surface-2/30"
+                  >
                     <td className="py-3 px-4 font-mono font-semibold">{l.return_trailer}</td>
-                    <td className="py-3 px-4">{l.str_number} · <span className="text-muted-foreground">{l.str_name}</span></td>
+                    <td className="py-3 px-4">
+                      {l.str_number} · <span className="text-muted-foreground">{l.str_name}</span>
+                    </td>
                     <td className="py-3 px-4">{l.driver ?? "—"}</td>
                     <td className="py-3 px-4 text-xs tabular-nums">
                       {l.yard_arrival_at ? new Date(l.yard_arrival_at).toLocaleString() : "—"}
                     </td>
-                    <td className="py-3 px-4"><YardChip hours={l._hours} /></td>
-                    <td className="py-3 px-4"><span className={`chip border ${pillCls}`}>{priority}</span></td>
+                    <td className="py-3 px-4">
+                      <YardChip hours={l._hours} />
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`chip border ${pillCls}`}>{priority}</span>
+                    </td>
                     <td className="py-3 px-4 text-right">
-                      <button onClick={() => returnToDC(l.id)} disabled={returnMutation.isPending || !writable}
+                      <button
+                        onClick={() => returnToDC(l.id)}
+                        disabled={returnMutation.isPending || !writable}
                         title={writable ? undefined : "Unavailable while live data can't be loaded"}
-                        className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50">
+                        className="px-3 py-1.5 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                      >
                         {returnMutation.isPending ? "Working…" : "Return to DC"}
                       </button>
                     </td>
@@ -109,7 +130,11 @@ function YardPage() {
                 );
               })}
               {yardLoads.length === 0 && (
-                <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">No trailers currently in yard.</td></tr>
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                    No trailers currently in yard.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

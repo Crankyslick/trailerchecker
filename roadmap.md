@@ -60,16 +60,10 @@ safety was achieved with a shadow-then-flip inside one database.
       Dispatch, guard check-in and DLM bulk ingest all queue instead of
       fire-and-forget.
 - [ ] Supervised 1-2 week pilot before the sheet stops being system of record.
-- [x] P1 workflow audit (01-09):
-      - Check-ins go through yard_check_in / yard_check_out database commands:
-        explicit company + load references, normalized trailer number,
-        idempotency key, partial unique index on active check-ins.
-      - Yard "Return to DC" is a mutation hook: verifies exactly one row
-        changed, disables while pending, refreshes the board.
-      - Route-level product/role guards (src/lib/route-guard.ts) on every
-        screen; RLS remains the authoritative control.
-      - Yard sites stored in company_sites; dispatch destination and gate
-        check-in yard list come from the company default, not hard-coded.
-      - Sheet settings read/written only from trailer_sync_config via
-        src/lib/sync-config.ts; legacy sync_config no longer used by the app.
-      - trailer_loads.yard_arrival_at documented as the canonical yard timer.
+- [x] P1 workflow audit (01-09): - Check-ins go through yard_check_in / yard_check_out database commands:
+      explicit company + load references, normalized trailer number,
+      idempotency key, partial unique index on active check-ins. - Yard "Return to DC" is a mutation hook: verifies exactly one row
+      changed, disables while pending, refreshes the board. - Route-level product/role guards (src/lib/route-guard.ts) on every
+      screen; RLS remains the authoritative control. - Yard sites stored in company_sites; dispatch destination and gate
+      check-in yard list come from the company default, not hard-coded. - Sheet settings read/written only from trailer_sync_config via
+      src/lib/sync-config.ts; legacy sync_config no longer used by the app. - trailer_loads.yard_arrival_at documented as the canonical yard timer.

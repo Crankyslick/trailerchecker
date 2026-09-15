@@ -41,15 +41,15 @@ describe("RLS: anonymous access is denied everywhere", () => {
     it(`anon cannot read ${table}`, async () => {
       const { data, error } = await anon.from(table).select("*").limit(1);
       // Either a hard error (permission denied) or an empty result set.
-      expect(error == null || error.code === "42501" || /permission/i.test(error.message)).toBe(true);
+      expect(error == null || error.code === "42501" || /permission/i.test(error.message)).toBe(
+        true,
+      );
       expect(data ?? []).toEqual([]);
     });
   }
 
   it("anon cannot insert into trailer_loads", async () => {
-    const { error } = await anon
-      .from("trailer_loads")
-      .insert({ schedule_id: "RLS-TEST" });
+    const { error } = await anon.from("trailer_loads").insert({ schedule_id: "RLS-TEST" });
     expect(error).not.toBeNull();
   });
 

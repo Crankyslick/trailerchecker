@@ -88,7 +88,7 @@ This trailer leaves Chambersburg DC.
 
 It is already known when the load is assigned.
 
---------------------------------------------------
+---
 
 STR TRL #
 

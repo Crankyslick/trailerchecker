@@ -42,7 +42,11 @@ export function DataHealthBanner() {
           : "border-warning/40 bg-warning/10 text-warning"
       }`}
     >
-      {critical ? <AlertTriangle className="h-4 w-4 shrink-0" /> : <WifiOff className="h-4 w-4 shrink-0" />}
+      {critical ? (
+        <AlertTriangle className="h-4 w-4 shrink-0" />
+      ) : (
+        <WifiOff className="h-4 w-4 shrink-0" />
+      )}
       <div className="flex-1 min-w-[200px]">
         <span className="font-semibold">
           {critical

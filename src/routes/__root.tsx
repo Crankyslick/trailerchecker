@@ -15,8 +15,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
 
-
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -83,17 +81,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Me Do Logistics" },
-      { name: "description", content: "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration." },
+      {
+        name: "description",
+        content:
+          "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Me Do Logistics" },
-      { property: "og:description", content: "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration." },
+      {
+        property: "og:description",
+        content:
+          "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Me Do Logistics" },
-      { name: "twitter:description", content: "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2158693b-f192-4e5f-b358-2ee08281659d/id-preview-f2c4129d--590caa48-69e5-493c-9a2f-88efefd52aed.lovable.app-1782890234292.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2158693b-f192-4e5f-b358-2ee08281659d/id-preview-f2c4129d--590caa48-69e5-493c-9a2f-88efefd52aed.lovable.app-1782890234292.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2158693b-f192-4e5f-b358-2ee08281659d/id-preview-f2c4129d--590caa48-69e5-493c-9a2f-88efefd52aed.lovable.app-1782890234292.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2158693b-f192-4e5f-b358-2ee08281659d/id-preview-f2c4129d--590caa48-69e5-493c-9a2f-88efefd52aed.lovable.app-1782890234292.png",
+      },
     ],
     links: [
       {
@@ -147,5 +165,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-
-

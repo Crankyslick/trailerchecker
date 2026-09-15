@@ -37,7 +37,8 @@ function build(): HealthSnapshot {
     if (entry.error) failing.push(key);
     if (entry.realtime === "error") realtimeDown = true;
     if (entry.updatedAt != null) {
-      lastUpdatedAt = lastUpdatedAt == null ? entry.updatedAt : Math.min(lastUpdatedAt, entry.updatedAt);
+      lastUpdatedAt =
+        lastUpdatedAt == null ? entry.updatedAt : Math.min(lastUpdatedAt, entry.updatedAt);
     }
   });
 
@@ -51,9 +52,18 @@ function emit() {
 
 /** Record the health of one data feed (query key). Safe to call from render effects. */
 export function reportDataHealth(key: string, patch: Partial<HealthEntry>) {
-  const prev = state.get(key) ?? { error: null, updatedAt: null, realtime: "connecting" as RealtimeState };
+  const prev = state.get(key) ?? {
+    error: null,
+    updatedAt: null,
+    realtime: "connecting" as RealtimeState,
+  };
   const next: HealthEntry = { ...prev, ...patch };
-  if (prev.error === next.error && prev.updatedAt === next.updatedAt && prev.realtime === next.realtime) return;
+  if (
+    prev.error === next.error &&
+    prev.updatedAt === next.updatedAt &&
+    prev.realtime === next.realtime
+  )
+    return;
   state.set(key, next);
   emit();
 }

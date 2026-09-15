@@ -12,20 +12,37 @@ export const Route = createFileRoute("/_authenticated/users")({
   head: () => ({
     meta: [
       { title: "Users — Me Do Logistics" },
-      { name: "description", content: "Manage dispatchers, DC managers, and gate guards in your organization." },
+      {
+        name: "description",
+        content: "Manage dispatchers, DC managers, and gate guards in your organization.",
+      },
     ],
   }),
   component: UsersPage,
 });
 
 const ROLES: { id: AppRole; label: string; desc: string }[] = [
-  { id: "admin", label: "Admin / DC Manager", desc: "Full access incl. settings, ingestion, users" },
-  { id: "dispatcher", label: "Dispatcher", desc: "Control Tower + Tomorrow Board, assign & dispatch" },
+  {
+    id: "admin",
+    label: "Admin / DC Manager",
+    desc: "Full access incl. settings, ingestion, users",
+  },
+  {
+    id: "dispatcher",
+    label: "Dispatcher",
+    desc: "Control Tower + Tomorrow Board, assign & dispatch",
+  },
   { id: "guard", label: "Gate Guard", desc: "Kiosk check-in / check-out only" },
 ];
 
 type Member = { id: string; email: string | null; full_name: string | null; role: AppRole | null };
-type Invite = { id: string; email: string; role: AppRole; accepted_at: string | null; created_at: string };
+type Invite = {
+  id: string;
+  email: string;
+  role: AppRole;
+  accepted_at: string | null;
+  created_at: string;
+};
 
 function UsersPage() {
   const { isAdmin, org, user } = useCurrentUser();
@@ -33,13 +50,22 @@ function UsersPage() {
   const [inviteRole, setInviteRole] = useState<AppRole>("dispatcher");
   const [inviting, setInviting] = useState(false);
 
-  const { data: members = [], isLoading, refetch } = useQuery({
+  const {
+    data: members = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["org-members", org?.id],
     enabled: Boolean(org?.id),
     queryFn: async (): Promise<Member[]> => {
       const { data: profiles, error } = await supabase
-        .from("profiles").select("id, email, full_name").eq("tenant_id", org!.id);
-      if (error) { console.error(error.message); return []; }
+        .from("profiles")
+        .select("id, email, full_name")
+        .eq("tenant_id", org!.id);
+      if (error) {
+        console.error(error.message);
+        return [];
+      }
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
       const roleFor = new Map((roles ?? []).map((r) => [r.user_id, r.role as AppRole]));
       return (profiles ?? []).map((p) => ({ ...p, role: roleFor.get(p.id) ?? null }));
@@ -55,7 +81,10 @@ function UsersPage() {
         .select("id, email, role, accepted_at, created_at")
         .eq("tenant_id", org!.id)
         .order("created_at", { ascending: false });
-      if (error) { console.error(error.message); return []; }
+      if (error) {
+        console.error(error.message);
+        return [];
+      }
       return (data ?? []) as Invite[];
     },
   });
@@ -82,12 +111,22 @@ function UsersPage() {
     }
     setInviting(true);
     try {
-      const { error } = await supabase.from("tenant_invites").upsert(
-        { tenant_id: org.id, email, role: inviteRole, invited_by: user?.id ?? null, accepted_at: null },
-        { onConflict: "tenant_id,email" },
-      );
+      const { error } = await supabase
+        .from("tenant_invites")
+        .upsert(
+          {
+            tenant_id: org.id,
+            email,
+            role: inviteRole,
+            invited_by: user?.id ?? null,
+            accepted_at: null,
+          },
+          { onConflict: "tenant_id,email" },
+        );
       if (error) throw new Error(error.message);
-      toast.success(`Invite saved for ${email}. They join this organization when they sign up with that email.`);
+      toast.success(
+        `Invite saved for ${email}. They join this organization when they sign up with that email.`,
+      );
       setInviteEmail("");
       void refetchInvites();
     } catch (e) {
@@ -131,8 +170,9 @@ function UsersPage() {
             <MailPlus className="h-4 w-4 text-primary" /> Invite a teammate
           </h2>
           <p className="text-xs text-muted-foreground">
-            They will join <span className="font-medium text-foreground">{org?.name ?? "your organization"}</span> automatically
-            when they sign up with the invited email — no separate account setup.
+            They will join{" "}
+            <span className="font-medium text-foreground">{org?.name ?? "your organization"}</span>{" "}
+            automatically when they sign up with the invited email — no separate account setup.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
@@ -147,7 +187,11 @@ function UsersPage() {
               onChange={(e) => setInviteRole(e.target.value as AppRole)}
               className="rounded-md border border-border bg-surface-2 px-3 py-2.5 text-sm outline-none focus:border-primary/60"
             >
-              {ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+              {ROLES.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.label}
+                </option>
+              ))}
             </select>
             <button
               onClick={sendInvite}
@@ -161,15 +205,22 @@ function UsersPage() {
           {invites.length > 0 && (
             <div className="divide-y divide-border/40 rounded-md border border-border/60">
               {invites.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+                <div
+                  key={inv.id}
+                  className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
+                >
                   <div className="min-w-0">
                     <div className="truncate font-mono text-xs">{inv.email}</div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                       <span>{ROLES.find((r) => r.id === inv.role)?.label ?? inv.role}</span>
                       {inv.accepted_at ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-400"><CheckCircle2 className="h-3 w-3" /> Joined</span>
+                        <span className="inline-flex items-center gap-1 text-emerald-400">
+                          <CheckCircle2 className="h-3 w-3" /> Joined
+                        </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-amber-400"><Clock className="h-3 w-3" /> Pending</span>
+                        <span className="inline-flex items-center gap-1 text-amber-400">
+                          <Clock className="h-3 w-3" /> Pending
+                        </span>
                       )}
                     </div>
                   </div>
@@ -189,7 +240,9 @@ function UsersPage() {
 
       <div className="kpi-card overflow-hidden">
         {isLoading ? (
-          <div className="grid place-items-center py-12"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <div className="grid place-items-center py-12">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -202,14 +255,26 @@ function UsersPage() {
               </thead>
               <tbody>
                 {members.length === 0 && (
-                  <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No teammates yet — invite them above.</td></tr>
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">
+                      No teammates yet — invite them above.
+                    </td>
+                  </tr>
                 )}
                 {members.map((m) => (
-                  <tr key={m.id} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
+                  <tr
+                    key={m.id}
+                    className="border-b border-border/40 last:border-0 hover:bg-surface-2/30"
+                  >
                     <td className="px-4 py-3 font-medium">
-                      {m.full_name ?? "—"}{m.id === user?.id && <span className="ml-2 text-[10px] text-muted-foreground">(you)</span>}
+                      {m.full_name ?? "—"}
+                      {m.id === user?.id && (
+                        <span className="ml-2 text-[10px] text-muted-foreground">(you)</span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.email ?? "—"}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      {m.email ?? "—"}
+                    </td>
                     <td className="px-4 py-3">
                       {isAdmin ? (
                         <select
@@ -217,12 +282,19 @@ function UsersPage() {
                           onChange={(e) => setRole(m.id, e.target.value as AppRole)}
                           className="rounded border border-border bg-surface-2 px-2 py-1.5 text-xs outline-none focus:border-primary/60"
                         >
-                          <option value="" disabled>No role</option>
-                          {ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+                          <option value="" disabled>
+                            No role
+                          </option>
+                          {ROLES.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.label}
+                            </option>
+                          ))}
                         </select>
                       ) : (
                         <span className="chip border border-primary/30 bg-primary/15 text-primary">
-                          <ShieldCheck className="h-3 w-3" /> {ROLES.find((r) => r.id === m.role)?.label ?? "No role"}
+                          <ShieldCheck className="h-3 w-3" />{" "}
+                          {ROLES.find((r) => r.id === m.role)?.label ?? "No role"}
                         </span>
                       )}
                     </td>

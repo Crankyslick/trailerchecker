@@ -118,13 +118,19 @@ function SearchPage() {
       <div className="kpi-card p-4">
         <div className="relative">
           <SearchIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)}
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
             placeholder="Trailer number, schedule ID, driver, store, comment, status…"
-            className="w-full pl-10 pr-3 py-2.5 bg-surface-2 border border-border rounded-md text-sm outline-none focus:border-primary/50" />
+            className="w-full pl-10 pr-3 py-2.5 bg-surface-2 border border-border rounded-md text-sm outline-none focus:border-primary/50"
+          />
         </div>
         {searching && (
           <div className="mt-2 text-xs text-muted-foreground">
-            {loadsQuery.isFetching ? "Searching…" : `${total} load${total === 1 ? "" : "s"} · ${events.length} history entries`}
+            {loadsQuery.isFetching
+              ? "Searching…"
+              : `${total} load${total === 1 ? "" : "s"} · ${events.length} history entries`}
           </div>
         )}
       </div>
@@ -154,24 +160,51 @@ function SearchPage() {
             </thead>
             <tbody>
               {!searching && (
-                <tr><td colSpan={10} className="py-12 text-center text-muted-foreground">Start typing to search.</td></tr>
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-muted-foreground">
+                    Start typing to search.
+                  </td>
+                </tr>
               )}
               {searching && !loadsQuery.isFetching && results.length === 0 && (
-                <tr><td colSpan={10} className="py-12 text-center text-muted-foreground">No matching loads.</td></tr>
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-muted-foreground">
+                    No matching loads.
+                  </td>
+                </tr>
               )}
               {results.map((l) => (
-                <tr key={l.id} className="border-b border-border/40 last:border-0 hover:bg-surface-2/30">
+                <tr
+                  key={l.id}
+                  className="border-b border-border/40 last:border-0 hover:bg-surface-2/30"
+                >
                   <td className="py-2.5 px-4 font-mono text-xs">{l.schedule_id}</td>
                   <td className="py-2.5 px-4 text-xs tabular-nums">{l.schedule_date}</td>
                   <td className="py-2.5 px-4">{l.driver ?? "—"}</td>
-                  <td className="py-2.5 px-4">{l.str_number} · <span className="text-muted-foreground">{l.str_name}</span></td>
+                  <td className="py-2.5 px-4">
+                    {l.str_number} · <span className="text-muted-foreground">{l.str_name}</span>
+                  </td>
                   <td className="py-2.5 px-4 font-mono text-xs">{l.outbound_trailer}</td>
                   <td className="py-2.5 px-4 font-mono text-xs">{l.return_trailer ?? "—"}</td>
-                  <td className="py-2.5 px-4">{l.return_trailer_location && <LocationChip location={l.return_trailer_location} />}</td>
-                  <td className="py-2.5 px-4"><YardChip hours={yardHours(l.yard_arrival_at)} /></td>
-                  <td className="py-2.5 px-4">{l.status && <StatusChip status={l.status as LoadStatus} />}</td>
+                  <td className="py-2.5 px-4">
+                    {l.return_trailer_location && (
+                      <LocationChip location={l.return_trailer_location} />
+                    )}
+                  </td>
+                  <td className="py-2.5 px-4">
+                    <YardChip hours={yardHours(l.yard_arrival_at)} />
+                  </td>
+                  <td className="py-2.5 px-4">
+                    {l.status && <StatusChip status={l.status as LoadStatus} />}
+                  </td>
                   <td className="py-2.5 px-4 text-right">
-                    <Link to="/history/$loadId" params={{ loadId: l.id }} className="text-xs text-primary hover:underline">View →</Link>
+                    <Link
+                      to="/history/$loadId"
+                      params={{ loadId: l.id }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      View →
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -184,10 +217,20 @@ function SearchPage() {
               {page * PAGE_SIZE + 1}–{Math.min(total, (page + 1) * PAGE_SIZE)} of {total}
             </span>
             <div className="space-x-2">
-              <button disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="rounded border border-border px-2.5 py-1 disabled:opacity-40">Previous</button>
-              <button disabled={(page + 1) * PAGE_SIZE >= total} onClick={() => setPage((p) => p + 1)}
-                className="rounded border border-border px-2.5 py-1 disabled:opacity-40">Next</button>
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                className="rounded border border-border px-2.5 py-1 disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <button
+                disabled={(page + 1) * PAGE_SIZE >= total}
+                onClick={() => setPage((p) => p + 1)}
+                className="rounded border border-border px-2.5 py-1 disabled:opacity-40"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}
@@ -195,7 +238,9 @@ function SearchPage() {
 
       {searching && events.length > 0 && (
         <div className="kpi-card overflow-hidden">
-          <div className="border-b border-border px-4 py-3 text-sm font-semibold">Matching history entries</div>
+          <div className="border-b border-border px-4 py-3 text-sm font-semibold">
+            Matching history entries
+          </div>
           <div className="divide-y divide-border">
             {events.map((e) => (
               <div key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-sm">
@@ -204,13 +249,22 @@ function SearchPage() {
                 </span>
                 <span className="font-mono text-xs">{e.trailer_number ?? "—"}</span>
                 {e.trailer_role && (
-                  <span className="chip border bg-muted text-muted-foreground border-border">{e.trailer_role}</span>
+                  <span className="chip border bg-muted text-muted-foreground border-border">
+                    {e.trailer_role}
+                  </span>
                 )}
                 <span className="font-medium">{e.event_type}</span>
-                <span className="flex-1 min-w-[160px] truncate text-muted-foreground">{e.note ?? ""}</span>
+                <span className="flex-1 min-w-[160px] truncate text-muted-foreground">
+                  {e.note ?? ""}
+                </span>
                 {e.load_id && (
-                  <Link to="/history/$loadId" params={{ loadId: e.load_id }}
-                    className="text-xs text-primary hover:underline">Open load →</Link>
+                  <Link
+                    to="/history/$loadId"
+                    params={{ loadId: e.load_id }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Open load →
+                  </Link>
                 )}
               </div>
             ))}

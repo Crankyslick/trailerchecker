@@ -27,7 +27,9 @@ export function useDrainSheetOutbox() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => drain({ data: { limit: 25 } }),
-    onSettled: () => { void qc.invalidateQueries({ queryKey: ["sheet-outbox"] }); },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: ["sheet-outbox"] });
+    },
   });
 }
 
@@ -39,9 +41,15 @@ export function useSheetOutboxWorker(intervalMs = 60_000) {
   const { mutateAsync } = useDrainSheetOutbox();
   useEffect(() => {
     let stopped = false;
-    const run = () => { if (!stopped) void mutateAsync().catch(() => undefined); };
+    const run = () => {
+      if (!stopped) void mutateAsync().catch(() => undefined);
+    };
     const t = setTimeout(run, 3_000);
     const i = setInterval(run, intervalMs);
-    return () => { stopped = true; clearTimeout(t); clearInterval(i); };
+    return () => {
+      stopped = true;
+      clearTimeout(t);
+      clearInterval(i);
+    };
   }, [mutateAsync, intervalMs]);
 }

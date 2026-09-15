@@ -48,9 +48,9 @@ describe("toEstIsoDate", () => {
 
 describe("departureDateFromCandidates", () => {
   it("uses the first parseable candidate (Expected Pickup wins)", () => {
-    expect(
-      departureDateFromCandidates("7/30/2026 10:27 PM", "8/1/2026", "8/2/2026"),
-    ).toBe("2026-07-30");
+    expect(departureDateFromCandidates("7/30/2026 10:27 PM", "8/1/2026", "8/2/2026")).toBe(
+      "2026-07-30",
+    );
   });
 
   it("falls back to Departure then Cutoff Time", () => {
