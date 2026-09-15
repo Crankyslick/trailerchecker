@@ -20,7 +20,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateWebhookCache } from "@/lib/webhook";
-import { readSyncConfig, saveSyncConfig } from "@/lib/sync-config";
+import { readAdminSyncConfig, saveSyncConfig } from "@/lib/sync-config";
 import { getSheetHeaders } from "@/lib/sheets.functions";
 import { toast } from "sonner";
 import { PRODUCTS, type ProductKey } from "@/lib/products";
