@@ -17,22 +17,13 @@ export const Route = createFileRoute("/api/public/health")({
           const url = process.env["SUPABASE_URL"];
           const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"];
           if (!url || !key) throw new Error("backend configuration missing");
-          const client = createClient(url, key, {
-            auth: { persistSession: false, autoRefreshToken: false },
-            global: {
-              fetch: (input, init) => {
-                const h = new Headers(init?.headers);
-                if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
-                  h.delete("Authorization");
-                }
-                h.set("apikey", key);
-                return fetch(input, { ...init, headers: h });
-              },
-            },
+          // Reach the data API without reading any row: a healthy service
+          // answers the API root, a degraded one does not.
+          const res = await fetch(`${url}/rest/v1/`, {
+            headers: { apikey: key },
+            signal: AbortSignal.timeout(5000),
           });
-          // RLS blocks the rows; a clean response still proves the API is up.
-          const { error } = await client.from("companies").select("id").limit(1);
-          if (error) throw new Error(error.message);
+          if (!res.ok) throw new Error(`data api responded ${res.status}`);
         } catch (e) {
           database = "degraded";
           detail = (e as Error).message;
