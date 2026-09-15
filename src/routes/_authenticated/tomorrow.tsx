@@ -8,6 +8,7 @@ import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
+import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { toast } from "sonner";
 import {
 import { guard } from "@/lib/route-guard";
@@ -517,6 +518,9 @@ function YardTicker() {
   const [trailer, setTrailer] = useState("");
   const [loadId, setLoadId] = useState("");
   const [note, setNote] = useState("");
+  const checkInMutation = useYardCheckIn();
+  const checkOutMutation = useYardCheckOut();
+  const idemRef = useRef(newIdempotencyKey());
 
   // Active STR RTRN TRL# timers pulled from loads (Column T timestamps)
   const activeReturnTrailers = useMemo(() => loads
@@ -532,22 +536,38 @@ function YardTicker() {
   async function checkIn(e: React.FormEvent) {
     e.preventDefault();
     if (!trailer.trim()) { toast.error("Trailer # required"); return; }
-    const { data, error } = await supabase.from("yard_check_ins").insert({
-      trailer_number: trailer.trim(),
-      note: [loadId.trim() ? `Load ${loadId.trim()}` : null, note.trim() || null].filter(Boolean).join(" · ") || null,
-    }).select().single();
-    if (error) toast.error(error.message);
-    else {
+    const typed = loadId.trim().toUpperCase();
+    const match = typed
+      ? loads.find((l) =>
+          (l.schedule_id ?? "").toUpperCase() === typed ||
+          (l.target_load_id ?? "").toUpperCase() === typed ||
+          (l.trip_id ?? "").toUpperCase() === typed)
+      : undefined;
+    if (typed && !match) { toast.error(`No load matches ${typed}`); return; }
+    try {
+      const row = await checkInMutation.mutateAsync({
+        trailer: trailer.trim(),
+        loadId: match?.id ?? null,
+        note: note.trim() || null,
+        idempotencyKey: idemRef.current,
+      });
+      idemRef.current = newIdempotencyKey();
       toast.success(`Trailer ${trailer} checked in at gate`);
-      fireWebhook("yard.check_in", { row: data });
+      fireWebhook("yard.check_in", { row });
       setTrailer(""); setLoadId(""); setNote(""); setOpen(false);
+    } catch (e) {
+      toast.error((e as Error).message);
     }
   }
 
   async function checkOut(id: string, trailerNum: string) {
-    const { data, error } = await supabase.from("yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
-    if (error) toast.error(error.message);
-    else { toast.success(`Trailer ${trailerNum} dispatched out of yard`); fireWebhook("yard.check_out", { id, row: data }); }
+    try {
+      const row = await checkOutMutation.mutateAsync(id);
+      toast.success(`Trailer ${trailerNum} dispatched out of yard`);
+      fireWebhook("yard.check_out", { id, row });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
 
   const enriched = useMemo(() => items.map((i) => {
