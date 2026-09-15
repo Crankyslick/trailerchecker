@@ -74,11 +74,21 @@ function DispatchControl() {
 
 /* ---------------- Shared mutation helpers ---------------- */
 
-async function updateLoad(id: string, patch: Partial<LoadRow>) {
+/** Throws on failure so callers can roll back optimistic UI state. */
+async function updateLoadOrThrow(id: string, patch: Partial<LoadRow>) {
   const { data, error } = await supabase.from("trailer_loads").update(patch).eq("id", id).select().single();
-  if (error) { toast.error(error.message); return; }
-  toast.success("Saved");
+  if (error) throw new Error(error.message);
   fireWebhook("load.update", { id, patch, row: data });
+  return data;
+}
+
+async function updateLoad(id: string, patch: Partial<LoadRow>) {
+  try {
+    await updateLoadOrThrow(id, patch);
+    toast.success("Saved");
+  } catch (e) {
+    toast.error((e as Error).message);
+  }
 }
 
 /* ---------------- EST helpers ---------------- */
