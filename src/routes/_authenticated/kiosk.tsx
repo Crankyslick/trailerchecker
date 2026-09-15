@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { LogIn, LogOut, Search, Warehouse, Loader2, Clock, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useYardCheckIns, type YardCheckIn } from "@/hooks/use-loads";
+import { useLoads, useYardCheckIns, type YardCheckIn } from "@/hooks/use-loads";
+import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/kiosk")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({
     meta: [
       { title: "Gate Kiosk — Me Do Logistics" },
@@ -28,7 +30,11 @@ function hoursIn(iso: string) {
 
 function Kiosk() {
   const { data: active = [], refetch } = useYardCheckIns();
+  const { data: loads = [] } = useLoads();
   const { profile } = useCurrentUser();
+  const checkInMutation = useYardCheckIn();
+  const checkOutMutation = useYardCheckOut();
+  const idemRef = useRef(newIdempotencyKey());
   const [mode, setMode] = useState<Mode>("home");
   const [trailer, setTrailer] = useState("");
   const [loadId, setLoadId] = useState("");
@@ -38,7 +44,7 @@ function Kiosk() {
   const matches = useMemo(() => {
     const q = trailer.trim().toUpperCase();
     if (!q) return rows;
-    return rows.filter((r) => (r?.trailer_number ?? "").toUpperCase().includes(q) || (r?.inbound_load_id ?? "").toUpperCase().includes(q));
+    return rows.filter((r) => (r?.trailer_number ?? "").toUpperCase().includes(q) || (r?.note ?? "").toUpperCase().includes(q));
   }, [rows, trailer]);
 
   const reset = () => { setTrailer(""); setLoadId(""); setMode("home"); };
@@ -48,13 +54,23 @@ function Kiosk() {
     if (!t) { toast.error("Enter a trailer #"); return; }
     setBusy(true);
     try {
-      const { error } = await supabase.from("yard_check_ins").insert({
-        trailer_number: t,
-        arrival_at: new Date().toISOString(),
-        note: `${loadId.trim() ? `Load ${loadId.trim()} · ` : ""}Kiosk check-in by ${profile?.full_name ?? profile?.email ?? "gate"}`,
+      const typed = loadId.trim().toUpperCase();
+      const match = typed
+        ? loads.find((l) =>
+            (l.schedule_id ?? "").toUpperCase() === typed ||
+            (l.target_load_id ?? "").toUpperCase() === typed ||
+            (l.trip_id ?? "").toUpperCase() === typed)
+        : undefined;
+      if (typed && !match) { toast.error(`No load matches ${typed}`); setBusy(false); return; }
+
+      await checkInMutation.mutateAsync({
+        trailer: t,
+        loadId: match?.id ?? null,
+        note: `Kiosk check-in by ${profile?.full_name ?? profile?.email ?? "gate"}`,
+        idempotencyKey: idemRef.current,
       });
-      if (error) throw new Error(error.message);
       toast.success(`${t} checked in`);
+      idemRef.current = newIdempotencyKey();
       void refetch();
       reset();
     } catch (e) {
@@ -65,11 +81,7 @@ function Kiosk() {
   async function checkOut(row: YardCheckIn) {
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("yard_check_ins")
-        .update({ checked_out_at: new Date().toISOString() })
-        .eq("id", row.id);
-      if (error) throw new Error(error.message);
+      await checkOutMutation.mutateAsync(row.id);
       toast.success(`${row.trailer_number} dispatched`);
       void refetch();
     } catch (e) {
@@ -120,7 +132,7 @@ function Kiosk() {
                 <div className="truncate font-mono text-xl font-black text-primary">{r?.trailer_number ?? "—"}</div>
                 <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" /> {hoursIn(r?.arrival_at)} on yard
-                  {r?.inbound_load_id ? ` · load ${r.inbound_load_id}` : ""}
+                  
                 </div>
               </div>
               {mode === "out" && (

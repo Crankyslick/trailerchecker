@@ -1,11 +1,11 @@
-import { supabase } from "@/integrations/supabase/client";
+import { readSyncConfig, markSynced } from "@/lib/sync-config";
 
 let cached: { url: string | null; at: number } = { url: null, at: 0 };
 
 async function getWebhook(): Promise<string | null> {
   if (Date.now() - cached.at < 30_000) return cached.url;
-  const { data } = await supabase.from("sync_config").select("webhook_url").eq("id", 1).maybeSingle();
-  cached = { url: (data as { webhook_url: string | null } | null)?.webhook_url ?? null, at: Date.now() };
+  const cfg = await readSyncConfig();
+  cached = { url: cfg?.webhook_url ?? null, at: Date.now() };
   return cached.url;
 }
 
@@ -26,7 +26,6 @@ export async function fireWebhook(event: string, payload: Record<string, unknown
       headers: { "Content-Type": "application/json" },
       body,
     }).catch(() => {});
-    const now = new Date().toISOString();
-    supabase.from("sync_config").update({ last_synced_at: now, updated_at: now }).eq("id", 1).then(() => {});
+    void markSynced();
   } catch { /* noop */ }
 }

@@ -3,8 +3,10 @@ import { useMemo } from "react";
 import { useLoads } from "@/hooks/use-loads";
 import { StatusChip } from "@/components/Chips";
 import { Store } from "lucide-react";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/stores")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Store Board — VTCD Dispatch" }] }),
   component: StoreBoard,
 });

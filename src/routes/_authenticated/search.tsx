@@ -4,8 +4,10 @@ import { useLoads } from "@/hooks/use-loads";
 import { StatusChip, LocationChip, YardChip } from "@/components/Chips";
 import { yardHours } from "@/lib/loads";
 import { Search as SearchIcon } from "lucide-react";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/search")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Trailer Search — VTCD Dispatch" }] }),
   component: SearchPage,
 });

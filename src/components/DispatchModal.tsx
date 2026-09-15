@@ -6,6 +6,7 @@ import { useDrivers } from "@/hooks/use-drivers";
 import { queueSheetUpdate } from "@/lib/sheet-outbox";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { supabase } from "@/integrations/supabase/client";
+import { useCompanySites } from "@/hooks/use-sites";
 
 type Props = {
   open: boolean;
@@ -16,8 +17,6 @@ type Props = {
   onDispatched: () => void;
 };
 
-/** Static per spec — never derived. */
-const NEXT_DESTINATION = "589 Chambersburg";
 
 function estDate(offsetDays = 0): string {
   const d = new Date();
@@ -29,6 +28,9 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
   const { data: loads = [] } = useLoads();
   const { data: rosterDrivers = [] } = useDrivers();
   const drain = useDrainSheetOutbox();
+  const { defaultSite } = useCompanySites();
+  // Destination comes from the company's default site, never hard-coded.
+  const nextDestination = defaultSite?.name ?? "the default yard";
 
   const [selected, setSelected] = useState<string>("");
   const [customName, setCustomName] = useState("");
@@ -89,7 +91,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
         load_id: captured?.load_id ?? null,
         trailer_number: trailer,
         event_type: "Dispatched",
-        note: `Trailer ${trailer} dispatched from ${yard} → ${NEXT_DESTINATION}. Driver: ${driverName}${previousDriver ? ` · Returned by ${previousDriver}` : ""}${custom ? " (custom)" : ""}`,
+        note: `Trailer ${trailer} dispatched from ${yard} → ${nextDestination}. Driver: ${driverName}${previousDriver ? ` · Returned by ${previousDriver}` : ""}${custom ? " (custom)" : ""}`,
       });
 
       // Queue the Sheet writeback (durable: retried until it lands)
@@ -102,7 +104,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
         void drain.mutateAsync().catch(() => undefined);
       }
 
-      toast.success(`Trailer ${trailer} dispatched to ${NEXT_DESTINATION}`);
+      toast.success(`Trailer ${trailer} dispatched to ${nextDestination}`);
       onDispatched();
       onClose();
     } catch (e) {
@@ -127,7 +129,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
           <div className="grid grid-cols-2 gap-3">
             <Info label="Trailer #" value={<span className="font-mono font-semibold text-primary">{trailer}</span>} />
             <Info label="Current Yard" value={yard} />
-            <Info label="Next Destination" value={<span className="font-semibold">{NEXT_DESTINATION}</span>} />
+            <Info label="Next Destination" value={<span className="font-semibold">{nextDestination}</span>} />
             <Info label="Returned By" value={previousDriver ?? "—"} />
           </div>
 
@@ -140,7 +142,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
             >
               <option value="">— Select scheduled driver —</option>
               {candidates.length > 0 && (
-                <optgroup label={`Scheduled to ${NEXT_DESTINATION} (Today / Tomorrow)`}>
+                <optgroup label={`Scheduled to ${nextDestination} (Today / Tomorrow)`}>
                   {candidates.map((c) => (
                     <option key={c.name} value={c.name}>
                       {c.name}{c.date ? ` · ${c.date}` : ""}{c.cutoff ? ` · cutoff ${c.cutoff}` : ""}
@@ -191,7 +193,7 @@ export function DispatchModal({ open, onClose, trailer, yard, previousDriver, on
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 hover:opacity-90"
           >
             {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-            Dispatch to {NEXT_DESTINATION}
+            Dispatch to {nextDestination}
           </button>
         </div>
       </div>

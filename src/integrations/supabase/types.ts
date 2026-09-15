@@ -87,6 +87,50 @@ export type Database = {
           },
         ]
       }
+      company_sites: {
+        Row: {
+          active: boolean
+          code: string | null
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          kind: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          kind?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          kind?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_sites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       container_events: {
         Row: {
           container_id: string
@@ -1135,8 +1179,10 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          idempotency_key: string | null
           inbound_load_id: string | null
           note: string | null
+          trailer_norm: string | null
           trailer_number: string
         }
         Insert: {
@@ -1145,8 +1191,10 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          idempotency_key?: string | null
           inbound_load_id?: string | null
           note?: string | null
+          trailer_norm?: string | null
           trailer_number: string
         }
         Update: {
@@ -1155,8 +1203,10 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          idempotency_key?: string | null
           inbound_load_id?: string | null
           note?: string | null
+          trailer_norm?: string | null
           trailer_number?: string
         }
         Relationships: [
@@ -1200,6 +1250,53 @@ export type Database = {
       tenant_has_product: {
         Args: { _product: Database["public"]["Enums"]["product_key"] }
         Returns: boolean
+      }
+      yard_check_in: {
+        Args: {
+          p_idempotency_key?: string
+          p_load_id?: string
+          p_note?: string
+          p_trailer: string
+        }
+        Returns: {
+          arrival_at: string
+          checked_out_at: string | null
+          company_id: string
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          inbound_load_id: string | null
+          note: string | null
+          trailer_norm: string | null
+          trailer_number: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "yard_check_ins"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      yard_check_out: {
+        Args: { p_id: string }
+        Returns: {
+          arrival_at: string
+          checked_out_at: string | null
+          company_id: string
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          inbound_load_id: string | null
+          note: string | null
+          trailer_norm: string | null
+          trailer_number: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "yard_check_ins"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,13 +8,17 @@ import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS } from "@/lib/loads";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
+import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { toast } from "sonner";
+import { guard } from "@/lib/route-guard";
+import { readSyncConfig, saveSyncConfig } from "@/lib/sync-config";
 import {
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
   RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin, ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tomorrow")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({
     meta: [
       { title: "VTC Dispatch Control — Yard 589" },
@@ -515,6 +519,9 @@ function YardTicker() {
   const [trailer, setTrailer] = useState("");
   const [loadId, setLoadId] = useState("");
   const [note, setNote] = useState("");
+  const checkInMutation = useYardCheckIn();
+  const checkOutMutation = useYardCheckOut();
+  const idemRef = useRef(newIdempotencyKey());
 
   // Active STR RTRN TRL# timers pulled from loads (Column T timestamps)
   const activeReturnTrailers = useMemo(() => loads
@@ -530,22 +537,38 @@ function YardTicker() {
   async function checkIn(e: React.FormEvent) {
     e.preventDefault();
     if (!trailer.trim()) { toast.error("Trailer # required"); return; }
-    const { data, error } = await supabase.from("yard_check_ins").insert({
-      trailer_number: trailer.trim(),
-      note: [loadId.trim() ? `Load ${loadId.trim()}` : null, note.trim() || null].filter(Boolean).join(" · ") || null,
-    }).select().single();
-    if (error) toast.error(error.message);
-    else {
+    const typed = loadId.trim().toUpperCase();
+    const match = typed
+      ? loads.find((l) =>
+          (l.schedule_id ?? "").toUpperCase() === typed ||
+          (l.target_load_id ?? "").toUpperCase() === typed ||
+          (l.trip_id ?? "").toUpperCase() === typed)
+      : undefined;
+    if (typed && !match) { toast.error(`No load matches ${typed}`); return; }
+    try {
+      const row = await checkInMutation.mutateAsync({
+        trailer: trailer.trim(),
+        loadId: match?.id ?? null,
+        note: note.trim() || null,
+        idempotencyKey: idemRef.current,
+      });
+      idemRef.current = newIdempotencyKey();
       toast.success(`Trailer ${trailer} checked in at gate`);
-      fireWebhook("yard.check_in", { row: data });
+      fireWebhook("yard.check_in", { row });
       setTrailer(""); setLoadId(""); setNote(""); setOpen(false);
+    } catch (e) {
+      toast.error((e as Error).message);
     }
   }
 
   async function checkOut(id: string, trailerNum: string) {
-    const { data, error } = await supabase.from("yard_check_ins").update({ checked_out_at: new Date().toISOString() }).eq("id", id).select().single();
-    if (error) toast.error(error.message);
-    else { toast.success(`Trailer ${trailerNum} dispatched out of yard`); fireWebhook("yard.check_out", { id, row: data }); }
+    try {
+      const row = await checkOutMutation.mutateAsync(id);
+      toast.success(`Trailer ${trailerNum} dispatched out of yard`);
+      fireWebhook("yard.check_out", { id, row });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
 
   const enriched = useMemo(() => items.map((i) => {
@@ -992,23 +1015,23 @@ function SyncPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("sync_config").select("endpoint_url,webhook_url,last_synced_at").eq("id", 1).maybeSingle();
-      if (data) {
-        setEndpoint(data.endpoint_url ?? "");
-        setWebhook((data as { webhook_url: string | null }).webhook_url ?? "");
-        setLastSync(data.last_synced_at);
+      const cfg = await readSyncConfig();
+      if (cfg) {
+        setEndpoint(cfg.spreadsheet_id ?? "");
+        setWebhook(cfg.webhook_url ?? "");
+        setLastSync(cfg.last_synced_at);
       }
     })();
   }, []);
 
   async function save() {
-    const { error } = await supabase.from("sync_config").update({
-      endpoint_url: endpoint || null,
-      webhook_url: webhook || null,
-      updated_at: new Date().toISOString(),
-    }).eq("id", 1);
-    if (error) toast.error(error.message);
-    else { toast.success("Sync settings saved"); invalidateWebhookCache(); }
+    try {
+      await saveSyncConfig({ spreadsheet_id: endpoint || null, webhook_url: webhook || null });
+      toast.success("Sync settings saved");
+      invalidateWebhookCache();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
 
   async function testWebhook() {
@@ -1021,7 +1044,7 @@ function SyncPanel() {
         body: JSON.stringify({ event: "test.ping", payload: { hello: "VTC Dispatch" }, at: new Date().toISOString() }),
       });
       const now = new Date().toISOString();
-      await supabase.from("sync_config").update({ last_synced_at: now, updated_at: now }).eq("id", 1);
+      await saveSyncConfig({ last_synced_at: now });
       setLastSync(now);
       toast.success("Ping sent (opaque response — check your Sheet)");
     } catch (e) { toast.error(`Ping failed: ${(e as Error).message}`); }

@@ -53,12 +53,14 @@ type SheetConfig = { spreadsheet_id: string; sheet_name: string };
 type HeaderMap = Record<string, { index: number; letter: string; original: string }>;
 type Headers = { map: HeaderMap; headers: string[]; warnings: string[]; sheet_name: string; spreadsheet_id: string };
 
-/** Returns the sheet target, or null when the org hasn't configured one yet. */
-async function readConfig(): Promise<SheetConfig | null> {
-  // sync_config is admin-only under RLS; this server-side read uses the service
-  // client and returns nothing but the spreadsheet target.
+/** Returns the sheet target for a company, or null when none is configured. */
+async function readConfig(companyId?: string | null): Promise<SheetConfig | null> {
+  // Sheet settings are admin-only under RLS; this server-side read uses the
+  // service client and returns nothing but the spreadsheet target.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.from("sync_config").select("spreadsheet_id, sheet_name").eq("id", 1).maybeSingle();
+  let q = supabaseAdmin.from("trailer_sync_config").select("spreadsheet_id, sheet_name, company_id");
+  if (companyId) q = q.eq("company_id", companyId);
+  const { data, error } = await q.limit(1).maybeSingle();
   if (error) throw new Error(error.message);
   const row = data as { spreadsheet_id: string | null; sheet_name: string | null } | null;
   if (!row?.spreadsheet_id) return null;
@@ -305,7 +307,7 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
 
     const { data: rows, error } = await db
       .from("sheet_sync_outbox")
-      .select("id, kind, match_column, match_value, payload, attempts")
+      .select("id, kind, match_column, match_value, payload, attempts, company_id")
       .eq("status", "pending")
       .lte("next_attempt_at", new Date().toISOString())
       .order("created_at", { ascending: true })
@@ -315,7 +317,7 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
     const pending = (rows ?? []) as unknown as OutboxRow[];
     if (pending.length === 0) return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
 
-    const cfg = await readConfig();
+    const cfg = await readConfig((pending[0] as unknown as { company_id?: string }).company_id ?? null);
     if (!cfg) {
       return { processed: 0, done: 0, failed: 0, retrying: pending.length, configured: false, reason: NOT_CONFIGURED };
     }

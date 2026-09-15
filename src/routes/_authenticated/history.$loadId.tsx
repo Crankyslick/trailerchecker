@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Clock } from "lucide-react";
 import { StatusChip, LocationChip } from "@/components/Chips";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/history/$loadId")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Trailer Timeline — VTCD Dispatch" }] }),
   component: HistoryDetail,
 });
