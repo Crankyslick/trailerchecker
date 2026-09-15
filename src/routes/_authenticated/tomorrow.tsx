@@ -100,30 +100,69 @@ function estHour(): number {
 
 /* ---------------- Editable cells ---------------- */
 
-function EditCell({ value, onSave, placeholder, mono, className }: {
-  value: string | null; onSave: (v: string | null) => void;
-  placeholder?: string; mono?: boolean; className?: string;
+/**
+ * Inline cell with an explicit commit. Clicking away cancels; Enter (or the
+ * check button) saves. Repeat commits of an unchanged value are dropped, and
+ * the cell shows saving / saved / failed so an edit is never silently lost.
+ */
+function EditCell({ value, onSave, placeholder, mono, className, disabled }: {
+  value: string | null; onSave: (v: string | null) => Promise<unknown> | unknown;
+  placeholder?: string; mono?: boolean; className?: string; disabled?: boolean;
 }) {
   const [v, setV] = useState(value ?? "");
   const [editing, setEditing] = useState(false);
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const inFlight = useRef(false);
   useEffect(() => { setV(value ?? ""); }, [value]);
+
+  async function commit() {
+    const next = v.trim() || null;
+    setEditing(false);
+    if (next === value || inFlight.current) return;
+    inFlight.current = true;
+    setState("saving");
+    const previous = value;
+    try {
+      await onSave(next);
+      setState("saved");
+      setTimeout(() => setState("idle"), 1500);
+    } catch (e) {
+      setV(previous ?? ""); // optimistic rollback
+      setState("error");
+      toast.error((e as Error).message);
+    } finally {
+      inFlight.current = false;
+    }
+  }
+
   if (!editing) {
     return (
-      <button onClick={() => setEditing(true)}
-        className={`text-left w-full hover:bg-surface-2 rounded px-1.5 py-1 ${mono ? "font-mono text-xs" : "text-sm"} ${className ?? ""}`}>
+      <button onClick={() => !disabled && setEditing(true)} disabled={disabled}
+        title={disabled ? "Editing is paused while live data can't be loaded" : "Click to edit, Enter to save"}
+        className={`text-left w-full rounded px-1.5 py-1 disabled:opacity-60 ${state === "error" ? "border border-danger/50" : "hover:bg-surface-2"} ${mono ? "font-mono text-xs" : "text-sm"} ${className ?? ""}`}>
         {value ?? <span className="text-muted-foreground/60">{placeholder ?? "—"}</span>}
+        {state === "saving" && <span className="ml-1 text-[10px] text-muted-foreground">saving…</span>}
+        {state === "saved" && <span className="ml-1 text-[10px] text-success">saved</span>}
+        {state === "error" && <span className="ml-1 text-[10px] text-danger">not saved</span>}
       </button>
     );
   }
   return (
-    <input autoFocus value={v} onChange={(e) => setV(e.target.value)}
-      onBlur={() => { setEditing(false); if ((v || null) !== value) onSave(v || null); }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-        if (e.key === "Escape") { setV(value ?? ""); setEditing(false); }
-      }}
-      className={`w-full bg-surface-2 border border-primary/40 rounded px-1.5 py-1 outline-none ${mono ? "font-mono text-xs" : "text-sm"} ${className ?? ""}`}
-    />
+    <div className="flex items-center gap-1">
+      <input autoFocus value={v} onChange={(e) => setV(e.target.value)}
+        onBlur={() => { setV(value ?? ""); setEditing(false); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); void commit(); }
+          if (e.key === "Escape") { setV(value ?? ""); setEditing(false); }
+        }}
+        className={`w-full bg-surface-2 border border-primary/40 rounded px-1.5 py-1 outline-none ${mono ? "font-mono text-xs" : "text-sm"} ${className ?? ""}`}
+      />
+      <button type="button" onMouseDown={(e) => { e.preventDefault(); void commit(); }}
+        title="Save (Enter)"
+        className="shrink-0 rounded border border-primary/40 px-1.5 py-1 text-[10px] text-primary hover:bg-primary/10">
+        ✓
+      </button>
+    </div>
   );
 }
 
