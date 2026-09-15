@@ -33,10 +33,11 @@ function YardPage() {
     return { g, y, r };
   }, [yardLoads]);
 
-  async function returnToDC(id: string) {
-    const { error } = await supabase.from("trailer_loads")
-      .update({ return_trailer_location: "Returned To DC" }).eq("id", id);
-    if (error) toast.error(error.message); else toast.success("Trailer returned to DC");
+  function returnToDC(id: string) {
+    returnMutation.mutate(id, {
+      onSuccess: (row) => toast.success(`Trailer ${row.return_trailer ?? ""} returned to DC`.trim()),
+      onError: (e) => toast.error((e as Error).message),
+    });
   }
 
   return (
