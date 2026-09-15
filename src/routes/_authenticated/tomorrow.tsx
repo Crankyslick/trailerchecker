@@ -242,9 +242,10 @@ type BoardRowProps = {
 };
 
 function BoardRow({ load: l, drivers, tomorrow, pastDeadline }: BoardRowProps) {
+  const writable = useDataWritable();
   const started = (l as LoadRow & { str_return_trailer_started_at: string | null }).str_return_trailer_started_at;
   const hours = started ? (Date.now() - new Date(started).getTime()) / 3_600_000 : null;
-  const timerOverdue = hours !== null && hours >= 24;
+  const timerOverdue = hours !== null && hours >= YARD_POLICY.deadlineHours;
   const scheduleDate = l.schedule_date ?? l.cutoff_date;
   const isTomorrow = scheduleDate === tomorrow;
   const driverOverdue = isTomorrow && !l.driver && pastDeadline;
