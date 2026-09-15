@@ -546,8 +546,9 @@ function fmtHM(hoursElapsed: number) {
   return `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m`;
 }
 function fmtCountdown(hoursElapsed: number) {
-  const remaining = (24 - hoursElapsed) * 60;
-  if (remaining <= 0) return `+${fmtHM(hoursElapsed - 24)} OVER`;
+  const deadline = YARD_POLICY.deadlineHours;
+  const remaining = (deadline - hoursElapsed) * 60;
+  if (remaining <= 0) return `+${fmtHM(hoursElapsed - deadline)} OVER`;
   return `${fmtHM(remaining / 60)} left`;
 }
 
