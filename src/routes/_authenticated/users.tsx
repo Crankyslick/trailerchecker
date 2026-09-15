@@ -111,18 +111,16 @@ function UsersPage() {
     }
     setInviting(true);
     try {
-      const { error } = await supabase
-        .from("tenant_invites")
-        .upsert(
-          {
-            tenant_id: org.id,
-            email,
-            role: inviteRole,
-            invited_by: user?.id ?? null,
-            accepted_at: null,
-          },
-          { onConflict: "tenant_id,email" },
-        );
+      const { error } = await supabase.from("tenant_invites").upsert(
+        {
+          tenant_id: org.id,
+          email,
+          role: inviteRole,
+          invited_by: user?.id ?? null,
+          accepted_at: null,
+        },
+        { onConflict: "tenant_id,email" },
+      );
       if (error) throw new Error(error.message);
       toast.success(
         `Invite saved for ${email}. They join this organization when they sign up with that email.`,
