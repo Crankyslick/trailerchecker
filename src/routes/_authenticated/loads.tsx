@@ -9,8 +9,10 @@ import { StatusChip, LocationChip, YardChip } from "@/components/Chips";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Search, Filter } from "lucide-react";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/loads")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Live Load Board — VTCD Dispatch" }] }),
   component: LoadBoard,
 });

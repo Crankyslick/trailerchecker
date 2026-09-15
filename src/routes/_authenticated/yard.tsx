@@ -5,8 +5,10 @@ import { yardHours, yardTier } from "@/lib/loads";
 import { YardChip } from "@/components/Chips";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/yard")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Yard Inventory — VTCD Dispatch" }] }),
   component: YardPage,
 });

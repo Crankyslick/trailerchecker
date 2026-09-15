@@ -5,8 +5,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, type AppRole } from "@/hooks/use-auth";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/users")({
+  beforeLoad: guard({ roles: ["owner", "admin"] }),
   head: () => ({
     meta: [
       { title: "Users — Me Do Logistics" },

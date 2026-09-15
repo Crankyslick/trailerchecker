@@ -10,8 +10,10 @@ import { getSheetHeaders } from "@/lib/sheets.functions";
 import { toast } from "sonner";
 import { PRODUCTS, type ProductKey } from "@/lib/products";
 import { useTenantProducts } from "@/hooks/use-products";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  beforeLoad: guard({ roles: ["owner", "admin"] }),
   head: () => ({ meta: [{ title: "Settings — Me Do Logistics" }] }),
   component: SettingsPage,
 });

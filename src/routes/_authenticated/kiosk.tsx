@@ -5,8 +5,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useYardCheckIns, type YardCheckIn } from "@/hooks/use-loads";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/kiosk")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({
     meta: [
       { title: "Gate Kiosk — Me Do Logistics" },

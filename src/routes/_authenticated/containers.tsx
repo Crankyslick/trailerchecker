@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenantProducts } from "@/hooks/use-products";
 import type { Database } from "@/integrations/supabase/types";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/containers")({
+  beforeLoad: guard({ product: "drayage" }),
   head: () => ({
     meta: [
       { title: "Container Board — Me Do Logistics" },

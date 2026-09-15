@@ -6,8 +6,10 @@ import {
 } from "recharts";
 import { useLoads } from "@/hooks/use-loads";
 import { yardHours, yardTier } from "@/lib/loads";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/reports")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Reports — VTCD Dispatch" }] }),
   component: Reports,
 });

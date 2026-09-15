@@ -10,11 +10,13 @@ import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { toast } from "sonner";
 import {
+import { guard } from "@/lib/route-guard";
   Truck, Warehouse, ClipboardPaste, DoorOpen, LogOut, Settings,
   RefreshCw, AlertTriangle, Clock, Users, Plus, Trash2, MapPin, ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tomorrow")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({
     meta: [
       { title: "VTC Dispatch Control — Yard 589" },

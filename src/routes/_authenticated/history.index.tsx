@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useLoads } from "@/hooks/use-loads";
 import { History, Search, X } from "lucide-react";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/history/")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({
     meta: [
       { title: "Load History Archive — VTCD Dispatch" },

@@ -3,8 +3,10 @@ import { useMemo } from "react";
 import { useLoads } from "@/hooks/use-loads";
 import { StatusChip, LocationChip } from "@/components/Chips";
 import { User } from "lucide-react";
+import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/drivers")({
+  beforeLoad: guard({ product: "trailer" }),
   head: () => ({ meta: [{ title: "Driver Board — VTCD Dispatch" }] }),
   component: DriverBoard,
 });
