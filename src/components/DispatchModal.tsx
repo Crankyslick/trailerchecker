@@ -93,8 +93,7 @@ export function DispatchModal({
       })
       .map((l) => ({
         load_id: l.id,
-        target_load_id:
-          (l as unknown as { target_load_id: string | null }).target_load_id ?? null,
+        target_load_id: (l as unknown as { target_load_id: string | null }).target_load_id ?? null,
         schedule_id: l.schedule_id ?? null,
         trip_id: (l as unknown as { trip_id: string | null }).trip_id ?? null,
         cutoff: l.cutoff_time ?? null,
@@ -102,7 +101,6 @@ export function DispatchModal({
         driver: l.driver ?? null,
         store: l.str_name ?? l.str_number ?? null,
       }));
-
   }, [loads]);
 
   useEffect(() => {
@@ -158,7 +156,6 @@ export function DispatchModal({
         });
         void drain.mutateAsync().catch(() => undefined);
       }
-
 
       toast.success(`Trailer ${trailer} dispatched to ${nextDestination}`);
       onDispatched();

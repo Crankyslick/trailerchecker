@@ -1202,7 +1202,6 @@ function buildRowKey(row: Partial<Record<DlmKey, string>>): string {
   return "";
 }
 
-
 function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; usedHeader: boolean } {
   const lines = text
     .split(/\r?\n/)
@@ -1308,7 +1307,6 @@ function IngestionTool() {
   const updates = parsed.filter((r) => r.__key && existingIds.has(r.__key)).length;
   const inserts = parsed.filter((r) => r.__key && !existingIds.has(r.__key)).length;
   const skipped = parsed.length - updates - inserts;
-
 
   /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
   function normalizeForWebhook(r: ParsedRow) {
@@ -1491,7 +1489,6 @@ function IngestionTool() {
             <ClipboardPaste className="h-4 w-4" /> {busy ? "Syncing…" : "Execute Sync"}
           </button>
         </div>
-
       </div>
 
       {parsed.length > 0 && (
@@ -1529,9 +1526,7 @@ function IngestionTool() {
                             </span>
                             <input
                               value={idFixes[i] ?? ""}
-                              onChange={(e) =>
-                                setIdFixes((p) => ({ ...p, [i]: e.target.value }))
-                              }
+                              onChange={(e) => setIdFixes((p) => ({ ...p, [i]: e.target.value }))}
                               placeholder={r.__rawLoadId || "Load ID"}
                               className="w-28 bg-surface-2 border border-warning/40 rounded px-1.5 py-0.5 font-mono text-[11px] outline-none focus:border-primary/50"
                             />
@@ -1652,7 +1647,9 @@ function SyncPanel() {
           value={canEditWebhook ? webhook : ""}
           onChange={(e) => setWebhook(e.target.value)}
           disabled={!canEditWebhook}
-          placeholder={canEditWebhook ? "https://script.google.com/macros/s/AKfyc.../exec" : "Admins only"}
+          placeholder={
+            canEditWebhook ? "https://script.google.com/macros/s/AKfyc.../exec" : "Admins only"
+          }
           title={canEditWebhook ? undefined : "Only admins can view or change the webhook URL"}
           className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm font-mono outline-none focus:border-primary/50 disabled:opacity-60"
         />

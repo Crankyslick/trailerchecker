@@ -236,7 +236,6 @@ async function doWriteCells(
   };
 }
 
-
 /** Internal: append one record keyed by header names. */
 async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
   const headers = await fetchHeaders(cfg);
@@ -368,7 +367,6 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
       results,
       warnings: [...warnings],
     };
-
   });
 
 /** Backoff schedule in minutes, indexed by attempt count. */
