@@ -145,15 +145,20 @@ export function DispatchModal({
       });
       if (error) throw new Error(error.message);
 
-      // Queue the Sheet writeback (durable: retried until it lands)
-      if (targetLoad?.schedule_id || targetLoad?.trip_id) {
-        await queueSheetUpdate("Load ID", loadId, {
+      // Queue the Sheet writeback (durable: retried until it lands, and the
+      // row is appended when the sheet does not have this Load ID yet).
+      const sheetLoadId = targetLoad?.target_load_id ?? targetLoad?.schedule_id ?? null;
+      if (sheetLoadId) {
+        await queueSheetUpdate("Load ID", sheetLoadId, {
+          "Load ID": sheetLoadId,
+          "Trip ID": targetLoad?.trip_id ?? "",
           Driver: driverName,
           "RDC Trailer": trailer,
           "Pickup Cutoff Time": targetLoad?.cutoff ?? "",
         });
         void drain.mutateAsync().catch(() => undefined);
       }
+
 
       toast.success(`Trailer ${trailer} dispatched to ${nextDestination}`);
       onDispatched();
