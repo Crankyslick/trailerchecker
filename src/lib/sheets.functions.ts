@@ -236,7 +236,6 @@ async function doWriteCells(
   };
 }
 
-
 /** Internal: append one record keyed by header names. */
 async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
   const headers = await fetchHeaders(cfg);
@@ -368,7 +367,6 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
       results,
       warnings: [...warnings],
     };
-
   });
 
 /** Backoff schedule in minutes, indexed by attempt count. */
@@ -431,25 +429,15 @@ export const processSheetOutbox = createServerFn({ method: "POST" })
         if (row.kind === "append") {
           await doAppendRow(cfg, (row.payload.record ?? {}) as UpdateMap);
         } else {
-          const res = await doWriteCells(cfg, {
+          // Upsert: a Load ID the sheet has never seen is appended rather
+          // than failing with "No row where Load ID = ...".
+          await doWriteCells(cfg, {
             matchColumn: row.match_column ?? "Load ID",
             matchValue: row.match_value ?? "",
             updates: (row.payload.updates ?? {}) as UpdateMap,
           });
-          // A missing row is a permanent outcome, not a transient failure.
-          if (!res.matched) {
-            await db
-              .from("sheet_sync_outbox")
-              .update({
-                status: "failed",
-                attempts: row.attempts + 1,
-                last_error: res.reason ?? "No matching sheet row",
-              })
-              .eq("id", row.id);
-            failed++;
-            continue;
-          }
         }
+
         await db
           .from("sheet_sync_outbox")
           .update({
