@@ -1259,6 +1259,24 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
 
 // Date handling lives in src/lib/dates.ts (unit-tested). Schedule date always
 // comes from the DEPARTURE timestamp, never delivery/arrival.
+/**
+ * Round Trip Sweep / Backhaul detection over every field a dispatcher may put
+ * the load type in. Drives column R of the Daily dispatch sheet.
+ */
+function rowIsSweep(r: ParsedRow): boolean {
+  const extra = r as unknown as Record<string, string | undefined>;
+  return isRoundTripSweep(
+    r["Unload Type"],
+    r["Category"],
+    r["Status"],
+    r["Carrier Comments"],
+    r["Destination"],
+    r["Origin"],
+    extra["Load Type"],
+    extra["Description"],
+  );
+}
+
 function departureDate(r: ParsedRow): string | null {
   const extra = r as unknown as Record<string, string | undefined>;
   return departureDateFromCandidates(
