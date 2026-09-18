@@ -263,6 +263,9 @@ async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
       warnings.push(`Column "${k}" not found — skipped`);
       continue;
     }
+    // Pad so a fixed-position column (e.g. R) never leaves holes that would
+    // shift the appended cells.
+    while (row.length <= col.index) row.push("");
     row[col.index] = v == null ? "" : String(v);
   }
   const appendRes = await gwFetch(
