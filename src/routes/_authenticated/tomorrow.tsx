@@ -1321,13 +1321,14 @@ function IngestionTool() {
 
   /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
   function normalizeForWebhook(r: ParsedRow) {
-    const out: Record<string, string | null> = { __key: r.__key || null };
+    const out: Record<string, string | boolean | null> = { __key: r.__key || null };
     for (const h of DLM_HEADERS) {
       out[h] = r[h] ?? null;
     }
     // Unified trailer column — Format A "Trailer #" and Format B "RDC TRAILER"
     // both live under "Trailer #" after parsing; expose as "Trailer" too.
     out["Trailer"] = r["Trailer #"] ?? null;
+    out["is_round_trip_sweep"] = rowIsSweep(r);
     return out;
   }
 
