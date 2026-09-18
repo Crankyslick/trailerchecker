@@ -231,7 +231,7 @@ async function doWriteCells(
   const dataRanges: Array<{ range: string; values: string[][] }> = [];
   const warnings: string[] = [];
   for (const [colName, val] of Object.entries(args.updates)) {
-    const col = headers.map[normalizeHeader(colName)];
+    const col = resolveColumn(headers, colName);
     if (!col) {
       warnings.push(`Column "${colName}" not found — skipped`);
       continue;
@@ -258,7 +258,7 @@ async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
   const warnings: string[] = [];
   const row: string[] = new Array(headers.headers.length).fill("");
   for (const [k, v] of Object.entries(record)) {
-    const col = headers.map[normalizeHeader(k)];
+    const col = resolveColumn(headers, k);
     if (!col) {
       warnings.push(`Column "${k}" not found — skipped`);
       continue;
@@ -357,7 +357,7 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
       }
       results.push({ matchValue: r.matchValue, matched: true, row: rowNum });
       for (const [colName, val] of Object.entries(r.updates)) {
-        const col = headers.map[normalizeHeader(colName)];
+        const col = resolveColumn(headers, colName);
         if (!col) {
           warnings.add(`Column "${colName}" not found`);
           continue;
