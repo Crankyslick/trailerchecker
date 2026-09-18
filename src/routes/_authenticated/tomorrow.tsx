@@ -8,6 +8,7 @@ import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS, YARD_POLICY, yardBadge } from "@/lib/loads";
 import { useDataWritable } from "@/lib/data-health";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
+import { isRoundTripSweep, sweepCell } from "@/lib/sweep";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { toast } from "sonner";
