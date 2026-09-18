@@ -1209,16 +1209,27 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
     .filter((l) => l.trim().length > 0);
   if (lines.length === 0) return { rows: [], headerMap: [], usedHeader: false };
 
-  // Default position map = identity
-  let headerMap: number[] = DLM_HEADERS.map((_, i) => i);
-  let usedHeader = false;
-  let dataStart = 0;
-
   const firstCols = splitLine(lines[0]);
   const firstNorm = firstCols.map(normalizeHeader);
   // Detect header via any known alias
   const hits = DLM_HEADERS.reduce((n, h) => n + (resolveHeaderIdx(h, firstNorm) >= 0 ? 1 : 0), 0);
   const looksLikeHeader = hits >= 4;
+
+  // Headerless fallback. The raw Target DLM export has 18 columns and does NOT
+  // include "Schedule ID"; mapping positions straight onto DLM_HEADERS shifted
+  // every column by one (Trip ID landed in Schedule ID, and so on). Only use
+  // the 19-column identity map when the pasted rows are actually that wide.
+  const widest = lines
+    .slice(looksLikeHeader ? 1 : 0)
+    .reduce((m, l) => Math.max(m, splitLine(l).length), 0);
+  const POSITIONAL: DlmKey[] = DLM_HEADERS.filter((h) => h !== "Schedule ID");
+  let headerMap: number[] =
+    widest >= DLM_HEADERS.length
+      ? DLM_HEADERS.map((_, i) => i)
+      : DLM_HEADERS.map((h) => POSITIONAL.indexOf(h));
+  let usedHeader = false;
+  let dataStart = 0;
+
   if (looksLikeHeader) {
     headerMap = DLM_HEADERS.map((h) => resolveHeaderIdx(h, firstNorm));
     usedHeader = true;
