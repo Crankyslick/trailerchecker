@@ -1422,6 +1422,7 @@ function IngestionTool() {
             // row carries its identifiers, not just the operational columns.
             "Load ID": r["Load ID"] ?? "",
             "Trip ID": r["Trip ID"] ?? "",
+            "Round Trip Sweep": sweepCell(rowIsSweep(r)),
             "Schedule ID": r["Schedule ID"] ?? "",
             "Trailer #": r["Trailer #"] ?? "",
             "RDC Trailer": r["Trailer #"] ?? "",
