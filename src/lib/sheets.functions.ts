@@ -51,6 +51,22 @@ async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> 
 
 const NOT_CONFIGURED = "Google Sheet not configured — set the Spreadsheet ID in Settings.";
 
+/**
+ * Daily dispatch columns that have a fixed position in the Target layout.
+ * Used only when the header row does not spell the column out (renamed or
+ * blank header) — writing to the known letter is better than silently
+ * dropping Trip ID or the sweep flag. Other columns are untouched.
+ */
+const FIXED_COLUMNS: Record<string, { index: number; letter: string }> = {
+  "trip id": { index: 3, letter: "D" },
+  "round trip sweep": { index: 17, letter: "R" },
+};
+
+function resolveColumn(headers: Headers, name: string) {
+  const key = normalizeHeader(name);
+  return headers.map[key] ?? FIXED_COLUMNS[key] ?? null;
+}
+
 type SheetConfig = { spreadsheet_id: string; sheet_name: string };
 type HeaderMap = Record<string, { index: number; letter: string; original: string }>;
 type Headers = {
