@@ -51,6 +51,22 @@ async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> 
 
 const NOT_CONFIGURED = "Google Sheet not configured — set the Spreadsheet ID in Settings.";
 
+/**
+ * Daily dispatch columns that have a fixed position in the Target layout.
+ * Used only when the header row does not spell the column out (renamed or
+ * blank header) — writing to the known letter is better than silently
+ * dropping Trip ID or the sweep flag. Other columns are untouched.
+ */
+const FIXED_COLUMNS: Record<string, { index: number; letter: string }> = {
+  "trip id": { index: 3, letter: "D" },
+  "round trip sweep": { index: 17, letter: "R" },
+};
+
+function resolveColumn(headers: Headers, name: string) {
+  const key = normalizeHeader(name);
+  return headers.map[key] ?? FIXED_COLUMNS[key] ?? null;
+}
+
 type SheetConfig = { spreadsheet_id: string; sheet_name: string };
 type HeaderMap = Record<string, { index: number; letter: string; original: string }>;
 type Headers = {
@@ -215,7 +231,7 @@ async function doWriteCells(
   const dataRanges: Array<{ range: string; values: string[][] }> = [];
   const warnings: string[] = [];
   for (const [colName, val] of Object.entries(args.updates)) {
-    const col = headers.map[normalizeHeader(colName)];
+    const col = resolveColumn(headers, colName);
     if (!col) {
       warnings.push(`Column "${colName}" not found — skipped`);
       continue;
@@ -242,11 +258,14 @@ async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
   const warnings: string[] = [];
   const row: string[] = new Array(headers.headers.length).fill("");
   for (const [k, v] of Object.entries(record)) {
-    const col = headers.map[normalizeHeader(k)];
+    const col = resolveColumn(headers, k);
     if (!col) {
       warnings.push(`Column "${k}" not found — skipped`);
       continue;
     }
+    // Pad so a fixed-position column (e.g. R) never leaves holes that would
+    // shift the appended cells.
+    while (row.length <= col.index) row.push("");
     row[col.index] = v == null ? "" : String(v);
   }
   const appendRes = await gwFetch(
@@ -341,7 +360,7 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
       }
       results.push({ matchValue: r.matchValue, matched: true, row: rowNum });
       for (const [colName, val] of Object.entries(r.updates)) {
-        const col = headers.map[normalizeHeader(colName)];
+        const col = resolveColumn(headers, colName);
         if (!col) {
           warnings.add(`Column "${colName}" not found`);
           continue;

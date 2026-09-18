@@ -8,6 +8,7 @@ import type { LoadRow, LoadUpdate } from "@/lib/loads";
 import { TRAILER_LOCATIONS, YARD_POLICY, yardBadge } from "@/lib/loads";
 import { useDataWritable } from "@/lib/data-health";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
+import { isRoundTripSweep, sweepCell } from "@/lib/sweep";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { useYardCheckIn, useYardCheckOut, newIdempotencyKey } from "@/hooks/use-yard";
 import { toast } from "sonner";
@@ -1259,6 +1260,24 @@ function parseBlock(text: string): { rows: ParsedRow[]; headerMap: number[]; use
 
 // Date handling lives in src/lib/dates.ts (unit-tested). Schedule date always
 // comes from the DEPARTURE timestamp, never delivery/arrival.
+/**
+ * Round Trip Sweep / Backhaul detection over every field a dispatcher may put
+ * the load type in. Drives column R of the Daily dispatch sheet.
+ */
+function rowIsSweep(r: ParsedRow): boolean {
+  const extra = r as unknown as Record<string, string | undefined>;
+  return isRoundTripSweep(
+    r["Unload Type"],
+    r["Category"],
+    r["Status"],
+    r["Carrier Comments"],
+    r["Destination"],
+    r["Origin"],
+    extra["Load Type"],
+    extra["Description"],
+  );
+}
+
 function departureDate(r: ParsedRow): string | null {
   const extra = r as unknown as Record<string, string | undefined>;
   return departureDateFromCandidates(
@@ -1321,13 +1340,14 @@ function IngestionTool() {
 
   /** Normalize a parsed row into a uniform JSON shape for the outbound webhook. */
   function normalizeForWebhook(r: ParsedRow) {
-    const out: Record<string, string | null> = { __key: r.__key || null };
+    const out: Record<string, string | boolean | null> = { __key: r.__key || null };
     for (const h of DLM_HEADERS) {
       out[h] = r[h] ?? null;
     }
     // Unified trailer column — Format A "Trailer #" and Format B "RDC TRAILER"
     // both live under "Trailer #" after parsing; expose as "Trailer" too.
     out["Trailer"] = r["Trailer #"] ?? null;
+    out["is_round_trip_sweep"] = rowIsSweep(r);
     return out;
   }
 
@@ -1403,6 +1423,7 @@ function IngestionTool() {
             // row carries its identifiers, not just the operational columns.
             "Load ID": r["Load ID"] ?? "",
             "Trip ID": r["Trip ID"] ?? "",
+            "Round Trip Sweep": sweepCell(rowIsSweep(r)),
             "Schedule ID": r["Schedule ID"] ?? "",
             "Trailer #": r["Trailer #"] ?? "",
             "RDC Trailer": r["Trailer #"] ?? "",
