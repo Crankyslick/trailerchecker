@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { reportDataHealth } from "@/lib/data-health";
 import { useCurrentUser } from "@/hooks/use-auth";
 import type { ProductKey } from "@/lib/products";
+import { isProductEntitled } from "@/lib/products";
 
 export type TenantProduct = {
   id: string;
@@ -39,7 +40,7 @@ export function useTenantProducts() {
     });
   }, [query.error, query.dataUpdatedAt]);
 
-  const active = (query.data ?? []).filter((p) => p.status !== "cancelled");
+  const active = (query.data ?? []).filter(isProductEntitled);
   const keys = active.map((p) => p.product);
 
   async function setProduct(product: ProductKey, enabled: boolean) {
