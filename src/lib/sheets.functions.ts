@@ -391,6 +391,8 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
 /** Backoff schedule in minutes, indexed by attempt count. */
 const BACKOFF_MIN = [0, 1, 5, 15, 60, 180];
 const MAX_ATTEMPTS = 6;
+/** How long a claimed entry stays leased to one worker before it can be re-claimed. */
+const LEASE_SECONDS = 120;
 
 type OutboxRow = {
   id: string;
@@ -399,90 +401,145 @@ type OutboxRow = {
   match_value: string | null;
   payload: Record<string, unknown>;
   attempts: number;
+  company_id: string;
 };
 
+export type DrainResult = {
+  processed: number;
+  done: number;
+  failed: number;
+  retrying: number;
+  configured: boolean;
+  reason?: string;
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type AnyClient = any;
+
 /**
- * Drain pending outbox entries for the signed-in user's company. Safe to call
- * repeatedly — entries are processed oldest first and rescheduled with
- * exponential backoff when the sheet is unreachable.
+ * Drain claimed outbox entries.
+ *
+ * Concurrency: entries are claimed atomically by `claim_sheet_outbox`
+ * (FOR UPDATE SKIP LOCKED + lease + worker id), so two tabs, a manual retry
+ * and the scheduled job can run at the same time without ever sending the
+ * same queued write twice. Completion is also conditional on still holding
+ * the lease.
+ *
+ * Idempotency: a queued append that carries a Load ID is delivered as an
+ * add-or-update by that key, so a retry after a partial failure updates the
+ * existing row instead of appending a duplicate.
+ */
+export async function drainSheetOutbox(
+  db: AnyClient,
+  opts: { limit?: number; worker: string; companyId?: string | null } = { worker: "worker" },
+): Promise<DrainResult> {
+  const limit = Math.min(Math.max(opts.limit ?? 25, 1), 100);
+  const { data: claimed, error } = await db.rpc("claim_sheet_outbox", {
+    p_worker: opts.worker,
+    p_limit: limit,
+    p_lease_seconds: LEASE_SECONDS,
+    p_company_id: opts.companyId ?? null,
+  });
+  if (error) throw new Error(error.message);
+
+  const rows = (claimed ?? []) as OutboxRow[];
+  if (rows.length === 0)
+    return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
+
+  const release = async (row: OutboxRow, patch: Record<string, unknown>) => {
+    await db
+      .from("sheet_sync_outbox")
+      .update({ claimed_by: null, claimed_at: null, lease_expires_at: null, ...patch })
+      .eq("id", row.id)
+      .eq("claimed_by", opts.worker);
+  };
+
+  // Entries are grouped by company so each uses its own sheet target.
+  const configs = new Map<string, SheetConfig | null>();
+  const configFor = async (companyId: string) => {
+    if (!configs.has(companyId)) configs.set(companyId, await readConfig(companyId));
+    return configs.get(companyId) ?? null;
+  };
+
+  let done = 0,
+    failed = 0,
+    retrying = 0,
+    unconfigured = 0;
+
+  for (const row of rows) {
+    try {
+      const cfg = await configFor(row.company_id);
+      if (!cfg) {
+        unconfigured++;
+        await release(row, {
+          status: "pending",
+          next_attempt_at: new Date(Date.now() + 15 * 60_000).toISOString(),
+          last_error: NOT_CONFIGURED,
+        });
+        continue;
+      }
+
+      if (row.kind === "append") {
+        const record = (row.payload.record ?? {}) as UpdateMap;
+        const key = record["Load ID"] ?? record["load id"] ?? null;
+        if (key != null && String(key).trim() !== "") {
+          // Add-or-update by Load ID keeps retries from duplicating rows.
+          await doWriteCells(cfg, {
+            matchColumn: "Load ID",
+            matchValue: String(key),
+            updates: record,
+          });
+        } else {
+          await doAppendRow(cfg, record);
+        }
+      } else {
+        await doWriteCells(cfg, {
+          matchColumn: row.match_column ?? "Load ID",
+          matchValue: row.match_value ?? "",
+          updates: (row.payload.updates ?? {}) as UpdateMap,
+        });
+      }
+
+      await release(row, {
+        status: "done",
+        attempts: row.attempts + 1,
+        last_error: null,
+        completed_at: new Date().toISOString(),
+      });
+      done++;
+    } catch (e) {
+      const attempts = row.attempts + 1;
+      const exhausted = attempts >= MAX_ATTEMPTS;
+      const delay = BACKOFF_MIN[Math.min(attempts, BACKOFF_MIN.length - 1)] ?? 180;
+      await release(row, {
+        status: exhausted ? "failed" : "pending",
+        attempts,
+        last_error: (e as Error).message.slice(0, 500),
+        next_attempt_at: new Date(Date.now() + delay * 60_000).toISOString(),
+      });
+      if (exhausted) failed++;
+      else retrying++;
+    }
+  }
+
+  return {
+    processed: rows.length,
+    done,
+    failed,
+    retrying,
+    configured: unconfigured < rows.length,
+    ...(unconfigured > 0 ? { reason: NOT_CONFIGURED } : {}),
+  };
+}
+
+/**
+ * Drain pass for the signed-in user's company. Safe to call repeatedly and
+ * concurrently — see drainSheetOutbox.
  */
 export const processSheetOutbox = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { limit?: number } | undefined) => data ?? {})
+  .inputValidator((data: { limit?: number; worker?: string } | undefined) => data ?? {})
   .handler(async ({ data, context }) => {
-    const limit = Math.min(Math.max(data.limit ?? 25, 1), 100);
-    const db = context.supabase;
-
-    const { data: rows, error } = await db
-      .from("sheet_sync_outbox")
-      .select("id, kind, match_column, match_value, payload, attempts, company_id")
-      .eq("status", "pending")
-      .lte("next_attempt_at", new Date().toISOString())
-      .order("created_at", { ascending: true })
-      .limit(limit);
-    if (error) throw new Error(error.message);
-
-    const pending = (rows ?? []) as unknown as OutboxRow[];
-    if (pending.length === 0)
-      return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
-
-    const cfg = await readConfig(
-      (pending[0] as unknown as { company_id?: string }).company_id ?? null,
-    );
-    if (!cfg) {
-      return {
-        processed: 0,
-        done: 0,
-        failed: 0,
-        retrying: pending.length,
-        configured: false,
-        reason: NOT_CONFIGURED,
-      };
-    }
-
-    let done = 0,
-      failed = 0,
-      retrying = 0;
-    for (const row of pending) {
-      try {
-        if (row.kind === "append") {
-          await doAppendRow(cfg, (row.payload.record ?? {}) as UpdateMap);
-        } else {
-          // Upsert: a Load ID the sheet has never seen is appended rather
-          // than failing with "No row where Load ID = ...".
-          await doWriteCells(cfg, {
-            matchColumn: row.match_column ?? "Load ID",
-            matchValue: row.match_value ?? "",
-            updates: (row.payload.updates ?? {}) as UpdateMap,
-          });
-        }
-
-        await db
-          .from("sheet_sync_outbox")
-          .update({
-            status: "done",
-            attempts: row.attempts + 1,
-            last_error: null,
-            completed_at: new Date().toISOString(),
-          })
-          .eq("id", row.id);
-        done++;
-      } catch (e) {
-        const attempts = row.attempts + 1;
-        const exhausted = attempts >= MAX_ATTEMPTS;
-        const delay = BACKOFF_MIN[Math.min(attempts, BACKOFF_MIN.length - 1)] ?? 180;
-        await db
-          .from("sheet_sync_outbox")
-          .update({
-            status: exhausted ? "failed" : "pending",
-            attempts,
-            last_error: (e as Error).message.slice(0, 500),
-            next_attempt_at: new Date(Date.now() + delay * 60_000).toISOString(),
-          })
-          .eq("id", row.id);
-        if (exhausted) failed++;
-        else retrying++;
-      }
-    }
-    return { processed: pending.length, done, failed, retrying, configured: true };
+    const worker = `browser:${data.worker ?? Math.random().toString(36).slice(2, 10)}`;
+    return drainSheetOutbox(context.supabase, { limit: data.limit ?? 25, worker });
   });
