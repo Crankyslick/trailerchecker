@@ -87,6 +87,76 @@ export type Database = {
           },
         ]
       }
+      company_setting_events: {
+        Row: {
+          changed_by: string | null
+          company_id: string
+          created_at: string
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          company_id: string
+          created_at?: string
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          company_id?: string
+          created_at?: string
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_setting_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_settings: {
+        Row: {
+          company_id: string
+          created_at: string
+          updated_at: string
+          yard_critical_hours: number
+          yard_deadline_hours: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          updated_at?: string
+          yard_critical_hours?: number
+          yard_deadline_hours?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          updated_at?: string
+          yard_critical_hours?: number
+          yard_deadline_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_sites: {
         Row: {
           active: boolean
@@ -647,12 +717,16 @@ export type Database = {
       sheet_sync_outbox: {
         Row: {
           attempts: number
+          claimed_at: string | null
+          claimed_by: string | null
           company_id: string
           completed_at: string | null
           created_at: string
+          dedupe_key: string | null
           id: string
           kind: string
           last_error: string | null
+          lease_expires_at: string | null
           match_column: string | null
           match_value: string | null
           next_attempt_at: string
@@ -662,12 +736,16 @@ export type Database = {
         }
         Insert: {
           attempts?: number
+          claimed_at?: string | null
+          claimed_by?: string | null
           company_id?: string
           completed_at?: string | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           kind: string
           last_error?: string | null
+          lease_expires_at?: string | null
           match_column?: string | null
           match_value?: string | null
           next_attempt_at?: string
@@ -677,12 +755,16 @@ export type Database = {
         }
         Update: {
           attempts?: number
+          claimed_at?: string | null
+          claimed_by?: string | null
           company_id?: string
           completed_at?: string | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           kind?: string
           last_error?: string | null
+          lease_expires_at?: string | null
           match_column?: string | null
           match_value?: string | null
           next_attempt_at?: string
@@ -1294,6 +1376,39 @@ export type Database = {
         }[]
       }
       can_dispatch: { Args: never; Returns: boolean }
+      claim_sheet_outbox: {
+        Args: {
+          p_company_id?: string
+          p_lease_seconds?: number
+          p_limit?: number
+          p_worker: string
+        }
+        Returns: {
+          attempts: number
+          claimed_at: string | null
+          claimed_by: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          kind: string
+          last_error: string | null
+          lease_expires_at: string | null
+          match_column: string | null
+          match_value: string | null
+          next_attempt_at: string
+          payload: Json
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sheet_sync_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       current_company_id: { Args: never; Returns: string }
       current_tenant_id: { Args: never; Returns: string }
       current_user_has_any_role: {
