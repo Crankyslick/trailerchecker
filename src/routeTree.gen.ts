@@ -26,6 +26,8 @@ import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContainersRouteImport } from './routes/_authenticated/containers'
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
+import { Route as ApiPublicSheetDrainRouteImport } from './routes/api/public/sheet-drain'
+import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 
@@ -114,6 +116,16 @@ const AuthenticatedHistoryIndexRoute =
     path: '/history/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicSheetDrainRoute = ApiPublicSheetDrainRouteImport.update({
+  id: '/api/public/sheet-drain',
+  path: '/api/public/sheet-drain',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicReadyRoute = ApiPublicReadyRouteImport.update({
+  id: '/api/public/ready',
+  path: '/api/public/ready',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -144,6 +156,8 @@ export interface FileRoutesByFullPath {
   '/yard': typeof AuthenticatedYardRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
   '/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesByTo {
@@ -164,6 +178,8 @@ export interface FileRoutesByTo {
   '/yard': typeof AuthenticatedYardRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
   '/history': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesById {
@@ -186,6 +202,8 @@ export interface FileRoutesById {
   '/_authenticated/yard': typeof AuthenticatedYardRoute
   '/_authenticated/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/ready': typeof ApiPublicReadyRoute
+  '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
   '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRouteTypes {
@@ -208,6 +226,8 @@ export interface FileRouteTypes {
     | '/yard'
     | '/history/$loadId'
     | '/api/public/health'
+    | '/api/public/ready'
+    | '/api/public/sheet-drain'
     | '/history/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -228,6 +248,8 @@ export interface FileRouteTypes {
     | '/yard'
     | '/history/$loadId'
     | '/api/public/health'
+    | '/api/public/ready'
+    | '/api/public/sheet-drain'
     | '/history'
   id:
     | '__root__'
@@ -249,6 +271,8 @@ export interface FileRouteTypes {
     | '/_authenticated/yard'
     | '/_authenticated/history/$loadId'
     | '/api/public/health'
+    | '/api/public/ready'
+    | '/api/public/sheet-drain'
     | '/_authenticated/history/'
   fileRoutesById: FileRoutesById
 }
@@ -257,6 +281,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicReadyRoute: typeof ApiPublicReadyRoute
+  ApiPublicSheetDrainRoute: typeof ApiPublicSheetDrainRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -380,6 +406,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/sheet-drain': {
+      id: '/api/public/sheet-drain'
+      path: '/api/public/sheet-drain'
+      fullPath: '/api/public/sheet-drain'
+      preLoaderRoute: typeof ApiPublicSheetDrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ready': {
+      id: '/api/public/ready'
+      path: '/api/public/ready'
+      fullPath: '/api/public/ready'
+      preLoaderRoute: typeof ApiPublicReadyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health': {
       id: '/api/public/health'
       path: '/api/public/health'
@@ -441,6 +481,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicReadyRoute: ApiPublicReadyRoute,
+  ApiPublicSheetDrainRoute: ApiPublicSheetDrainRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
