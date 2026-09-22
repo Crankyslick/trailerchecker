@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { processSheetOutbox } from "@/lib/sheets.functions";
@@ -9,7 +9,7 @@ export function useSheetSyncStatus() {
   const stats = useQuery({
     queryKey: ["sheet-outbox", "stats"],
     queryFn: fetchOutboxStats,
-    initialData: { pending: 0, failed: 0 },
+    initialData: { pending: 0, failed: 0, oldestPendingAt: null },
     refetchInterval: 30_000,
   });
   const problems = useQuery({
@@ -21,12 +21,18 @@ export function useSheetSyncStatus() {
   return { stats, problems };
 }
 
-/** Runs a drain pass over the queue. */
+/**
+ * Runs a drain pass over the queue. Entries are claimed with a lease on the
+ * server, so this can run alongside other tabs and the hourly scheduled job
+ * without ever sending the same update twice.
+ */
 export function useDrainSheetOutbox() {
   const drain = useServerFn(processSheetOutbox);
   const qc = useQueryClient();
+  // Stable per-tab worker id, so claims are attributable.
+  const worker = useMemo(() => Math.random().toString(36).slice(2, 10), []);
   return useMutation({
-    mutationFn: async () => drain({ data: { limit: 25 } }),
+    mutationFn: async () => drain({ data: { limit: 25, worker } }),
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ["sheet-outbox"] });
     },
@@ -34,8 +40,8 @@ export function useDrainSheetOutbox() {
 }
 
 /**
- * Background drain. Mounted once in the app shell so queued sheet writes keep
- * flowing while anyone has the app open, without blocking the UI.
+ * Low-latency helper only. Delivery does not depend on it: an hourly
+ * server-side job drains the same queue when nobody has the app open.
  */
 export function useSheetOutboxWorker(intervalMs = 60_000) {
   const { mutateAsync } = useDrainSheetOutbox();

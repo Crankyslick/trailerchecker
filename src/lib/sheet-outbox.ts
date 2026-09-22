@@ -152,17 +152,19 @@ export async function fetchOutboxProblems(limit = 10) {
   return (data ?? []) as unknown as OutboxEntry[];
 }
 
+const RESET = () => ({
+  status: "pending" as const,
+  attempts: 0,
+  next_attempt_at: new Date().toISOString(),
+  last_error: null,
+  claimed_by: null,
+  claimed_at: null,
+  lease_expires_at: null,
+});
+
 /** Put a failed entry back in line for an immediate retry. */
 export async function requeueOutboxEntry(id: string) {
-  const { error } = await supabase
-    .from("sheet_sync_outbox")
-    .update({
-      status: "pending",
-      attempts: 0,
-      next_attempt_at: new Date().toISOString(),
-      last_error: null,
-    })
-    .eq("id", id);
+  const { error } = await supabase.from("sheet_sync_outbox").update(RESET()).eq("id", id);
   if (error) throw new Error(error.message);
 }
 
@@ -170,12 +172,7 @@ export async function requeueOutboxEntry(id: string) {
 export async function requeueAllFailed() {
   const { error } = await supabase
     .from("sheet_sync_outbox")
-    .update({
-      status: "pending",
-      attempts: 0,
-      next_attempt_at: new Date().toISOString(),
-      last_error: null,
-    })
+    .update(RESET())
     .eq("status", "failed");
   if (error) throw new Error(error.message);
 }
