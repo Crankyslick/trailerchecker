@@ -37,13 +37,25 @@ export type YardPolicy = {
 
 /**
  * Shipped default yard aging policy. The live value is per company and comes
- * from `company_settings` (see useYardPolicy) — every screen (board, yard
- * page, ticker, reports) derives colours and labels from the same numbers.
+ * from `company_settings` (see useYardPolicy, which publishes it here), so
+ * every screen — board, yard page, ticker, reports — uses the same numbers.
  */
 export const YARD_POLICY: YardPolicy = {
   deadlineHours: 24,
   criticalHours: 48,
 };
+
+let activePolicy: YardPolicy = { ...YARD_POLICY };
+
+/** Publish the company's saved policy; called once the settings load. */
+export function setActiveYardPolicy(p: YardPolicy) {
+  activePolicy = { ...p };
+}
+
+/** The policy currently in force (company setting, or the shipped default). */
+export function activeYardPolicy(): YardPolicy {
+  return activePolicy;
+}
 
 export function yardHours(yardArrivalAt: string | null): number | null {
   if (!yardArrivalAt) return null;
@@ -52,7 +64,7 @@ export function yardHours(yardArrivalAt: string | null): number | null {
 
 export function yardTier(
   hours: number | null,
-  policy: YardPolicy = YARD_POLICY,
+  policy: YardPolicy = activePolicy,
 ): "green" | "yellow" | "red" | "none" {
   if (hours == null) return "none";
   if (hours < policy.deadlineHours) return "green";
@@ -63,7 +75,7 @@ export function yardTier(
 export type YardBadge = { label: string; cls: string; bar: string };
 
 /** Ticker/priority presentation derived from the same thresholds as yardTier. */
-export function yardBadge(hours: number | null, policy: YardPolicy = YARD_POLICY): YardBadge {
+export function yardBadge(hours: number | null, policy: YardPolicy = activePolicy): YardBadge {
   switch (yardTier(hours, policy)) {
     case "red":
       return {
