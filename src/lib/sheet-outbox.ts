@@ -14,7 +14,7 @@ export type OutboxEntry = {
   match_column: string | null;
   match_value: string | null;
   payload: Record<string, unknown>;
-  status: "pending" | "done" | "failed";
+  status: "pending" | "processing" | "done" | "failed";
   attempts: number;
   last_error: string | null;
   next_attempt_at: string;
@@ -23,8 +23,21 @@ export type OutboxEntry = {
 
 type Cells = Record<string, string | number | null>;
 
-/** Queue a single-row update. Returns the queue row id, or null if queueing failed. */
-export async function queueSheetUpdate(matchColumn: string, matchValue: string, updates: Cells) {
+/** Postgres unique-violation: the same event was already queued. */
+const DUPLICATE = "23505";
+
+/**
+ * Queue a single-row update. Pass `dedupeKey` for anything that can be
+ * re-submitted (a guard check-in, a retried dispatch) — the database rejects
+ * the second copy, so a double click can never reach the sheet twice.
+ * Returns the queue row id, or null if queueing failed.
+ */
+export async function queueSheetUpdate(
+  matchColumn: string,
+  matchValue: string,
+  updates: Cells,
+  dedupeKey?: string | null,
+) {
   const { data, error } = await supabase
     .from("sheet_sync_outbox")
     .insert({
@@ -32,24 +45,27 @@ export async function queueSheetUpdate(matchColumn: string, matchValue: string, 
       match_column: matchColumn,
       match_value: matchValue,
       payload: { updates },
+      dedupe_key: dedupeKey ?? null,
     })
     .select("id")
     .maybeSingle();
   if (error) {
+    if (error.code === DUPLICATE) return null; // already queued — not a failure
     console.error("[outbox:update]", error.message);
     return null;
   }
   return (data as { id: string } | null)?.id ?? null;
 }
 
-/** Queue a new appended row. */
-export async function queueSheetAppend(record: Cells) {
+/** Queue a new appended row. See `dedupeKey` above. */
+export async function queueSheetAppend(record: Cells, dedupeKey?: string | null) {
   const { data, error } = await supabase
     .from("sheet_sync_outbox")
-    .insert({ kind: "append", payload: { record } })
+    .insert({ kind: "append", payload: { record }, dedupe_key: dedupeKey ?? null })
     .select("id")
     .maybeSingle();
   if (error) {
+    if (error.code === DUPLICATE) return null;
     console.error("[outbox:append]", error.message);
     return null;
   }
@@ -77,20 +93,47 @@ export async function queueSheetUpdates(
   return rows.length;
 }
 
-/** Counts for the sync health panel. */
-export async function fetchOutboxStats() {
-  const [pending, failed] = await Promise.all([
+export type OutboxStats = {
+  pending: number;
+  failed: number;
+  /** When the oldest still-undelivered entry was created (ISO), if any. */
+  oldestPendingAt: string | null;
+};
+
+/** Counts + backlog age for the sync health panel. */
+export async function fetchOutboxStats(): Promise<OutboxStats> {
+  const [pending, failed, oldest] = await Promise.all([
     supabase
       .from("sheet_sync_outbox")
       .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
+      .in("status", ["pending", "processing"]),
     supabase
       .from("sheet_sync_outbox")
       .select("id", { count: "exact", head: true })
       .eq("status", "failed"),
+    supabase
+      .from("sheet_sync_outbox")
+      .select("created_at")
+      .in("status", ["pending", "processing"])
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
-  return { pending: pending.count ?? 0, failed: failed.count ?? 0 };
+  return {
+    pending: pending.count ?? 0,
+    failed: failed.count ?? 0,
+    oldestPendingAt: (oldest.data as { created_at: string } | null)?.created_at ?? null,
+  };
 }
+
+/** Hours the oldest undelivered entry has been waiting, or null. */
+export function backlogAgeHours(oldestPendingAt: string | null): number | null {
+  if (!oldestPendingAt) return null;
+  return (Date.now() - new Date(oldestPendingAt).getTime()) / 3_600_000;
+}
+
+/** Backlog older than this means delivery is genuinely stuck, not just slow. */
+export const BACKLOG_ALERT_HOURS = 3;
 
 /** Most recent problem entries, newest first. */
 export async function fetchOutboxProblems(limit = 10) {
@@ -99,7 +142,7 @@ export async function fetchOutboxProblems(limit = 10) {
     .select(
       "id, kind, match_column, match_value, payload, status, attempts, last_error, next_attempt_at, created_at",
     )
-    .in("status", ["pending", "failed"])
+    .in("status", ["pending", "processing", "failed"])
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) {
