@@ -22,6 +22,7 @@ import { DispatchModal } from "@/components/DispatchModal";
 import { GuardCheckInModal } from "@/components/GuardCheckInModal";
 import { useTenantProducts } from "@/hooks/use-products";
 import { guard } from "@/lib/route-guard";
+import { useYardPolicy } from "@/hooks/use-company-settings";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   beforeLoad: guard({ product: "trailer" }),
