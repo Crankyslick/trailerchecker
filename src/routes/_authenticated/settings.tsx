@@ -329,6 +329,8 @@ function SyncQueueCard() {
   const drain = useDrainSheetOutbox();
   const pending = stats.data.pending;
   const failed = stats.data.failed;
+  const backlogHours = backlogAgeHours(stats.data.oldestPendingAt);
+  const backlogStuck = backlogHours != null && backlogHours >= BACKLOG_ALERT_HOURS;
 
   async function retryAll() {
     try {
