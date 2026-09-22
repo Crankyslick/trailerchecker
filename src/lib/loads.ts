@@ -28,34 +28,43 @@ export const TRAILER_LOCATIONS: TrailerLocation[] = [
   "Returned To DC",
 ];
 
-/**
- * Single source of truth for yard aging policy. Every screen (board, yard page,
- * ticker, reports) derives its colours and labels from these thresholds.
- */
-export const YARD_POLICY = {
+export type YardPolicy = {
   /** Contractual turnaround deadline, in hours. */
-  deadlineHours: 24,
+  deadlineHours: number;
   /** Past this, the trailer is critically overdue. */
+  criticalHours: number;
+};
+
+/**
+ * Shipped default yard aging policy. The live value is per company and comes
+ * from `company_settings` (see useYardPolicy) — every screen (board, yard
+ * page, ticker, reports) derives colours and labels from the same numbers.
+ */
+export const YARD_POLICY: YardPolicy = {
+  deadlineHours: 24,
   criticalHours: 48,
-} as const;
+};
 
 export function yardHours(yardArrivalAt: string | null): number | null {
   if (!yardArrivalAt) return null;
   return (Date.now() - new Date(yardArrivalAt).getTime()) / 3_600_000;
 }
 
-export function yardTier(hours: number | null): "green" | "yellow" | "red" | "none" {
+export function yardTier(
+  hours: number | null,
+  policy: YardPolicy = YARD_POLICY,
+): "green" | "yellow" | "red" | "none" {
   if (hours == null) return "none";
-  if (hours < YARD_POLICY.deadlineHours) return "green";
-  if (hours < YARD_POLICY.criticalHours) return "yellow";
+  if (hours < policy.deadlineHours) return "green";
+  if (hours < policy.criticalHours) return "yellow";
   return "red";
 }
 
 export type YardBadge = { label: string; cls: string; bar: string };
 
 /** Ticker/priority presentation derived from the same thresholds as yardTier. */
-export function yardBadge(hours: number | null): YardBadge {
-  switch (yardTier(hours)) {
+export function yardBadge(hours: number | null, policy: YardPolicy = YARD_POLICY): YardBadge {
+  switch (yardTier(hours, policy)) {
     case "red":
       return {
         label: "CRITICAL",
