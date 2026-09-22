@@ -461,3 +461,90 @@ function SyncQueueCard() {
     </div>
   );
 }
+
+/**
+ * Yard turnaround policy. What is saved here is what the dashboard ticker,
+ * yard colours, reports and alerts enforce — there is no second hard-coded
+ * number anywhere.
+ */
+function YardPolicyCard() {
+  const { policy, loading } = useYardPolicy();
+  const save = useSaveYardPolicy();
+  const { isAdmin } = useCurrentUser();
+  const [deadline, setDeadline] = useState<number>(policy.deadlineHours);
+  const [critical, setCritical] = useState<number>(policy.criticalHours);
+
+  useEffect(() => {
+    setDeadline(policy.deadlineHours);
+    setCritical(policy.criticalHours);
+  }, [policy.deadlineHours, policy.criticalHours]);
+
+  const dirty = deadline !== policy.deadlineHours || critical !== policy.criticalHours;
+
+  async function submit() {
+    const next = { deadlineHours: deadline, criticalHours: critical };
+    const invalid = validateYardPolicy(next);
+    if (invalid) {
+      toast.error(invalid);
+      return;
+    }
+    try {
+      await save.mutateAsync(next);
+      toast.success("Yard turnaround limit saved");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  return (
+    <div className="kpi-card p-5 space-y-4">
+      <h2 className="text-sm font-semibold">Compliance Rule</h2>
+      <div className="flex flex-wrap gap-4">
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Yard Turnaround Limit (hours)
+          </span>
+          <input
+            type="number"
+            min={1}
+            max={168}
+            disabled={!isAdmin || loading}
+            value={deadline}
+            onChange={(e) => setDeadline(Number(e.target.value))}
+            className="mt-1 w-40 bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50 disabled:opacity-60"
+          />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Critical After (hours)
+          </span>
+          <input
+            type="number"
+            min={2}
+            max={336}
+            disabled={!isAdmin || loading}
+            value={critical}
+            onChange={(e) => setCritical(Number(e.target.value))}
+            className="mt-1 w-40 bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50 disabled:opacity-60"
+          />
+        </label>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Trailers turn amber past the turnaround limit and red past the critical limit. Countdown
+        timers, the yard board, reports and alerts all use these values.
+        {!isAdmin && " Only owners and admins can change them."}
+      </p>
+      {isAdmin && (
+        <div className="flex justify-end">
+          <button
+            onClick={submit}
+            disabled={!dirty || save.isPending}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+          >
+            {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Save rule
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
