@@ -11,6 +11,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useSheetSyncStatus, useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
+import { useYardPolicy, useSaveYardPolicy } from "@/hooks/use-company-settings";
+import { backlogAgeHours, BACKLOG_ALERT_HOURS } from "@/lib/sheet-outbox";
+import { validateYardPolicy } from "@/lib/company-settings";
+import { useCurrentUser } from "@/hooks/use-auth";
 import {
   describeEntry,
   discardOutboxEntry,
@@ -43,7 +47,6 @@ function SettingsPage() {
   const [webhook, setWebhook] = useState("");
   const [spreadsheetId, setSpreadsheetId] = useState("");
   const [sheetName, setSheetName] = useState("Sheet1");
-  const [complianceHours, setComplianceHours] = useState(24);
   const [testing, setTesting] = useState(false);
   const [headers, setHeaders] = useState<string[] | null>(null);
   const readHeaders = useServerFn(getSheetHeaders);
@@ -107,24 +110,7 @@ function SettingsPage() {
       </div>
       <ProductsCard />
 
-      <div className="kpi-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold">Compliance Rule</h2>
-        <label className="block">
-          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Yard Turnaround Limit (hours)
-          </span>
-          <input
-            type="number"
-            min={1}
-            value={complianceHours}
-            onChange={(e) => setComplianceHours(Number(e.target.value))}
-            className="mt-1 w-40 bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50"
-          />
-        </label>
-        <p className="text-xs text-muted-foreground">
-          Default 24h. Countdown timers on the Control Tower use this value.
-        </p>
-      </div>
+      <YardPolicyCard />
 
       <div className="kpi-card p-5 space-y-4">
         <h2 className="text-sm font-semibold">Google Sheet Sync</h2>
@@ -213,9 +199,10 @@ function SettingsPage() {
 
       <div className="kpi-card p-5 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold">Billing & Plans</h2>
+          <h2 className="text-sm font-semibold">Plans (invoiced)</h2>
           <p className="text-xs text-muted-foreground">
-            Choose the plan that fits your team. Billed per user, per month.
+            Reference pricing only — there is no card payment in the app. Your organization is
+            invoiced directly, and our team switches products on for you.
           </p>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
@@ -291,8 +278,9 @@ function ProductsCard() {
         <Package className="h-4 w-4 text-primary" /> Your products
       </h2>
       <p className="text-xs text-muted-foreground">
-        Switch a product on to unlock its boards for everyone in your organization. Switching off
-        hides it — your data stays.
+        Internal provisioning — this is not a purchase. Switching a product on unlocks its boards
+        for everyone in your organization and is billed on your next invoice. Switching off hides
+        it — your data stays.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {PRODUCTS.map((p) => {
