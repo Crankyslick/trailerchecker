@@ -55,8 +55,6 @@ type ActiveTrailer = {
 };
 
 const YARDS: ActiveTrailer["yard"][] = ["Yard 91", "Yard 301", "Paterson Yard"];
-const COMPLIANCE_HOURS = 24;
-const WARN_HOURS = 18;
 
 function hoursAgo(h: number) {
   return Date.now() - h * 3_600_000;
