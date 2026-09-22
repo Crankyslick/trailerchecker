@@ -11,6 +11,10 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useSheetSyncStatus, useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
+import { useYardPolicy, useSaveYardPolicy } from "@/hooks/use-company-settings";
+import { backlogAgeHours, BACKLOG_ALERT_HOURS } from "@/lib/sheet-outbox";
+import { validateYardPolicy } from "@/lib/company-settings";
+import { useCurrentUser } from "@/hooks/use-auth";
 import {
   describeEntry,
   discardOutboxEntry,
@@ -43,7 +47,6 @@ function SettingsPage() {
   const [webhook, setWebhook] = useState("");
   const [spreadsheetId, setSpreadsheetId] = useState("");
   const [sheetName, setSheetName] = useState("Sheet1");
-  const [complianceHours, setComplianceHours] = useState(24);
   const [testing, setTesting] = useState(false);
   const [headers, setHeaders] = useState<string[] | null>(null);
   const readHeaders = useServerFn(getSheetHeaders);
@@ -107,24 +110,7 @@ function SettingsPage() {
       </div>
       <ProductsCard />
 
-      <div className="kpi-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold">Compliance Rule</h2>
-        <label className="block">
-          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Yard Turnaround Limit (hours)
-          </span>
-          <input
-            type="number"
-            min={1}
-            value={complianceHours}
-            onChange={(e) => setComplianceHours(Number(e.target.value))}
-            className="mt-1 w-40 bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50"
-          />
-        </label>
-        <p className="text-xs text-muted-foreground">
-          Default 24h. Countdown timers on the Control Tower use this value.
-        </p>
-      </div>
+      <YardPolicyCard />
 
       <div className="kpi-card p-5 space-y-4">
         <h2 className="text-sm font-semibold">Google Sheet Sync</h2>
@@ -213,9 +199,10 @@ function SettingsPage() {
 
       <div className="kpi-card p-5 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold">Billing & Plans</h2>
+          <h2 className="text-sm font-semibold">Plans (invoiced)</h2>
           <p className="text-xs text-muted-foreground">
-            Choose the plan that fits your team. Billed per user, per month.
+            Reference pricing only — there is no card payment in the app. Your organization is
+            invoiced directly, and our team switches products on for you.
           </p>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
@@ -291,8 +278,9 @@ function ProductsCard() {
         <Package className="h-4 w-4 text-primary" /> Your products
       </h2>
       <p className="text-xs text-muted-foreground">
-        Switch a product on to unlock its boards for everyone in your organization. Switching off
-        hides it — your data stays.
+        Internal provisioning — this is not a purchase. Switching a product on unlocks its boards
+        for everyone in your organization and is billed on your next invoice. Switching off hides
+        it — your data stays.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {PRODUCTS.map((p) => {
@@ -341,6 +329,8 @@ function SyncQueueCard() {
   const drain = useDrainSheetOutbox();
   const pending = stats.data.pending;
   const failed = stats.data.failed;
+  const backlogHours = backlogAgeHours(stats.data.oldestPendingAt);
+  const backlogStuck = backlogHours != null && backlogHours >= BACKLOG_ALERT_HOURS;
 
   async function retryAll() {
     try {
@@ -380,7 +370,8 @@ function SyncQueueCard() {
           <h2 className="text-sm font-semibold">Sheet Sync Queue</h2>
           <p className="text-xs text-muted-foreground">
             Every update to the sheet is queued first and retried automatically, so nothing is lost
-            when the sheet is slow, busy or offline.
+            when the sheet is slow, busy or offline. The queue is also pushed once an hour in the
+            background, so updates go through even when nobody has the app open.
           </p>
         </div>
         <button
@@ -411,6 +402,16 @@ function SyncQueueCard() {
           <div className="text-xl font-semibold tabular-nums">{failed}</div>
         </div>
       </div>
+
+      {backlogStuck && (
+        <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            The oldest waiting update has been queued for {Math.floor(backlogHours ?? 0)}h.
+            Deliveries are not getting through — check the spreadsheet settings above.
+          </span>
+        </div>
+      )}
 
       {failed > 0 && (
         <button
@@ -455,6 +456,93 @@ function SyncQueueCard() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Yard turnaround policy. What is saved here is what the dashboard ticker,
+ * yard colours, reports and alerts enforce — there is no second hard-coded
+ * number anywhere.
+ */
+function YardPolicyCard() {
+  const { policy, loading } = useYardPolicy();
+  const save = useSaveYardPolicy();
+  const { isAdmin } = useCurrentUser();
+  const [deadline, setDeadline] = useState<number>(policy.deadlineHours);
+  const [critical, setCritical] = useState<number>(policy.criticalHours);
+
+  useEffect(() => {
+    setDeadline(policy.deadlineHours);
+    setCritical(policy.criticalHours);
+  }, [policy.deadlineHours, policy.criticalHours]);
+
+  const dirty = deadline !== policy.deadlineHours || critical !== policy.criticalHours;
+
+  async function submit() {
+    const next = { deadlineHours: deadline, criticalHours: critical };
+    const invalid = validateYardPolicy(next);
+    if (invalid) {
+      toast.error(invalid);
+      return;
+    }
+    try {
+      await save.mutateAsync(next);
+      toast.success("Yard turnaround limit saved");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  return (
+    <div className="kpi-card p-5 space-y-4">
+      <h2 className="text-sm font-semibold">Compliance Rule</h2>
+      <div className="flex flex-wrap gap-4">
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Yard Turnaround Limit (hours)
+          </span>
+          <input
+            type="number"
+            min={1}
+            max={168}
+            disabled={!isAdmin || loading}
+            value={deadline}
+            onChange={(e) => setDeadline(Number(e.target.value))}
+            className="mt-1 w-40 bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50 disabled:opacity-60"
+          />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Critical After (hours)
+          </span>
+          <input
+            type="number"
+            min={2}
+            max={336}
+            disabled={!isAdmin || loading}
+            value={critical}
+            onChange={(e) => setCritical(Number(e.target.value))}
+            className="mt-1 w-40 bg-surface-2 border border-border rounded px-3 py-2 text-sm outline-none focus:border-primary/50 disabled:opacity-60"
+          />
+        </label>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Trailers turn amber past the turnaround limit and red past the critical limit. Countdown
+        timers, the yard board, reports and alerts all use these values.
+        {!isAdmin && " Only owners and admins can change them."}
+      </p>
+      {isAdmin && (
+        <div className="flex justify-end">
+          <button
+            onClick={submit}
+            disabled={!dirty || save.isPending}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+          >
+            {save.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />} Save rule
+          </button>
         </div>
       )}
     </div>
