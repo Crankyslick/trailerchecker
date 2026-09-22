@@ -205,6 +205,12 @@ function ControlTower() {
     return [...live, ...SEED].filter((t) => !dispatched.has(t.id));
   }, [loads, dispatched]);
 
+  // The company's saved yard rule — the same numbers the yard board and
+  // reports use. Changing it in Settings changes every countdown here.
+  const { policy } = useYardPolicy();
+  const COMPLIANCE_HOURS = policy.deadlineHours;
+  const WARN_HOURS = Math.max(1, Math.round(policy.deadlineHours * 0.75));
+
   const tomorrow = estDateParts(1);
   const today = estDateParts(0);
   const allLoads = Array.isArray(loads) ? loads : [];
