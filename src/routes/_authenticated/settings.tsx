@@ -403,6 +403,16 @@ function SyncQueueCard() {
         </div>
       </div>
 
+      {backlogStuck && (
+        <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            The oldest waiting update has been queued for {Math.floor(backlogHours ?? 0)}h.
+            Deliveries are not getting through — check the spreadsheet settings above.
+          </span>
+        </div>
+      )}
+
       {failed > 0 && (
         <button
           onClick={retryAll}
