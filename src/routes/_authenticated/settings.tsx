@@ -370,7 +370,8 @@ function SyncQueueCard() {
           <h2 className="text-sm font-semibold">Sheet Sync Queue</h2>
           <p className="text-xs text-muted-foreground">
             Every update to the sheet is queued first and retried automatically, so nothing is lost
-            when the sheet is slow, busy or offline.
+            when the sheet is slow, busy or offline. The queue is also pushed once an hour in the
+            background, so updates go through even when nobody has the app open.
           </p>
         </div>
         <button
