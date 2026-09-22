@@ -3,6 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/lib/access";
+import {
+  canAdminister,
+  canCheckInTrailers,
+  canDispatch,
+  canManageBilling,
+  isOwner,
+  roleLabel,
+} from "@/lib/access";
 
 /** One role list, generated from the database enum (owner, admin, dispatcher, guard, billing, driver). */
 export type { AppRole };
