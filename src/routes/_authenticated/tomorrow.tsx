@@ -5,7 +5,7 @@ import { useDrivers, type Driver } from "@/hooks/use-drivers";
 import { supabase } from "@/integrations/supabase/client";
 import { fireWebhook } from "@/lib/webhook";
 import type { LoadRow, LoadUpdate } from "@/lib/loads";
-import { TRAILER_LOCATIONS, YARD_POLICY, yardBadge } from "@/lib/loads";
+import { TRAILER_LOCATIONS, activeYardPolicy, yardBadge } from "@/lib/loads";
 import { useDataWritable } from "@/lib/data-health";
 import { toEstIsoDate, departureDateFromCandidates } from "@/lib/dates";
 import { isRoundTripSweep, sweepCell } from "@/lib/sweep";
@@ -350,7 +350,7 @@ function BoardRow({ load: l, drivers, tomorrow, pastDeadline }: BoardRowProps) {
   const started = (l as LoadRow & { str_return_trailer_started_at: string | null })
     .str_return_trailer_started_at;
   const hours = started ? (Date.now() - new Date(started).getTime()) / 3_600_000 : null;
-  const timerOverdue = hours !== null && hours >= YARD_POLICY.deadlineHours;
+  const timerOverdue = hours !== null && hours >= activeYardPolicy().deadlineHours;
   const scheduleDate = l.schedule_date ?? l.cutoff_date;
   const isTomorrow = scheduleDate === tomorrow;
   const driverOverdue = isTomorrow && !l.driver && pastDeadline;
@@ -797,7 +797,7 @@ function fmtHM(hoursElapsed: number) {
   return `${h.toString().padStart(2, "0")}h ${m.toString().padStart(2, "0")}m`;
 }
 function fmtCountdown(hoursElapsed: number) {
-  const deadline = YARD_POLICY.deadlineHours;
+  const deadline = activeYardPolicy().deadlineHours;
   const remaining = (deadline - hoursElapsed) * 60;
   if (remaining <= 0) return `+${fmtHM(hoursElapsed - deadline)} OVER`;
   return `${fmtHM(remaining / 60)} left`;

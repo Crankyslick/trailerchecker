@@ -1,10 +1,13 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { readYardPolicy, saveYardPolicy } from "@/lib/company-settings";
-import { YARD_POLICY, type YardPolicy } from "@/lib/loads";
+import { YARD_POLICY, setActiveYardPolicy, type YardPolicy } from "@/lib/loads";
 
 /**
  * The company's yard turnaround policy. Every screen that colours or counts
  * yard time reads it from here, so Settings and the boards always agree.
+ * Once loaded it is also published to the shared aging helpers, so plain
+ * functions (yardTier/yardBadge) use the same numbers without prop drilling.
  */
 export function useYardPolicy() {
   const query = useQuery({
@@ -12,8 +15,14 @@ export function useYardPolicy() {
     queryFn: readYardPolicy,
     staleTime: 60_000,
   });
+  const policy = (query.data ?? YARD_POLICY) as YardPolicy;
+
+  useEffect(() => {
+    setActiveYardPolicy(policy);
+  }, [policy.deadlineHours, policy.criticalHours]);
+
   return {
-    policy: (query.data ?? YARD_POLICY) as YardPolicy,
+    policy,
     loading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
   };
