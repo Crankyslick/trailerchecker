@@ -542,11 +542,34 @@ bun run dev
 Checks run in CI: `bun run lint`, `bunx tsgo --noEmit`, `bun run test`,
 `bun run build`.
 
-### Health check
+### Health checks
 
-`GET /api/public/health` returns `{"status":"ok"}` with HTTP 200 when the
-backend is reachable, and HTTP 503 with a reason when it is not. Point uptime
-monitoring at it.
+Two endpoints, deliberately different:
+
+- `GET /api/public/health` — liveness. Always HTTP 200; the JSON body carries
+  the verdict (`"status": "ok" | "degraded"`, plus `database` and `detail`).
+  Use it for dashboards and manual checks; if you monitor it, assert the body,
+  not the status code.
+- `GET /api/public/ready` — readiness. HTTP 200 when the backend is reachable,
+  HTTP 503 with a reason when it is not. Point uptime monitoring at this one.
+
+### Sheet sync delivery
+
+Every sheet write is queued in `sheet_sync_outbox`. Workers claim rows through
+`claim_sheet_outbox()` (lease + worker id + `FOR UPDATE SKIP LOCKED`), so two
+workers never send the same row twice; appends are additionally keyed by
+`dedupe_key`. A scheduled server job drains the queue hourly via
+`POST /api/public/sheet-drain`; the in-browser worker is only a low-latency
+helper. Settings warns when the oldest waiting row exceeds three hours.
+
+### Deprecated tables
+
+`loads`, `clients`, `sync_config`, `legacy_trailer_events` and
+`legacy_yard_check_ins` are retired fallbacks from the pre-cutover schema.
+They have no client grants and must not be queried by the app — use
+`trailer_loads`, `trailer_clients`, `trailer_sync_config`, `trailer_events`
+and `yard_check_ins`. `bun run test` fails if application code queries a
+deprecated table.
 
 ### Environment
 
