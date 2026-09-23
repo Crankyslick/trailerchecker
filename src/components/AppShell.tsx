@@ -33,6 +33,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [, tick] = useState(0);
   const { profile, roles, org } = useCurrentUser();
   useSheetOutboxWorker();
+  // Loads the company's yard rule once and publishes it to the shared
+  // aging helpers, so every board colours trailers by the saved thresholds.
+  useYardPolicy();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
