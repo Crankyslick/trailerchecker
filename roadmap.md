@@ -94,3 +94,20 @@ safety was achieved with a shadow-then-flip inside one database.
       packageManager, bun.lock only, overrides for js-yaml + nanoid),
       documented in README with the CI command set.
 - [x] Ops: GET /api/public/health readiness probe (200 ok / 503 degraded).
+
+# Reliability audit (8 items)
+
+- [x] Sheet outbox claimed with lease + worker id (claim_sheet_outbox, SKIP LOCKED);
+      appends deduped by dedupe_key. Two-worker claim verified against the DB.
+- [x] Hourly server-side drain job (/api/public/sheet-drain) so sync no longer
+      depends on an open tab; browser worker is a low-latency helper. Settings
+      warns when the oldest waiting row is older than 3h.
+- [x] Liveness (/api/public/health, always 200) split from readiness
+      (/api/public/ready, 503 when degraded); README updated.
+- [x] Yard turnaround limit persisted in company_settings (bounds + audit) and
+      consumed by dashboard, board, yard, reports via activeYardPolicy().
+- [x] Legacy tables have no client grants, DEPRECATED comments, and a test that
+      fails if app code queries them. Data dictionary note in README.
+- [x] One role type from the database enum + capability helpers; role tests.
+- [x] loadAccess() surfaces query errors; guards no longer redirect on error.
+- [x] Product toggles relabelled internal provisioning; plans marked invoiced.
