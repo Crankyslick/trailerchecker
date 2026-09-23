@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { DataHealthBanner } from "@/components/DataHealthBanner";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
+import { useYardPolicy } from "@/hooks/use-company-settings";
 import { readSyncConfig } from "@/lib/sync-config";
 
 function timeAgo(iso: string | null) {
