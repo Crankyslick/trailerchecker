@@ -529,6 +529,87 @@ export type Database = {
           },
         ]
       }
+      legs: {
+        Row: {
+          company_id: string
+          created_at: string
+          destination_stop_id: string
+          id: string
+          leg_sequence: number
+          origin_stop_id: string
+          root_id: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["leg_status"]
+          superseded_by_id: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          company_id?: string
+          created_at?: string
+          destination_stop_id: string
+          id?: string
+          leg_sequence: number
+          origin_stop_id: string
+          root_id?: string
+          shipment_id: string
+          status?: Database["public"]["Enums"]["leg_status"]
+          superseded_by_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          destination_stop_id?: string
+          id?: string
+          leg_sequence?: number
+          origin_stop_id?: string
+          root_id?: string
+          shipment_id?: string
+          status?: Database["public"]["Enums"]["leg_status"]
+          superseded_by_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legs_destination_stop_id_fkey"
+            columns: ["destination_stop_id"]
+            isOneToOne: false
+            referencedRelation: "stops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legs_origin_stop_id_fkey"
+            columns: ["origin_stop_id"]
+            isOneToOne: false
+            referencedRelation: "stops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legs_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legs_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
+            referencedRelation: "legs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loads: {
         Row: {
           alert_status: string | null
@@ -697,6 +778,91 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          client_id: string | null
+          commodity_description: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          order_number: string
+          ready_datetime: string | null
+          requested_delivery_datetime: string | null
+          root_id: string
+          service_level: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          superseded_by_id: string | null
+          total_pallets: number | null
+          total_pieces: number | null
+          total_weight: number | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          client_id?: string | null
+          commodity_description?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_number: string
+          ready_datetime?: string | null
+          requested_delivery_datetime?: string | null
+          root_id?: string
+          service_level?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          superseded_by_id?: string | null
+          total_pallets?: number | null
+          total_pieces?: number | null
+          total_weight?: number | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          client_id?: string | null
+          commodity_description?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_number?: string
+          ready_datetime?: string | null
+          requested_delivery_datetime?: string | null
+          root_id?: string
+          service_level?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          superseded_by_id?: string | null
+          total_pallets?: number | null
+          total_pieces?: number | null
+          total_weight?: number | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -796,6 +962,153 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipment_orders: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          shipment_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          shipment_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          shipment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_orders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_orders_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shipments: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          root_id: string
+          shipment_number: string
+          status: Database["public"]["Enums"]["shipment_status"]
+          superseded_by_id: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          root_id?: string
+          shipment_number: string
+          status?: Database["public"]["Enums"]["shipment_status"]
+          superseded_by_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          root_id?: string
+          shipment_number?: string
+          status?: Database["public"]["Enums"]["shipment_status"]
+          superseded_by_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stops: {
+        Row: {
+          company_id: string
+          created_at: string
+          earliest_datetime: string | null
+          id: string
+          latest_datetime: string | null
+          location_code: string | null
+          location_name: string | null
+          notes: string | null
+          shipment_id: string
+          status: string
+          stop_sequence: number
+          stop_type: Database["public"]["Enums"]["stop_type"]
+        }
+        Insert: {
+          company_id?: string
+          created_at?: string
+          earliest_datetime?: string | null
+          id?: string
+          latest_datetime?: string | null
+          location_code?: string | null
+          location_name?: string | null
+          notes?: string | null
+          shipment_id: string
+          status?: string
+          stop_sequence: number
+          stop_type: Database["public"]["Enums"]["stop_type"]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          earliest_datetime?: string | null
+          id?: string
+          latest_datetime?: string | null
+          location_code?: string | null
+          location_name?: string | null
+          notes?: string | null
+          shipment_id?: string
+          status?: string
+          stop_sequence?: number
+          stop_type?: Database["public"]["Enums"]["stop_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stops_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stops_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
         ]
@@ -1093,7 +1406,9 @@ export type Database = {
           has_sweep: boolean
           id: string
           invoiced: boolean | null
+          leg_id: string
           legacy_load_id: string | null
+          order_id: string
           origin_id: string | null
           origin_name: string | null
           outbound_trailer: string | null
@@ -1103,13 +1418,16 @@ export type Database = {
           return_trailer_location:
             | Database["public"]["Enums"]["trailer_location"]
             | null
+          root_id: string
           schedule_date: string | null
           schedule_id: string
+          shipment_id: string
           status: Database["public"]["Enums"]["trailer_load_status"]
           str_name: string | null
           str_number: string | null
           str_return_trailer_started_at: string | null
           str_trl_location: string | null
+          superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
           trip_id: string | null
@@ -1120,6 +1438,7 @@ export type Database = {
           unload_type: string | null
           updated_at: string
           updated_by: string | null
+          version: number
           yard_arrival_at: string | null
         }
         Insert: {
@@ -1147,7 +1466,9 @@ export type Database = {
           has_sweep?: boolean
           id?: string
           invoiced?: boolean | null
+          leg_id: string
           legacy_load_id?: string | null
+          order_id: string
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
@@ -1157,13 +1478,16 @@ export type Database = {
           return_trailer_location?:
             | Database["public"]["Enums"]["trailer_location"]
             | null
+          root_id?: string
           schedule_date?: string | null
           schedule_id: string
+          shipment_id: string
           status?: Database["public"]["Enums"]["trailer_load_status"]
           str_name?: string | null
           str_number?: string | null
           str_return_trailer_started_at?: string | null
           str_trl_location?: string | null
+          superseded_by_id?: string | null
           target_load_id?: string | null
           total_distance?: string | null
           trip_id?: string | null
@@ -1174,6 +1498,7 @@ export type Database = {
           unload_type?: string | null
           updated_at?: string
           updated_by?: string | null
+          version?: number
           yard_arrival_at?: string | null
         }
         Update: {
@@ -1201,7 +1526,9 @@ export type Database = {
           has_sweep?: boolean
           id?: string
           invoiced?: boolean | null
+          leg_id?: string
           legacy_load_id?: string | null
+          order_id?: string
           origin_id?: string | null
           origin_name?: string | null
           outbound_trailer?: string | null
@@ -1211,13 +1538,16 @@ export type Database = {
           return_trailer_location?:
             | Database["public"]["Enums"]["trailer_location"]
             | null
+          root_id?: string
           schedule_date?: string | null
           schedule_id?: string
+          shipment_id?: string
           status?: Database["public"]["Enums"]["trailer_load_status"]
           str_name?: string | null
           str_number?: string | null
           str_return_trailer_started_at?: string | null
           str_trl_location?: string | null
+          superseded_by_id?: string | null
           target_load_id?: string | null
           total_distance?: string | null
           trip_id?: string | null
@@ -1228,6 +1558,7 @@ export type Database = {
           unload_type?: string | null
           updated_at?: string
           updated_by?: string | null
+          version?: number
           yard_arrival_at?: string | null
         }
         Relationships: [
@@ -1250,6 +1581,34 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_leg_id_fkey"
+            columns: ["leg_id"]
+            isOneToOne: false
+            referencedRelation: "legs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
         ]
@@ -1375,6 +1734,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_shipment_leg: {
+        Args: {
+          p_destination_stop_id: string
+          p_origin_stop_id: string
+          p_shipment_id: string
+        }
+        Returns: string
+      }
+      add_shipment_stop: {
+        Args: {
+          p_earliest: string
+          p_latest: string
+          p_location_code: string
+          p_location_name: string
+          p_shipment_id: string
+          p_stop_type: Database["public"]["Enums"]["stop_type"]
+        }
+        Returns: string
+      }
       admin_save_sync_config: {
         Args: {
           p_sheet_name: string
@@ -1427,6 +1805,26 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      create_order_with_shipment: {
+        Args: {
+          p_client_id: string
+          p_commodity_description: string
+          p_consignee_code: string
+          p_consignee_name: string
+          p_ready_datetime: string
+          p_requested_delivery_datetime: string
+          p_service_level: string
+          p_shipper_code: string
+          p_shipper_name: string
+          p_total_pallets: number
+          p_total_pieces: number
+          p_total_weight: number
+        }
+        Returns: {
+          order_id: string
+          shipment_id: string
+        }[]
+      }
       current_company_id: { Args: never; Returns: string }
       current_tenant_id: { Args: never; Returns: string }
       current_user_has_any_role: {
@@ -1467,7 +1865,9 @@ export type Database = {
           has_sweep: boolean
           id: string
           invoiced: boolean | null
+          leg_id: string
           legacy_load_id: string | null
+          order_id: string
           origin_id: string | null
           origin_name: string | null
           outbound_trailer: string | null
@@ -1477,13 +1877,16 @@ export type Database = {
           return_trailer_location:
             | Database["public"]["Enums"]["trailer_location"]
             | null
+          root_id: string
           schedule_date: string | null
           schedule_id: string
+          shipment_id: string
           status: Database["public"]["Enums"]["trailer_load_status"]
           str_name: string | null
           str_number: string | null
           str_return_trailer_started_at: string | null
           str_trl_location: string | null
+          superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
           trip_id: string | null
@@ -1494,6 +1897,7 @@ export type Database = {
           unload_type: string | null
           updated_at: string
           updated_by: string | null
+          version: number
           yard_arrival_at: string | null
         }
         SetofOptions: {
@@ -1584,6 +1988,7 @@ export type Database = {
         | "Completed"
         | "Delayed"
         | "Exception"
+      leg_status: "PLANNED" | "ACTIVE" | "COMPLETED" | "CANCELLED"
       legacy_trailer_location:
         | "DC"
         | "Store"
@@ -1603,7 +2008,20 @@ export type Database = {
         | "Completed"
         | "Delayed"
         | "Exception"
+      order_status:
+        | "OPEN"
+        | "PARTIALLY_ALLOCATED"
+        | "ALLOCATED"
+        | "CANCELLED"
+        | "CLOSED"
       product_key: "trailer" | "drayage"
+      shipment_status:
+        | "PLANNING"
+        | "PLANNED"
+        | "IN_PROGRESS"
+        | "COMPLETED"
+        | "CANCELLED"
+      stop_type: "PICKUP" | "DELIVERY"
       trailer_load_status:
         | "Assigned"
         | "Heading To DC"
@@ -1759,6 +2177,7 @@ export const Constants = {
         "Delayed",
         "Exception",
       ],
+      leg_status: ["PLANNED", "ACTIVE", "COMPLETED", "CANCELLED"],
       legacy_trailer_location: [
         "DC",
         "Store",
@@ -1780,7 +2199,22 @@ export const Constants = {
         "Delayed",
         "Exception",
       ],
+      order_status: [
+        "OPEN",
+        "PARTIALLY_ALLOCATED",
+        "ALLOCATED",
+        "CANCELLED",
+        "CLOSED",
+      ],
       product_key: ["trailer", "drayage"],
+      shipment_status: [
+        "PLANNING",
+        "PLANNED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "CANCELLED",
+      ],
+      stop_type: ["PICKUP", "DELIVERY"],
       trailer_load_status: [
         "Assigned",
         "Heading To DC",
