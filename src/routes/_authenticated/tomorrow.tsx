@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { Database } from "@/integrations/supabase/types";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
@@ -1400,7 +1401,10 @@ function IngestionTool() {
         const insertRow = { schedule_id: r["Schedule ID"] ?? key, ...patch } as LoadUpdate & {
           schedule_id: string;
         };
-        const { error } = await supabase.from("trailer_loads").insert(insertRow);
+        // order_id / shipment_id / leg_id are filled by the auto-provision trigger.
+        const { error } = await supabase
+          .from("trailer_loads")
+          .insert(insertRow as Database["public"]["Tables"]["trailer_loads"]["Insert"]);
         if (error) fail++;
         else ok++;
       }

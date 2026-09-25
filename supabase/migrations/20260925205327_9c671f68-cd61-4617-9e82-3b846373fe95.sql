@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.auto_provision_load_hierarchy() FROM authenticated, PUBLIC, anon;
