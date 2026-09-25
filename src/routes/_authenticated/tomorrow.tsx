@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { Database } from "@/integrations/supabase/types";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useLoads, useNowTick, useYardCheckIns } from "@/hooks/use-loads";
 import { useDrivers, type Driver } from "@/hooks/use-drivers";
