@@ -1,4 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import {
+  ClipboardList,
+  Boxes, Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   CalendarClock,
@@ -30,6 +32,8 @@ const items: readonly Item[] = [
     roles: ["owner", "admin", "dispatcher"],
     product: "trailer",
   },
+  { to: "/orders", label: "Orders", icon: ClipboardList, roles: ["owner", "admin", "dispatcher"], product: "trailer" },
+  { to: "/shipments", label: "Shipments", icon: Boxes, roles: ["owner", "admin", "dispatcher"], product: "trailer" },
   {
     to: "/tomorrow",
     label: "Tomorrow Board",

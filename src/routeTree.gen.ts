@@ -16,9 +16,11 @@ import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/y
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTomorrowRouteImport } from './routes/_authenticated/tomorrow'
 import { Route as AuthenticatedStoresRouteImport } from './routes/_authenticated/stores'
+import { Route as AuthenticatedShipmentsRouteImport } from './routes/_authenticated/shipments'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLoadsRouteImport } from './routes/_authenticated/loads'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
@@ -65,6 +67,11 @@ const AuthenticatedStoresRoute = AuthenticatedStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedShipmentsRoute = AuthenticatedShipmentsRouteImport.update({
+  id: '/shipments',
+  path: '/shipments',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -78,6 +85,11 @@ const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
 const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -147,9 +159,11 @@ export interface FileRoutesByFullPath {
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/orders': typeof AuthenticatedOrdersRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/shipments': typeof AuthenticatedShipmentsRoute
   '/stores': typeof AuthenticatedStoresRoute
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
@@ -169,9 +183,11 @@ export interface FileRoutesByTo {
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/orders': typeof AuthenticatedOrdersRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/shipments': typeof AuthenticatedShipmentsRoute
   '/stores': typeof AuthenticatedStoresRoute
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
@@ -193,9 +209,11 @@ export interface FileRoutesById {
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/_authenticated/loads': typeof AuthenticatedLoadsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/shipments': typeof AuthenticatedShipmentsRoute
   '/_authenticated/stores': typeof AuthenticatedStoresRoute
   '/_authenticated/tomorrow': typeof AuthenticatedTomorrowRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
@@ -217,9 +235,11 @@ export interface FileRouteTypes {
     | '/kiosk'
     | '/loads'
     | '/onboarding'
+    | '/orders'
     | '/reports'
     | '/search'
     | '/settings'
+    | '/shipments'
     | '/stores'
     | '/tomorrow'
     | '/users'
@@ -239,9 +259,11 @@ export interface FileRouteTypes {
     | '/kiosk'
     | '/loads'
     | '/onboarding'
+    | '/orders'
     | '/reports'
     | '/search'
     | '/settings'
+    | '/shipments'
     | '/stores'
     | '/tomorrow'
     | '/users'
@@ -262,9 +284,11 @@ export interface FileRouteTypes {
     | '/_authenticated/kiosk'
     | '/_authenticated/loads'
     | '/_authenticated/onboarding'
+    | '/_authenticated/orders'
     | '/_authenticated/reports'
     | '/_authenticated/search'
     | '/_authenticated/settings'
+    | '/_authenticated/shipments'
     | '/_authenticated/stores'
     | '/_authenticated/tomorrow'
     | '/_authenticated/users'
@@ -336,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/shipments': {
+      id: '/_authenticated/shipments'
+      path: '/shipments'
+      fullPath: '/shipments'
+      preLoaderRoute: typeof AuthenticatedShipmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -355,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders': {
+      id: '/_authenticated/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -444,9 +482,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
   AuthenticatedLoadsRoute: typeof AuthenticatedLoadsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedShipmentsRoute: typeof AuthenticatedShipmentsRoute
   AuthenticatedStoresRoute: typeof AuthenticatedStoresRoute
   AuthenticatedTomorrowRoute: typeof AuthenticatedTomorrowRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
@@ -462,9 +502,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKioskRoute: AuthenticatedKioskRoute,
   AuthenticatedLoadsRoute: AuthenticatedLoadsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedShipmentsRoute: AuthenticatedShipmentsRoute,
   AuthenticatedStoresRoute: AuthenticatedStoresRoute,
   AuthenticatedTomorrowRoute: AuthenticatedTomorrowRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
