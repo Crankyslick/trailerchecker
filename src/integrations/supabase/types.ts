@@ -14,6 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          company_id: string
+          confirmation_number: string | null
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          rescheduled_from_appointment_id: string | null
+          scheduled_end: string | null
+          scheduled_start: string | null
+          status: Database["public"]["Enums"]["appointment_status"]
+          stop_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string
+          confirmation_number?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          rescheduled_from_appointment_id?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
+          stop_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          confirmation_number?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          rescheduled_from_appointment_id?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
+          stop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_rescheduled_from_appointment_id_fkey"
+            columns: ["rescheduled_from_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_stop_id_fkey"
+            columns: ["stop_id"]
+            isOneToOne: false
+            referencedRelation: "stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           contact_info: string | null
@@ -419,6 +483,44 @@ export type Database = {
           {
             foreignKeyName: "entities_parent_tenant_id_fkey"
             columns: ["parent_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment: {
+        Row: {
+          company_id: string
+          created_at: string
+          equipment_number: string
+          equipment_type: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string
+          created_at?: string
+          equipment_number: string
+          equipment_type?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          equipment_number?: string
+          equipment_type?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
@@ -1336,10 +1438,12 @@ export type Database = {
           created_at: string
           event_type: string
           event_version: number
+          from_status: Database["public"]["Enums"]["trailer_load_status"] | null
           id: string
           load_id: string | null
           note: string | null
           source: string
+          to_status: Database["public"]["Enums"]["trailer_load_status"] | null
           trailer_number: string | null
           trailer_role: string | null
           user_id: string | null
@@ -1349,10 +1453,14 @@ export type Database = {
           created_at?: string
           event_type: string
           event_version?: number
+          from_status?:
+            | Database["public"]["Enums"]["trailer_load_status"]
+            | null
           id?: string
           load_id?: string | null
           note?: string | null
           source?: string
+          to_status?: Database["public"]["Enums"]["trailer_load_status"] | null
           trailer_number?: string | null
           trailer_role?: string | null
           user_id?: string | null
@@ -1362,10 +1470,14 @@ export type Database = {
           created_at?: string
           event_type?: string
           event_version?: number
+          from_status?:
+            | Database["public"]["Enums"]["trailer_load_status"]
+            | null
           id?: string
           load_id?: string | null
           note?: string | null
           source?: string
+          to_status?: Database["public"]["Enums"]["trailer_load_status"] | null
           trailer_number?: string | null
           trailer_role?: string | null
           user_id?: string | null
@@ -1401,6 +1513,7 @@ export type Database = {
           delivery_sequence: number | null
           driver: string | null
           driver_id: string | null
+          equipment_id: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           has_sweep: boolean
@@ -1461,6 +1574,7 @@ export type Database = {
           delivery_sequence?: number | null
           driver?: string | null
           driver_id?: string | null
+          equipment_id?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
           has_sweep?: boolean
@@ -1521,6 +1635,7 @@ export type Database = {
           delivery_sequence?: number | null
           driver?: string | null
           driver_id?: string | null
+          equipment_id?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
           has_sweep?: boolean
@@ -1581,6 +1696,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
             referencedColumns: ["id"]
           },
           {
@@ -1860,6 +1982,7 @@ export type Database = {
           delivery_sequence: number | null
           driver: string | null
           driver_id: string | null
+          equipment_id: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           has_sweep: boolean
@@ -1916,6 +2039,76 @@ export type Database = {
       }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      plan_leg: {
+        Args: { p_driver_id: string; p_equipment_id: string; p_leg_id: string }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          carrier_comments: string | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          has_sweep: boolean
+          id: string
+          invoiced: boolean | null
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       tenant_has_product: {
         Args: { _product: Database["public"]["Enums"]["product_key"] }
         Returns: boolean
@@ -1976,6 +2169,11 @@ export type Database = {
         | "billing"
         | "driver"
         | "owner"
+      appointment_status:
+        | "REQUESTED"
+        | "CONFIRMED"
+        | "RESCHEDULED"
+        | "CANCELLED"
       container_status:
         | "Available"
         | "Dispatched"
@@ -2164,6 +2362,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "dispatcher", "guard", "billing", "driver", "owner"],
+      appointment_status: [
+        "REQUESTED",
+        "CONFIRMED",
+        "RESCHEDULED",
+        "CANCELLED",
+      ],
       container_status: [
         "Available",
         "Dispatched",
