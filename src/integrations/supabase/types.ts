@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      accessorials: {
+        Row: {
+          amount: number
+          billable_to: string
+          code: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          load_id: string
+        }
+        Insert: {
+          amount: number
+          billable_to?: string
+          code: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          load_id: string
+        }
+        Update: {
+          amount?: number
+          billable_to?: string
+          code?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          load_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accessorials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accessorials_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           company_id: string
@@ -74,6 +125,134 @@ export type Database = {
             columns: ["stop_id"]
             isOneToOne: false
             referencedRelation: "stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_settlement_lines: {
+        Row: {
+          amount: number
+          description: string
+          id: string
+          load_id: string
+          settlement_id: string
+        }
+        Insert: {
+          amount: number
+          description: string
+          id?: string
+          load_id: string
+          settlement_id: string
+        }
+        Update: {
+          amount?: number
+          description?: string
+          id?: string
+          load_id?: string
+          settlement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_settlement_lines_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_settlement_lines_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_settlements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_settlements: {
+        Row: {
+          carrier_id: string
+          company_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          settlement_number: string
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          carrier_id: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          settlement_number: string
+          status?: string
+          total_amount?: number
+        }
+        Update: {
+          carrier_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          settlement_number?: string
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_settlements_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_settlements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carriers: {
+        Row: {
+          active: boolean
+          company_id: string
+          contact_info: string | null
+          created_at: string
+          id: string
+          mc_number: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          company_id?: string
+          contact_info?: string | null
+          created_at?: string
+          id?: string
+          mc_number?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          company_id?: string
+          contact_info?: string | null
+          created_at?: string
+          id?: string
+          mc_number?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carriers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -409,6 +588,99 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_invoice_lines: {
+        Row: {
+          amount: number
+          description: string
+          id: string
+          invoice_id: string
+          load_id: string
+        }
+        Insert: {
+          amount: number
+          description: string
+          id?: string
+          invoice_id: string
+          load_id: string
+        }
+        Update: {
+          amount?: number
+          description?: string
+          id?: string
+          invoice_id?: string
+          load_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "customer_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_invoice_lines_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_invoices: {
+        Row: {
+          client_id: string
+          company_id: string
+          created_at: string
+          due_at: string | null
+          id: string
+          invoice_number: string
+          issued_at: string | null
+          paid_at: string | null
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          client_id: string
+          company_id?: string
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          invoice_number: string
+          issued_at?: string | null
+          paid_at?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Update: {
+          client_id?: string
+          company_id?: string
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          invoice_number?: string
+          issued_at?: string | null
+          paid_at?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -1000,6 +1272,66 @@ export type Database = {
           },
         ]
       }
+      rate_agreements: {
+        Row: {
+          client_id: string | null
+          company_id: string
+          created_at: string
+          destination_code: string | null
+          effective_end: string | null
+          effective_start: string
+          fuel_surcharge_pct: number
+          id: string
+          linehaul_rate: number
+          origin_code: string | null
+          rate_type: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          destination_code?: string | null
+          effective_end?: string | null
+          effective_start?: string
+          fuel_surcharge_pct?: number
+          id?: string
+          linehaul_rate: number
+          origin_code?: string | null
+          rate_type?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          destination_code?: string | null
+          effective_end?: string | null
+          effective_start?: string
+          fuel_surcharge_pct?: number
+          id?: string
+          linehaul_rate?: number
+          origin_code?: string | null
+          rate_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_agreements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_agreements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sheet_sync_outbox: {
         Row: {
           attempts: number
@@ -1499,6 +1831,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_pay: number | null
           category: string | null
           client_id: string | null
           comments: string | null
@@ -1506,6 +1839,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          customer_rate: number | null
           cutoff_date: string | null
           cutoff_day: string | null
           cutoff_time: string | null
@@ -1516,8 +1850,10 @@ export type Database = {
           equipment_id: string | null
           expected_delivery: string | null
           expected_pickup: string | null
+          fuel_surcharge_amount: number
           has_sweep: boolean
           id: string
+          invoice_status: string
           invoiced: boolean | null
           leg_id: string
           legacy_load_id: string | null
@@ -1534,6 +1870,7 @@ export type Database = {
           root_id: string
           schedule_date: string | null
           schedule_id: string
+          settlement_status: string
           shipment_id: string
           status: Database["public"]["Enums"]["trailer_load_status"]
           str_name: string | null
@@ -1560,6 +1897,7 @@ export type Database = {
           arrival_day?: string | null
           arrival_time?: string | null
           carrier_comments?: string | null
+          carrier_pay?: number | null
           category?: string | null
           client_id?: string | null
           comments?: string | null
@@ -1567,6 +1905,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          customer_rate?: number | null
           cutoff_date?: string | null
           cutoff_day?: string | null
           cutoff_time?: string | null
@@ -1577,8 +1916,10 @@ export type Database = {
           equipment_id?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
+          fuel_surcharge_amount?: number
           has_sweep?: boolean
           id?: string
+          invoice_status?: string
           invoiced?: boolean | null
           leg_id: string
           legacy_load_id?: string | null
@@ -1595,6 +1936,7 @@ export type Database = {
           root_id?: string
           schedule_date?: string | null
           schedule_id: string
+          settlement_status?: string
           shipment_id: string
           status?: Database["public"]["Enums"]["trailer_load_status"]
           str_name?: string | null
@@ -1621,6 +1963,7 @@ export type Database = {
           arrival_day?: string | null
           arrival_time?: string | null
           carrier_comments?: string | null
+          carrier_pay?: number | null
           category?: string | null
           client_id?: string | null
           comments?: string | null
@@ -1628,6 +1971,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          customer_rate?: number | null
           cutoff_date?: string | null
           cutoff_day?: string | null
           cutoff_time?: string | null
@@ -1638,8 +1982,10 @@ export type Database = {
           equipment_id?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
+          fuel_surcharge_amount?: number
           has_sweep?: boolean
           id?: string
+          invoice_status?: string
           invoiced?: boolean | null
           leg_id?: string
           legacy_load_id?: string | null
@@ -1656,6 +2002,7 @@ export type Database = {
           root_id?: string
           schedule_date?: string | null
           schedule_id?: string
+          settlement_status?: string
           shipment_id?: string
           status?: Database["public"]["Enums"]["trailer_load_status"]
           str_name?: string | null
@@ -1893,6 +2240,85 @@ export type Database = {
           webhook_url: string
         }[]
       }
+      apply_rate_to_load: {
+        Args: {
+          p_load_id: string
+          p_miles?: number
+          p_rate_agreement_id: string
+        }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          carrier_comments: string | null
+          carrier_pay: number | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_rate: number | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          fuel_surcharge_amount: number
+          has_sweep: boolean
+          id: string
+          invoice_status: string
+          invoiced: boolean | null
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          settlement_status: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_dispatch: { Args: never; Returns: boolean }
       claim_sheet_outbox: {
         Args: {
@@ -1968,6 +2394,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_pay: number | null
           category: string | null
           client_id: string | null
           comments: string | null
@@ -1975,6 +2402,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          customer_rate: number | null
           cutoff_date: string | null
           cutoff_day: string | null
           cutoff_time: string | null
@@ -1985,8 +2413,10 @@ export type Database = {
           equipment_id: string | null
           expected_delivery: string | null
           expected_pickup: string | null
+          fuel_surcharge_amount: number
           has_sweep: boolean
           id: string
+          invoice_status: string
           invoiced: boolean | null
           leg_id: string
           legacy_load_id: string | null
@@ -2003,6 +2433,7 @@ export type Database = {
           root_id: string
           schedule_date: string | null
           schedule_id: string
+          settlement_status: string
           shipment_id: string
           status: Database["public"]["Enums"]["trailer_load_status"]
           str_name: string | null
@@ -2030,6 +2461,46 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      generate_carrier_settlement: {
+        Args: { p_carrier_id: string; p_load_ids: string[] }
+        Returns: {
+          carrier_id: string
+          company_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          settlement_number: string
+          status: string
+          total_amount: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "carrier_settlements"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      generate_customer_invoice: {
+        Args: { p_client_id: string; p_load_ids: string[] }
+        Returns: {
+          client_id: string
+          company_id: string
+          created_at: string
+          due_at: string | null
+          id: string
+          invoice_number: string
+          issued_at: string | null
+          paid_at: string | null
+          status: string
+          total_amount: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "customer_invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2047,6 +2518,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_pay: number | null
           category: string | null
           client_id: string | null
           comments: string | null
@@ -2054,6 +2526,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          customer_rate: number | null
           cutoff_date: string | null
           cutoff_day: string | null
           cutoff_time: string | null
@@ -2064,8 +2537,10 @@ export type Database = {
           equipment_id: string | null
           expected_delivery: string | null
           expected_pickup: string | null
+          fuel_surcharge_amount: number
           has_sweep: boolean
           id: string
+          invoice_status: string
           invoiced: boolean | null
           leg_id: string
           legacy_load_id: string | null
@@ -2082,6 +2557,87 @@ export type Database = {
           root_id: string
           schedule_date: string | null
           schedule_id: string
+          settlement_status: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_load_financials: {
+        Args: {
+          p_carrier_pay: number
+          p_customer_rate: number
+          p_fuel_surcharge_amount: number
+          p_load_id: string
+        }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          carrier_comments: string | null
+          carrier_pay: number | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_rate: number | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          fuel_surcharge_amount: number
+          has_sweep: boolean
+          id: string
+          invoice_status: string
+          invoiced: boolean | null
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          settlement_status: string
           shipment_id: string
           status: Database["public"]["Enums"]["trailer_load_status"]
           str_name: string | null
