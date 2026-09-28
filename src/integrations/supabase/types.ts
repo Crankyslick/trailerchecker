@@ -220,31 +220,49 @@ export type Database = {
         Row: {
           active: boolean
           company_id: string
+          contact_email: string | null
           contact_info: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
+          dot_number: string | null
           id: string
           mc_number: string | null
           name: string
+          scac_code: string | null
+          status: string
           updated_at: string
         }
         Insert: {
           active?: boolean
           company_id?: string
+          contact_email?: string | null
           contact_info?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
+          dot_number?: string | null
           id?: string
           mc_number?: string | null
           name: string
+          scac_code?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
           active?: boolean
           company_id?: string
+          contact_email?: string | null
           contact_info?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
+          dot_number?: string | null
           id?: string
           mc_number?: string | null
           name?: string
+          scac_code?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
@@ -685,6 +703,111 @@ export type Database = {
           },
         ]
       }
+      driver_activity_log: {
+        Row: {
+          activity_type: string
+          company_id: string
+          created_at: string
+          id: string
+          load_id: string | null
+          metadata: Json
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          load_id?: string | null
+          metadata?: Json
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          load_id?: string | null
+          metadata?: Json
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_activity_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_activity_log_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_activity_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "driver_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_sessions: {
+        Row: {
+          app_version: string | null
+          company_id: string
+          created_at: string
+          device_type: string | null
+          ended_at: string | null
+          id: string
+          ip_address: unknown
+          is_active: boolean
+          last_seen_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          company_id: string
+          created_at?: string
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean
+          last_seen_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          company_id?: string
+          created_at?: string
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean
+          last_seen_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           active: boolean
@@ -694,6 +817,7 @@ export type Database = {
           phone: string | null
           tenant_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
@@ -703,6 +827,7 @@ export type Database = {
           phone?: string | null
           tenant_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
@@ -712,6 +837,7 @@ export type Database = {
           phone?: string | null
           tenant_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1152,6 +1278,53 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          company_id: string
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          role_target: Database["public"]["Enums"]["app_role"] | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          role_target?: Database["public"]["Enums"]["app_role"] | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          role_target?: Database["public"]["Enums"]["app_role"] | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           client_id: string | null
@@ -1268,6 +1441,57 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proof_of_delivery: {
+        Row: {
+          company_id: string
+          created_by: string | null
+          id: string
+          load_id: string
+          notes: string | null
+          photo_path: string | null
+          recipient_name: string
+          signature_svg: string | null
+          signed_at: string
+        }
+        Insert: {
+          company_id?: string
+          created_by?: string | null
+          id?: string
+          load_id: string
+          notes?: string | null
+          photo_path?: string | null
+          recipient_name: string
+          signature_svg?: string | null
+          signed_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_by?: string | null
+          id?: string
+          load_id?: string
+          notes?: string | null
+          photo_path?: string | null
+          recipient_name?: string
+          signature_svg?: string | null
+          signed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proof_of_delivery_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proof_of_delivery_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
         ]
@@ -1726,6 +1950,67 @@ export type Database = {
         }
         Relationships: []
       }
+      tenders: {
+        Row: {
+          carrier_id: string
+          company_id: string
+          expires_at: string | null
+          id: string
+          leg_id: string
+          offered_at: string
+          offered_rate: number | null
+          responded_at: string | null
+          response_notes: string | null
+          status: Database["public"]["Enums"]["tender_status"]
+        }
+        Insert: {
+          carrier_id: string
+          company_id?: string
+          expires_at?: string | null
+          id?: string
+          leg_id: string
+          offered_at?: string
+          offered_rate?: number | null
+          responded_at?: string | null
+          response_notes?: string | null
+          status?: Database["public"]["Enums"]["tender_status"]
+        }
+        Update: {
+          carrier_id?: string
+          company_id?: string
+          expires_at?: string | null
+          id?: string
+          leg_id?: string
+          offered_at?: string
+          offered_rate?: number | null
+          responded_at?: string | null
+          response_notes?: string | null
+          status?: Database["public"]["Enums"]["tender_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenders_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_leg_id_fkey"
+            columns: ["leg_id"]
+            isOneToOne: false
+            referencedRelation: "legs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trailer_clients: {
         Row: {
           company_id: string
@@ -1831,6 +2116,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_id: string | null
           carrier_pay: number | null
           category: string | null
           client_id: string | null
@@ -1848,6 +2134,10 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           fuel_surcharge_amount: number
@@ -1855,6 +2145,7 @@ export type Database = {
           id: string
           invoice_status: string
           invoiced: boolean | null
+          is_exception: boolean
           leg_id: string
           legacy_load_id: string | null
           order_id: string
@@ -1897,6 +2188,7 @@ export type Database = {
           arrival_day?: string | null
           arrival_time?: string | null
           carrier_comments?: string | null
+          carrier_id?: string | null
           carrier_pay?: number | null
           category?: string | null
           client_id?: string | null
@@ -1914,6 +2206,10 @@ export type Database = {
           driver?: string | null
           driver_id?: string | null
           equipment_id?: string | null
+          exception_at?: string | null
+          exception_reason?: string | null
+          exception_resolved_at?: string | null
+          exception_resolved_note?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
           fuel_surcharge_amount?: number
@@ -1921,6 +2217,7 @@ export type Database = {
           id?: string
           invoice_status?: string
           invoiced?: boolean | null
+          is_exception?: boolean
           leg_id: string
           legacy_load_id?: string | null
           order_id: string
@@ -1963,6 +2260,7 @@ export type Database = {
           arrival_day?: string | null
           arrival_time?: string | null
           carrier_comments?: string | null
+          carrier_id?: string | null
           carrier_pay?: number | null
           category?: string | null
           client_id?: string | null
@@ -1980,6 +2278,10 @@ export type Database = {
           driver?: string | null
           driver_id?: string | null
           equipment_id?: string | null
+          exception_at?: string | null
+          exception_reason?: string | null
+          exception_resolved_at?: string | null
+          exception_resolved_note?: string | null
           expected_delivery?: string | null
           expected_pickup?: string | null
           fuel_surcharge_amount?: number
@@ -1987,6 +2289,7 @@ export type Database = {
           id?: string
           invoice_status?: string
           invoiced?: boolean | null
+          is_exception?: boolean
           leg_id?: string
           legacy_load_id?: string | null
           order_id?: string
@@ -2024,6 +2327,13 @@ export type Database = {
           yard_arrival_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "trailer_loads_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trailer_loads_client_id_fkey"
             columns: ["client_id"]
@@ -2252,6 +2562,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_id: string | null
           carrier_pay: number | null
           category: string | null
           client_id: string | null
@@ -2269,6 +2580,10 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           fuel_surcharge_amount: number
@@ -2276,6 +2591,7 @@ export type Database = {
           id: string
           invoice_status: string
           invoiced: boolean | null
+          is_exception: boolean
           leg_id: string
           legacy_load_id: string | null
           order_id: string
@@ -2320,6 +2636,32 @@ export type Database = {
         }
       }
       can_dispatch: { Args: never; Returns: boolean }
+      capture_pod: {
+        Args: {
+          p_load_id: string
+          p_notes?: string
+          p_photo_path?: string
+          p_recipient_name: string
+          p_signature_svg: string
+        }
+        Returns: {
+          company_id: string
+          created_by: string | null
+          id: string
+          load_id: string
+          notes: string | null
+          photo_path: string | null
+          recipient_name: string
+          signature_svg: string | null
+          signed_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "proof_of_delivery"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       claim_sheet_outbox: {
         Args: {
           p_company_id?: string
@@ -2373,6 +2715,32 @@ export type Database = {
           shipment_id: string
         }[]
       }
+      create_tender: {
+        Args: {
+          p_carrier_id: string
+          p_expires_at?: string
+          p_leg_id: string
+          p_offered_rate: number
+        }
+        Returns: {
+          carrier_id: string
+          company_id: string
+          expires_at: string | null
+          id: string
+          leg_id: string
+          offered_at: string
+          offered_rate: number | null
+          responded_at: string | null
+          response_notes: string | null
+          status: Database["public"]["Enums"]["tender_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tenders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_company_id: { Args: never; Returns: string }
       current_tenant_id: { Args: never; Returns: string }
       current_user_has_any_role: {
@@ -2394,6 +2762,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_id: string | null
           carrier_pay: number | null
           category: string | null
           client_id: string | null
@@ -2411,6 +2780,10 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           fuel_surcharge_amount: number
@@ -2418,6 +2791,194 @@ export type Database = {
           id: string
           invoice_status: string
           invoiced: boolean | null
+          is_exception: boolean
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          settlement_status: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      driver_update_status: {
+        Args: {
+          p_load_id: string
+          p_new_status: Database["public"]["Enums"]["trailer_load_status"]
+        }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          carrier_comments: string | null
+          carrier_id: string | null
+          carrier_pay: number | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_rate: number | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          fuel_surcharge_amount: number
+          has_sweep: boolean
+          id: string
+          invoice_status: string
+          invoiced: boolean | null
+          is_exception: boolean
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          settlement_status: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      end_driver_session: {
+        Args: { p_session_id: string }
+        Returns: {
+          app_version: string | null
+          company_id: string
+          created_at: string
+          device_type: string | null
+          ended_at: string | null
+          id: string
+          ip_address: unknown
+          is_active: boolean
+          last_seen_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "driver_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      flag_exception: {
+        Args: { p_load_id: string; p_reason: string }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          carrier_comments: string | null
+          carrier_id: string | null
+          carrier_pay: number | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_rate: number | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          fuel_surcharge_amount: number
+          has_sweep: boolean
+          id: string
+          invoice_status: string
+          invoiced: boolean | null
+          is_exception: boolean
           leg_id: string
           legacy_load_id: string | null
           order_id: string
@@ -2508,8 +3069,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_assigned_driver: { Args: { p_load_id: string }; Returns: boolean }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      notify_role: {
+        Args: {
+          p_body: string
+          p_company_id: string
+          p_link: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
       plan_leg: {
         Args: { p_driver_id: string; p_equipment_id: string; p_leg_id: string }
         Returns: {
@@ -2518,6 +3091,7 @@ export type Database = {
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_id: string | null
           carrier_pay: number | null
           category: string | null
           client_id: string | null
@@ -2535,6 +3109,10 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           fuel_surcharge_amount: number
@@ -2542,6 +3120,7 @@ export type Database = {
           id: string
           invoice_status: string
           invoiced: boolean | null
+          is_exception: boolean
           leg_id: string
           legacy_load_id: string | null
           order_id: string
@@ -2585,19 +3164,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      set_load_financials: {
-        Args: {
-          p_carrier_pay: number
-          p_customer_rate: number
-          p_fuel_surcharge_amount: number
-          p_load_id: string
-        }
+      resolve_exception: {
+        Args: { p_load_id: string; p_resolution_note: string }
         Returns: {
           alert_status: string | null
           arrival_date: string | null
           arrival_day: string | null
           arrival_time: string | null
           carrier_comments: string | null
+          carrier_id: string | null
           carrier_pay: number | null
           category: string | null
           client_id: string | null
@@ -2615,6 +3190,10 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
           expected_delivery: string | null
           expected_pickup: string | null
           fuel_surcharge_amount: number
@@ -2622,6 +3201,7 @@ export type Database = {
           id: string
           invoice_status: string
           invoiced: boolean | null
+          is_exception: boolean
           leg_id: string
           legacy_load_id: string | null
           order_id: string
@@ -2661,6 +3241,143 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      respond_to_tender: {
+        Args: {
+          p_response: Database["public"]["Enums"]["tender_status"]
+          p_response_notes?: string
+          p_tender_id: string
+        }
+        Returns: {
+          carrier_id: string
+          company_id: string
+          expires_at: string | null
+          id: string
+          leg_id: string
+          offered_at: string
+          offered_rate: number | null
+          responded_at: string | null
+          response_notes: string | null
+          status: Database["public"]["Enums"]["tender_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tenders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_load_financials: {
+        Args: {
+          p_carrier_pay: number
+          p_customer_rate: number
+          p_fuel_surcharge_amount: number
+          p_load_id: string
+        }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          carrier_comments: string | null
+          carrier_id: string | null
+          carrier_pay: number | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_rate: number | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          fuel_surcharge_amount: number
+          has_sweep: boolean
+          id: string
+          invoice_status: string
+          invoiced: boolean | null
+          is_exception: boolean
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          settlement_status: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      start_driver_session: {
+        Args: {
+          p_app_version?: string
+          p_device_type?: string
+          p_user_agent?: string
+        }
+        Returns: {
+          app_version: string | null
+          company_id: string
+          created_at: string
+          device_type: string | null
+          ended_at: string | null
+          id: string
+          ip_address: unknown
+          is_active: boolean
+          last_seen_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "driver_sessions"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -2776,6 +3493,12 @@ export type Database = {
         | "COMPLETED"
         | "CANCELLED"
       stop_type: "PICKUP" | "DELIVERY"
+      tender_status:
+        | "OFFERED"
+        | "ACCEPTED"
+        | "REJECTED"
+        | "EXPIRED"
+        | "RESCINDED"
       trailer_load_status:
         | "Assigned"
         | "Heading To DC"
@@ -2975,6 +3698,13 @@ export const Constants = {
         "CANCELLED",
       ],
       stop_type: ["PICKUP", "DELIVERY"],
+      tender_status: [
+        "OFFERED",
+        "ACCEPTED",
+        "REJECTED",
+        "EXPIRED",
+        "RESCINDED",
+      ],
       trailer_load_status: [
         "Assigned",
         "Heading To DC",
