@@ -104,6 +104,7 @@ function NewRateModal({ onClose }: { onClose: () => void }) {
         linehaulRate: Number(rate),
         fuelSurchargePct: Number(fuelPct) || 0,
       });
+      await qc.invalidateQueries({ queryKey: ["rate_agreements"] });
       toast.success("Rate agreement created");
       onClose();
     } catch (e) {
