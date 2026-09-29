@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const sb = supabase as unknown as {
@@ -48,6 +48,14 @@ export type RateAgreement = {
 };
 
 export function useRateAgreements() {
+  const qc = useQueryClient();
+  useEffect(
+    () =>
+      realtimeSubscribe("rate_agreements", () => {
+        void qc.invalidateQueries({ queryKey: ["rate_agreements"] });
+      }),
+    [qc],
+  );
   return useQuery({
     queryKey: ["rate_agreements"],
     queryFn: async (): Promise<RateAgreement[]> => {
