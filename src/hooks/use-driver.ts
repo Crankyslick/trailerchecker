@@ -52,11 +52,27 @@ export function useMyLoads() {
   const query = useQuery({
     queryKey: ["loads", "mine"],
     queryFn: async (): Promise<MyLoad[]> => {
+      // "My loads" means the loads assigned to the signed-in person's own
+      // driver record. Dispatchers and admins can read every row, so the
+      // filter has to be explicit here rather than left to the access rules.
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+      if (!userId) return [];
+
+      const { data: driverRow, error: driverErr } = await sb
+        .from("drivers")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (driverErr) throw new Error(driverErr.message);
+      if (!driverRow?.id) return [];
+
       const { data, error } = await sb
         .from("trailer_loads")
         .select(
           "id, schedule_id, origin_name, str_name, status, is_exception, exception_reason, outbound_trailer",
         )
+        .eq("driver_id", driverRow.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw new Error(error.message);
