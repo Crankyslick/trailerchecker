@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, PackageCheck, Truck, MapPin } from "lucide-react";
+import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   useMyLoads,
+  useNotifications,
+  markNotificationRead,
   driverUpdateStatus,
   flagException,
   capturePod,
@@ -34,18 +37,71 @@ const NEXT_STATUS: Record<string, string | null> = {
 };
 
 function DriverPage() {
-  const { data: loads, isLoading } = useMyLoads();
+  const { data: loads, isLoading, refetch } = useMyLoads();
   const { profile } = useCurrentUser();
   const sessionId = useDriverSession();
+  const { data: notifications } = useNotifications();
+
+  const assignments = (notifications ?? []).filter((n) => n.type === "load_assigned");
+  const unreadAssignments = assignments.filter((n) => !n.read_at);
+  const seen = useRef<Set<string> | null>(null);
+
+  // Toast (once) for each newly arrived assignment alert and pull in the load.
+  useEffect(() => {
+    if (seen.current === null) {
+      seen.current = new Set(assignments.map((n) => n.id));
+      return;
+    }
+    const fresh = assignments.filter((n) => !seen.current!.has(n.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((n) => {
+      seen.current!.add(n.id);
+      toast.success(n.title, { description: n.body ?? undefined });
+    });
+    void refetch();
+  }, [assignments, refetch]);
+
+  async function dismissAssignments() {
+    await Promise.all(unreadAssignments.map((n) => markNotificationRead(n.id).catch(() => {})));
+  }
 
   return (
     <div className="p-4 space-y-4 max-w-xl mx-auto">
-      <div>
-        <h1 className="text-lg font-semibold">My Loads</h1>
-        <p className="text-sm text-muted-foreground">
-          {profile?.full_name ?? "Signed in"} — today's assignments
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold">My Loads</h1>
+          <p className="text-sm text-muted-foreground">
+            {profile?.full_name ?? "Signed in"} — today's assignments
+          </p>
+        </div>
+        <NotificationBell />
       </div>
+
+      {unreadAssignments.length > 0 && (
+        <div className="rounded-lg border border-primary/40 bg-primary/10 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-primary">
+            <BellRing className="h-4 w-4" />
+            {unreadAssignments.length === 1
+              ? "New load assigned to you"
+              : `${unreadAssignments.length} new loads assigned to you`}
+          </div>
+          <ul className="space-y-1">
+            {unreadAssignments.slice(0, 3).map((n) => (
+              <li key={n.id} className="text-xs text-muted-foreground">
+                <span className="text-foreground">{n.title}</span>
+                {n.body ? ` — ${n.body}` : ""}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={dismissAssignments}
+            className="text-xs rounded-md border border-border px-2 py-1 hover:bg-surface-2/60"
+          >
+            Got it
+          </button>
+        </div>
+      )}
+
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && (loads ?? []).length === 0 && (
