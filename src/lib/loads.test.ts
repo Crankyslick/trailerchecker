@@ -37,8 +37,7 @@ describe("yardHours", () => {
   afterEach(() => vi.useRealTimers());
 
   it("computes elapsed hours from the auto-stamped arrival", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-09-14T12:00:00Z"));
+    vi.useFakeTimers({ now: new Date("2026-09-14T12:00:00Z") });
     expect(yardHours("2026-09-14T00:00:00Z")).toBe(12);
     expect(yardHours("2026-09-12T12:00:00Z")).toBe(48);
   });
