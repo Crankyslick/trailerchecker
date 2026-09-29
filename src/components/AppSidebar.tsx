@@ -20,6 +20,7 @@ import {
   DollarSign,
   Tags,
   Send,
+  Briefcase,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useTenantProducts } from "@/hooks/use-products";
@@ -145,6 +146,13 @@ const items: readonly Item[] = [
     icon: Container,
     roles: ["owner", "admin", "dispatcher"],
     product: "drayage",
+  },
+  {
+    to: "/customers",
+    label: "Customers",
+    icon: Briefcase,
+    roles: ["owner", "admin", "dispatcher"],
+    product: "trailer",
   },
   { to: "/drivers", label: "Drivers", icon: Users, roles: ["owner", "admin", "dispatcher"] },
   { to: "/users", label: "Users", icon: UserCog, roles: ["owner", "admin"] },

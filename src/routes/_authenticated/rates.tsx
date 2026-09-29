@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import { useRateAgreements, createRateAgreement, type RateAgreement } from "@/hooks/use-billing";
 import { useClients } from "@/hooks/use-orders";
+import { CustomerModal } from "@/components/CustomerModal";
 
 export const Route = createFileRoute("/_authenticated/rates")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
@@ -76,7 +78,9 @@ function RatesPage() {
 }
 
 function NewRateModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
   const { data: clients } = useClients();
+  const [addingCustomer, setAddingCustomer] = useState(false);
   const [clientId, setClientId] = useState("");
   const [origin, setOrigin] = useState("");
   const [dest, setDest] = useState("");
@@ -100,6 +104,7 @@ function NewRateModal({ onClose }: { onClose: () => void }) {
         linehaulRate: Number(rate),
         fuelSurchargePct: Number(fuelPct) || 0,
       });
+      await qc.invalidateQueries({ queryKey: ["rate_agreements"] });
       toast.success("Rate agreement created");
       onClose();
     } catch (e) {
@@ -117,7 +122,16 @@ function NewRateModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-4 space-y-3 text-sm">
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">Customer</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs text-muted-foreground">Customer</label>
+              <button
+                type="button"
+                onClick={() => setAddingCustomer(true)}
+                className="text-xs text-primary hover:underline"
+              >
+                + Add customer
+              </button>
+            </div>
             <select
               className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
               value={clientId}
@@ -195,6 +209,12 @@ function NewRateModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
+      {addingCustomer && (
+        <CustomerModal
+          onClose={() => setAddingCustomer(false)}
+          onCreated={(c) => setClientId(c.id)}
+        />
+      )}
     </div>
   );
 }

@@ -33,6 +33,7 @@ import { Route as AuthenticatedExceptionsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticated/drivers'
 import { Route as AuthenticatedDriverRouteImport } from './routes/_authenticated/driver'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedContainersRouteImport } from './routes/_authenticated/containers'
 import { Route as AuthenticatedCarriersRouteImport } from './routes/_authenticated/carriers'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
@@ -164,6 +165,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCustomersRoute = AuthenticatedCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedContainersRoute = AuthenticatedContainersRouteImport.update({
   id: '/containers',
   path: '/containers',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/billing': typeof AuthenticatedBillingRoute
   '/carriers': typeof AuthenticatedCarriersRoute
   '/containers': typeof AuthenticatedContainersRoute
+  '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/driver': typeof AuthenticatedDriverRoute
   '/drivers': typeof AuthenticatedDriversRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/billing': typeof AuthenticatedBillingRoute
   '/carriers': typeof AuthenticatedCarriersRoute
   '/containers': typeof AuthenticatedContainersRoute
+  '/customers': typeof AuthenticatedCustomersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/driver': typeof AuthenticatedDriverRoute
   '/drivers': typeof AuthenticatedDriversRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/carriers': typeof AuthenticatedCarriersRoute
   '/_authenticated/containers': typeof AuthenticatedContainersRoute
+  '/_authenticated/customers': typeof AuthenticatedCustomersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/driver': typeof AuthenticatedDriverRoute
   '/_authenticated/drivers': typeof AuthenticatedDriversRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/billing'
     | '/carriers'
     | '/containers'
+    | '/customers'
     | '/dashboard'
     | '/driver'
     | '/drivers'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/billing'
     | '/carriers'
     | '/containers'
+    | '/customers'
     | '/dashboard'
     | '/driver'
     | '/drivers'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/_authenticated/billing'
     | '/_authenticated/carriers'
     | '/_authenticated/containers'
+    | '/_authenticated/customers'
     | '/_authenticated/dashboard'
     | '/_authenticated/driver'
     | '/_authenticated/drivers'
@@ -602,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customers': {
+      id: '/_authenticated/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof AuthenticatedCustomersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/containers': {
       id: '/_authenticated/containers'
       path: '/containers'
@@ -672,6 +691,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedCarriersRoute: typeof AuthenticatedCarriersRoute
   AuthenticatedContainersRoute: typeof AuthenticatedContainersRoute
+  AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDriverRoute: typeof AuthenticatedDriverRoute
   AuthenticatedDriversRoute: typeof AuthenticatedDriversRoute
@@ -701,6 +721,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedCarriersRoute: AuthenticatedCarriersRoute,
   AuthenticatedContainersRoute: AuthenticatedContainersRoute,
+  AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDriverRoute: AuthenticatedDriverRoute,
   AuthenticatedDriversRoute: AuthenticatedDriversRoute,
