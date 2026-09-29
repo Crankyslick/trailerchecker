@@ -1755,6 +1755,54 @@ export type Database = {
           },
         ]
       }
+      status_propagation_log: {
+        Row: {
+          cause_load_id: string | null
+          company_id: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          from_status: string | null
+          id: string
+          to_status: string
+        }
+        Insert: {
+          cause_load_id?: string | null
+          company_id: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          from_status?: string | null
+          id?: string
+          to_status: string
+        }
+        Update: {
+          cause_load_id?: string | null
+          company_id?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          from_status?: string | null
+          id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "status_propagation_log_cause_load_id_fkey"
+            columns: ["cause_load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "status_propagation_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stops: {
         Row: {
           company_id: string
@@ -2628,6 +2676,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _log_status_propagation: {
+        Args: {
+          p_company: string
+          p_from: string
+          p_id: string
+          p_to: string
+          p_type: string
+        }
+        Returns: undefined
+      }
       add_shipment_leg: {
         Args: {
           p_destination_stop_id: string
@@ -2954,6 +3012,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      driver_transition_allowed: {
+        Args: {
+          p_from: Database["public"]["Enums"]["trailer_load_status"]
+          p_to: Database["public"]["Enums"]["trailer_load_status"]
+        }
+        Returns: boolean
+      }
       driver_update_status: {
         Args: {
           p_load_id: string
@@ -3273,6 +3338,10 @@ export type Database = {
       is_assigned_driver: { Args: { p_load_id: string }; Returns: boolean }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      leg_status_for_load: {
+        Args: { p_status: Database["public"]["Enums"]["trailer_load_status"] }
+        Returns: Database["public"]["Enums"]["leg_status"]
+      }
       notify_role: {
         Args: {
           p_body: string
@@ -3393,6 +3462,12 @@ export type Database = {
           recorded_at: string
           speed_mph: number
         }[]
+      }
+      recompute_leg: { Args: { p_leg_id: string }; Returns: undefined }
+      recompute_order: { Args: { p_order_id: string }; Returns: undefined }
+      recompute_shipment: {
+        Args: { p_shipment_id: string }
+        Returns: undefined
       }
       resolve_exception: {
         Args: { p_load_id: string; p_resolution_note: string }
