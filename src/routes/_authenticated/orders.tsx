@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, X, ArrowRight } from "lucide-react";
 import { guard } from "@/lib/route-guard";
-import { useOrders, useClients, createOrder, type OrderRow } from "@/hooks/use-orders";
+import { useOrders, useClients, createOrder, type OrderWithShipment } from "@/hooks/use-orders";
 
 export const Route = createFileRoute("/_authenticated/orders")({
   beforeLoad: guard({ product: "trailer" }),
@@ -21,7 +21,9 @@ const STATUS_STYLE: Record<string, string> = {
 
 function StatusPill({ status }: { status: string }) {
   return (
-    <span className={`chip border ${STATUS_STYLE[status] ?? "bg-surface-2 text-foreground border-border"}`}>
+    <span
+      className={`chip border ${STATUS_STYLE[status] ?? "bg-surface-2 text-foreground border-border"}`}
+    >
       {status.replace(/_/g, " ")}
     </span>
   );
@@ -37,8 +39,8 @@ function OrdersPage() {
         <div>
           <h1 className="text-lg font-semibold">Orders</h1>
           <p className="text-sm text-muted-foreground">
-            Customer intent — shipper, consignee, commodity, weight/pieces/pallets. Each order gets its own
-            shipment, stops, and leg automatically.
+            Customer intent — shipper, consignee, commodity, weight/pieces/pallets. Each order gets
+            its own shipment, stops, and leg automatically.
           </p>
         </div>
         <button
@@ -54,13 +56,13 @@ function OrdersPage() {
           <thead className="bg-surface-2 text-muted-foreground text-xs uppercase tracking-wide">
             <tr>
               <th className="text-left px-3 py-2">Order #</th>
+              <th className="text-left px-3 py-2">Origin → Destination</th>
               <th className="text-left px-3 py-2">Commodity</th>
               <th className="text-right px-3 py-2">Weight</th>
-              <th className="text-right px-3 py-2">Pieces</th>
-              <th className="text-right px-3 py-2">Pallets</th>
+              <th className="text-right px-3 py-2">Pcs / Plts</th>
               <th className="text-left px-3 py-2">Service</th>
               <th className="text-left px-3 py-2">Status</th>
-              <th className="text-left px-3 py-2">Created</th>
+              <th className="text-left px-3 py-2">Shipment</th>
             </tr>
           </thead>
           <tbody>
@@ -78,24 +80,50 @@ function OrdersPage() {
                 </td>
               </tr>
             )}
-            {(orders ?? []).map((o: OrderRow) => (
-              <tr key={o.id} className="border-t border-border hover:bg-surface-2/50">
-                <td className="px-3 py-2 font-mono text-xs">{o.order_number}</td>
-                <td className="px-3 py-2">{o.commodity_description ?? "—"}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
-                  {o.total_weight != null ? `${o.total_weight} lb` : "—"}
-                </td>
-                <td className="px-3 py-2 text-right tabular-nums">{o.total_pieces ?? "—"}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{o.total_pallets ?? "—"}</td>
-                <td className="px-3 py-2">{o.service_level ?? "Standard"}</td>
-                <td className="px-3 py-2">
-                  <StatusPill status={o.status} />
-                </td>
-                <td className="px-3 py-2 text-muted-foreground text-xs">
-                  {new Date(o.created_at).toLocaleString()}
-                </td>
-              </tr>
-            ))}
+            {(orders ?? []).map((o: OrderWithShipment) => {
+              const shipment = o.shipment_orders?.[0]?.shipments;
+              const stops = shipment
+                ? [...shipment.stops].sort((a, b) => a.stop_sequence - b.stop_sequence)
+                : [];
+              const pickup = stops.find((st) => st.stop_type === "PICKUP");
+              const delivery = stops.find((st) => st.stop_type === "DELIVERY");
+              return (
+                <tr key={o.id} className="border-t border-border hover:bg-surface-2/50">
+                  <td className="px-3 py-2 font-mono text-xs">{o.order_number}</td>
+                  <td className="px-3 py-2 text-xs">
+                    <span className="inline-flex items-center gap-1">
+                      {pickup?.location_name ?? "—"}
+                      <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                      {delivery?.location_name ?? "—"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2">{o.commodity_description ?? "—"}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {o.total_weight != null ? `${o.total_weight} lb` : "—"}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {o.total_pieces ?? "—"} / {o.total_pallets ?? "—"}
+                  </td>
+                  <td className="px-3 py-2">{o.service_level ?? "Standard"}</td>
+                  <td className="px-3 py-2">
+                    <StatusPill status={o.status} />
+                  </td>
+                  <td className="px-3 py-2">
+                    {shipment ? (
+                      <Link
+                        to="/shipments"
+                        search={{ open: shipment.id }}
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-mono"
+                      >
+                        {shipment.shipment_number} →
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -203,7 +231,9 @@ function NewOrderModal({ onClose }: { onClose: () => void }) {
               />
             </div>
             <div>
-              <label className="block text-xs text-muted-foreground mb-1">Consignee (delivery) *</label>
+              <label className="block text-xs text-muted-foreground mb-1">
+                Consignee (delivery) *
+              </label>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
                 value={form.consigneeName}
@@ -261,7 +291,9 @@ function NewOrderModal({ onClose }: { onClose: () => void }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-muted-foreground mb-1">Ready (pickup window)</label>
+              <label className="block text-xs text-muted-foreground mb-1">
+                Ready (pickup window)
+              </label>
               <input
                 type="datetime-local"
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
