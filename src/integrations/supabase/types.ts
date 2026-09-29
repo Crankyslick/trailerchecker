@@ -925,6 +925,50 @@ export type Database = {
           },
         ]
       }
+      geofences: {
+        Row: {
+          center_lat: number
+          center_lng: number
+          company_id: string
+          created_at: string
+          id: string
+          location_code: string | null
+          name: string
+          radius_meters: number
+          updated_at: string
+        }
+        Insert: {
+          center_lat: number
+          center_lng: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          location_code?: string | null
+          name: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Update: {
+          center_lat?: number
+          center_lng?: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          location_code?: string | null
+          name?: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_job_tokens: {
         Row: {
           created_at: string
@@ -1817,6 +1861,7 @@ export type Database = {
           company_id: string
           created_at: string
           id: string
+          inbound_token: string | null
           updated_at: string
           webhook_url: string | null
         }
@@ -1824,6 +1869,7 @@ export type Database = {
           company_id: string
           created_at?: string
           id?: string
+          inbound_token?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
@@ -1831,6 +1877,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           id?: string
+          inbound_token?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
@@ -2011,6 +2058,59 @@ export type Database = {
           },
         ]
       }
+      tracking_events: {
+        Row: {
+          company_id: string
+          external_id: string
+          heading_deg: number | null
+          id: string
+          latitude: number | null
+          load_id: string | null
+          longitude: number | null
+          raw_payload: Json | null
+          received_at: string
+          recorded_at: string
+          source: string
+          speed_mph: number | null
+        }
+        Insert: {
+          company_id: string
+          external_id: string
+          heading_deg?: number | null
+          id?: string
+          latitude?: number | null
+          load_id?: string | null
+          longitude?: number | null
+          raw_payload?: Json | null
+          received_at?: string
+          recorded_at: string
+          source?: string
+          speed_mph?: number | null
+        }
+        Update: {
+          company_id?: string
+          external_id?: string
+          heading_deg?: number | null
+          id?: string
+          latitude?: number | null
+          load_id?: string | null
+          longitude?: number | null
+          raw_payload?: Json | null
+          received_at?: string
+          recorded_at?: string
+          source?: string
+          speed_mph?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_events_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trailer_clients: {
         Row: {
           company_id: string
@@ -2134,6 +2234,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -2206,6 +2308,8 @@ export type Database = {
           driver?: string | null
           driver_id?: string | null
           equipment_id?: string | null
+          eta_at?: string | null
+          eta_source?: string | null
           exception_at?: string | null
           exception_reason?: string | null
           exception_resolved_at?: string | null
@@ -2278,6 +2382,8 @@ export type Database = {
           driver?: string | null
           driver_id?: string | null
           equipment_id?: string | null
+          eta_at?: string | null
+          eta_source?: string | null
           exception_at?: string | null
           exception_reason?: string | null
           exception_resolved_at?: string | null
@@ -2580,6 +2686,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -2780,6 +2888,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -2864,6 +2974,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -2967,6 +3079,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -3062,12 +3176,47 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_inbound_token: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      ingest_tracking_event: {
+        Args: {
+          p_company_id: string
+          p_eta_at?: string
+          p_eta_source?: string
+          p_external_id: string
+          p_heading_deg: number
+          p_latitude: number
+          p_longitude: number
+          p_raw_payload?: Json
+          p_recorded_at: string
+          p_speed_mph: number
+        }
+        Returns: {
+          company_id: string
+          external_id: string
+          heading_deg: number | null
+          id: string
+          latitude: number | null
+          load_id: string | null
+          longitude: number | null
+          raw_payload: Json | null
+          received_at: string
+          recorded_at: string
+          source: string
+          speed_mph: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tracking_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       is_assigned_driver: { Args: { p_load_id: string }; Returns: boolean }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
@@ -3109,6 +3258,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -3190,6 +3341,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
@@ -3270,6 +3423,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rotate_inbound_token: { Args: never; Returns: string }
       set_load_financials: {
         Args: {
           p_carrier_pay: number
@@ -3301,6 +3455,8 @@ export type Database = {
           driver: string | null
           driver_id: string | null
           equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
           exception_at: string | null
           exception_reason: string | null
           exception_resolved_at: string | null
