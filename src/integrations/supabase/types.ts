@@ -3284,6 +3284,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_user: {
+        Args: {
+          p_body?: string
+          p_company_id: string
+          p_link?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       plan_leg: {
         Args: { p_driver_id: string; p_equipment_id: string; p_leg_id: string }
         Returns: {
