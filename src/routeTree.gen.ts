@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/yard'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTomorrowRouteImport } from './routes/_authenticated/tomorrow'
+import { Route as AuthenticatedTendersRouteImport } from './routes/_authenticated/tenders'
 import { Route as AuthenticatedStoresRouteImport } from './routes/_authenticated/stores'
 import { Route as AuthenticatedShipmentsRouteImport } from './routes/_authenticated/shipments'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -69,6 +70,11 @@ const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
 const AuthenticatedTomorrowRoute = AuthenticatedTomorrowRouteImport.update({
   id: '/tomorrow',
   path: '/tomorrow',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTendersRoute = AuthenticatedTendersRouteImport.update({
+  id: '/tenders',
+  path: '/tenders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStoresRoute = AuthenticatedStoresRouteImport.update({
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/shipments': typeof AuthenticatedShipmentsRoute
   '/stores': typeof AuthenticatedStoresRoute
+  '/tenders': typeof AuthenticatedTendersRoute
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/shipments': typeof AuthenticatedShipmentsRoute
   '/stores': typeof AuthenticatedStoresRoute
+  '/tenders': typeof AuthenticatedTendersRoute
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shipments': typeof AuthenticatedShipmentsRoute
   '/_authenticated/stores': typeof AuthenticatedStoresRoute
+  '/_authenticated/tenders': typeof AuthenticatedTendersRoute
   '/_authenticated/tomorrow': typeof AuthenticatedTomorrowRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/yard': typeof AuthenticatedYardRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shipments'
     | '/stores'
+    | '/tenders'
     | '/tomorrow'
     | '/users'
     | '/yard'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shipments'
     | '/stores'
+    | '/tenders'
     | '/tomorrow'
     | '/users'
     | '/yard'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/shipments'
     | '/_authenticated/stores'
+    | '/_authenticated/tenders'
     | '/_authenticated/tomorrow'
     | '/_authenticated/users'
     | '/_authenticated/yard'
@@ -462,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/tomorrow'
       fullPath: '/tomorrow'
       preLoaderRoute: typeof AuthenticatedTomorrowRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tenders': {
+      id: '/_authenticated/tenders'
+      path: '/tenders'
+      fullPath: '/tenders'
+      preLoaderRoute: typeof AuthenticatedTendersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/stores': {
@@ -670,6 +689,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShipmentsRoute: typeof AuthenticatedShipmentsRoute
   AuthenticatedStoresRoute: typeof AuthenticatedStoresRoute
+  AuthenticatedTendersRoute: typeof AuthenticatedTendersRoute
   AuthenticatedTomorrowRoute: typeof AuthenticatedTomorrowRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedYardRoute: typeof AuthenticatedYardRoute
@@ -698,6 +718,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShipmentsRoute: AuthenticatedShipmentsRoute,
   AuthenticatedStoresRoute: AuthenticatedStoresRoute,
+  AuthenticatedTendersRoute: AuthenticatedTendersRoute,
   AuthenticatedTomorrowRoute: AuthenticatedTomorrowRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedYardRoute: AuthenticatedYardRoute,
