@@ -15,19 +15,29 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/yard'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTomorrowRouteImport } from './routes/_authenticated/tomorrow'
+import { Route as AuthenticatedTendersRouteImport } from './routes/_authenticated/tenders'
 import { Route as AuthenticatedStoresRouteImport } from './routes/_authenticated/stores'
 import { Route as AuthenticatedShipmentsRouteImport } from './routes/_authenticated/shipments'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedReconciliationRouteImport } from './routes/_authenticated/reconciliation'
+import { Route as AuthenticatedRatesRouteImport } from './routes/_authenticated/rates'
+import { Route as AuthenticatedPlanningRouteImport } from './routes/_authenticated/planning'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedLoadsRouteImport } from './routes/_authenticated/loads'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
+import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
+import { Route as AuthenticatedExceptionsRouteImport } from './routes/_authenticated/exceptions'
 import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticated/drivers'
+import { Route as AuthenticatedDriverRouteImport } from './routes/_authenticated/driver'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContainersRouteImport } from './routes/_authenticated/containers'
+import { Route as AuthenticatedCarriersRouteImport } from './routes/_authenticated/carriers'
+import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
+import { Route as ApiPublicTrackingRouteImport } from './routes/api/public/tracking'
 import { Route as ApiPublicSheetDrainRouteImport } from './routes/api/public/sheet-drain'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
@@ -62,6 +72,11 @@ const AuthenticatedTomorrowRoute = AuthenticatedTomorrowRouteImport.update({
   path: '/tomorrow',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTendersRoute = AuthenticatedTendersRouteImport.update({
+  id: '/tenders',
+  path: '/tenders',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStoresRoute = AuthenticatedStoresRouteImport.update({
   id: '/stores',
   path: '/stores',
@@ -87,6 +102,22 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReconciliationRoute =
+  AuthenticatedReconciliationRouteImport.update({
+    id: '/reconciliation',
+    path: '/reconciliation',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRatesRoute = AuthenticatedRatesRouteImport.update({
+  id: '/rates',
+  path: '/rates',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlanningRoute = AuthenticatedPlanningRouteImport.update({
+  id: '/planning',
+  path: '/planning',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -107,9 +138,25 @@ const AuthenticatedKioskRoute = AuthenticatedKioskRouteImport.update({
   path: '/kiosk',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedIntegrationsRoute =
+  AuthenticatedIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedExceptionsRoute = AuthenticatedExceptionsRouteImport.update({
+  id: '/exceptions',
+  path: '/exceptions',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDriversRoute = AuthenticatedDriversRouteImport.update({
   id: '/drivers',
   path: '/drivers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDriverRoute = AuthenticatedDriverRouteImport.update({
+  id: '/driver',
+  path: '/driver',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -122,12 +169,27 @@ const AuthenticatedContainersRoute = AuthenticatedContainersRouteImport.update({
   path: '/containers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCarriersRoute = AuthenticatedCarriersRouteImport.update({
+  id: '/carriers',
+  path: '/carriers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHistoryIndexRoute =
   AuthenticatedHistoryIndexRouteImport.update({
     id: '/history/',
     path: '/history/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicTrackingRoute = ApiPublicTrackingRouteImport.update({
+  id: '/api/public/tracking',
+  path: '/api/public/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSheetDrainRoute = ApiPublicSheetDrainRouteImport.update({
   id: '/api/public/sheet-drain',
   path: '/api/public/sheet-drain',
@@ -153,18 +215,27 @@ const AuthenticatedHistoryLoadIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/billing': typeof AuthenticatedBillingRoute
+  '/carriers': typeof AuthenticatedCarriersRoute
   '/containers': typeof AuthenticatedContainersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/driver': typeof AuthenticatedDriverRoute
   '/drivers': typeof AuthenticatedDriversRoute
+  '/exceptions': typeof AuthenticatedExceptionsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/planning': typeof AuthenticatedPlanningRoute
+  '/rates': typeof AuthenticatedRatesRoute
+  '/reconciliation': typeof AuthenticatedReconciliationRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shipments': typeof AuthenticatedShipmentsRoute
   '/stores': typeof AuthenticatedStoresRoute
+  '/tenders': typeof AuthenticatedTendersRoute
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
@@ -172,23 +243,33 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
+  '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/billing': typeof AuthenticatedBillingRoute
+  '/carriers': typeof AuthenticatedCarriersRoute
   '/containers': typeof AuthenticatedContainersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/driver': typeof AuthenticatedDriverRoute
   '/drivers': typeof AuthenticatedDriversRoute
+  '/exceptions': typeof AuthenticatedExceptionsRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/planning': typeof AuthenticatedPlanningRoute
+  '/rates': typeof AuthenticatedRatesRoute
+  '/reconciliation': typeof AuthenticatedReconciliationRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shipments': typeof AuthenticatedShipmentsRoute
   '/stores': typeof AuthenticatedStoresRoute
+  '/tenders': typeof AuthenticatedTendersRoute
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
@@ -196,6 +277,7 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
+  '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRoutesById {
@@ -203,18 +285,27 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/billing': typeof AuthenticatedBillingRoute
+  '/_authenticated/carriers': typeof AuthenticatedCarriersRoute
   '/_authenticated/containers': typeof AuthenticatedContainersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/driver': typeof AuthenticatedDriverRoute
   '/_authenticated/drivers': typeof AuthenticatedDriversRoute
+  '/_authenticated/exceptions': typeof AuthenticatedExceptionsRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/_authenticated/loads': typeof AuthenticatedLoadsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/_authenticated/planning': typeof AuthenticatedPlanningRoute
+  '/_authenticated/rates': typeof AuthenticatedRatesRoute
+  '/_authenticated/reconciliation': typeof AuthenticatedReconciliationRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shipments': typeof AuthenticatedShipmentsRoute
   '/_authenticated/stores': typeof AuthenticatedStoresRoute
+  '/_authenticated/tenders': typeof AuthenticatedTendersRoute
   '/_authenticated/tomorrow': typeof AuthenticatedTomorrowRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/yard': typeof AuthenticatedYardRoute
@@ -222,6 +313,7 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
+  '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
 }
 export interface FileRouteTypes {
@@ -229,18 +321,27 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/billing'
+    | '/carriers'
     | '/containers'
     | '/dashboard'
+    | '/driver'
     | '/drivers'
+    | '/exceptions'
+    | '/integrations'
     | '/kiosk'
     | '/loads'
     | '/onboarding'
     | '/orders'
+    | '/planning'
+    | '/rates'
+    | '/reconciliation'
     | '/reports'
     | '/search'
     | '/settings'
     | '/shipments'
     | '/stores'
+    | '/tenders'
     | '/tomorrow'
     | '/users'
     | '/yard'
@@ -248,23 +349,33 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
+    | '/api/public/tracking'
     | '/history/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/billing'
+    | '/carriers'
     | '/containers'
     | '/dashboard'
+    | '/driver'
     | '/drivers'
+    | '/exceptions'
+    | '/integrations'
     | '/kiosk'
     | '/loads'
     | '/onboarding'
     | '/orders'
+    | '/planning'
+    | '/rates'
+    | '/reconciliation'
     | '/reports'
     | '/search'
     | '/settings'
     | '/shipments'
     | '/stores'
+    | '/tenders'
     | '/tomorrow'
     | '/users'
     | '/yard'
@@ -272,24 +383,34 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
+    | '/api/public/tracking'
     | '/history'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/billing'
+    | '/_authenticated/carriers'
     | '/_authenticated/containers'
     | '/_authenticated/dashboard'
+    | '/_authenticated/driver'
     | '/_authenticated/drivers'
+    | '/_authenticated/exceptions'
+    | '/_authenticated/integrations'
     | '/_authenticated/kiosk'
     | '/_authenticated/loads'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
+    | '/_authenticated/planning'
+    | '/_authenticated/rates'
+    | '/_authenticated/reconciliation'
     | '/_authenticated/reports'
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/shipments'
     | '/_authenticated/stores'
+    | '/_authenticated/tenders'
     | '/_authenticated/tomorrow'
     | '/_authenticated/users'
     | '/_authenticated/yard'
@@ -297,6 +418,7 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
+    | '/api/public/tracking'
     | '/_authenticated/history/'
   fileRoutesById: FileRoutesById
 }
@@ -307,6 +429,7 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSheetDrainRoute: typeof ApiPublicSheetDrainRoute
+  ApiPublicTrackingRoute: typeof ApiPublicTrackingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -353,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTomorrowRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tenders': {
+      id: '/_authenticated/tenders'
+      path: '/tenders'
+      fullPath: '/tenders'
+      preLoaderRoute: typeof AuthenticatedTendersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/stores': {
       id: '/_authenticated/stores'
       path: '/stores'
@@ -388,6 +518,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reconciliation': {
+      id: '/_authenticated/reconciliation'
+      path: '/reconciliation'
+      fullPath: '/reconciliation'
+      preLoaderRoute: typeof AuthenticatedReconciliationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rates': {
+      id: '/_authenticated/rates'
+      path: '/rates'
+      fullPath: '/rates'
+      preLoaderRoute: typeof AuthenticatedRatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/planning': {
+      id: '/_authenticated/planning'
+      path: '/planning'
+      fullPath: '/planning'
+      preLoaderRoute: typeof AuthenticatedPlanningRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/orders': {
       id: '/_authenticated/orders'
       path: '/orders'
@@ -416,11 +567,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKioskRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/integrations': {
+      id: '/_authenticated/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/exceptions': {
+      id: '/_authenticated/exceptions'
+      path: '/exceptions'
+      fullPath: '/exceptions'
+      preLoaderRoute: typeof AuthenticatedExceptionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/drivers': {
       id: '/_authenticated/drivers'
       path: '/drivers'
       fullPath: '/drivers'
       preLoaderRoute: typeof AuthenticatedDriversRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/driver': {
+      id: '/_authenticated/driver'
+      path: '/driver'
+      fullPath: '/driver'
+      preLoaderRoute: typeof AuthenticatedDriverRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -437,12 +609,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContainersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/carriers': {
+      id: '/_authenticated/carriers'
+      path: '/carriers'
+      fullPath: '/carriers'
+      preLoaderRoute: typeof AuthenticatedCarriersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/billing': {
+      id: '/_authenticated/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AuthenticatedBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/history/': {
       id: '/_authenticated/history/'
       path: '/history'
       fullPath: '/history/'
       preLoaderRoute: typeof AuthenticatedHistoryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/tracking': {
+      id: '/api/public/tracking'
+      path: '/api/public/tracking'
+      fullPath: '/api/public/tracking'
+      preLoaderRoute: typeof ApiPublicTrackingRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/sheet-drain': {
       id: '/api/public/sheet-drain'
@@ -476,18 +669,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
+  AuthenticatedCarriersRoute: typeof AuthenticatedCarriersRoute
   AuthenticatedContainersRoute: typeof AuthenticatedContainersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDriverRoute: typeof AuthenticatedDriverRoute
   AuthenticatedDriversRoute: typeof AuthenticatedDriversRoute
+  AuthenticatedExceptionsRoute: typeof AuthenticatedExceptionsRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
   AuthenticatedLoadsRoute: typeof AuthenticatedLoadsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
+  AuthenticatedPlanningRoute: typeof AuthenticatedPlanningRoute
+  AuthenticatedRatesRoute: typeof AuthenticatedRatesRoute
+  AuthenticatedReconciliationRoute: typeof AuthenticatedReconciliationRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShipmentsRoute: typeof AuthenticatedShipmentsRoute
   AuthenticatedStoresRoute: typeof AuthenticatedStoresRoute
+  AuthenticatedTendersRoute: typeof AuthenticatedTendersRoute
   AuthenticatedTomorrowRoute: typeof AuthenticatedTomorrowRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedYardRoute: typeof AuthenticatedYardRoute
@@ -496,18 +698,27 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBillingRoute: AuthenticatedBillingRoute,
+  AuthenticatedCarriersRoute: AuthenticatedCarriersRoute,
   AuthenticatedContainersRoute: AuthenticatedContainersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDriverRoute: AuthenticatedDriverRoute,
   AuthenticatedDriversRoute: AuthenticatedDriversRoute,
+  AuthenticatedExceptionsRoute: AuthenticatedExceptionsRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKioskRoute: AuthenticatedKioskRoute,
   AuthenticatedLoadsRoute: AuthenticatedLoadsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
+  AuthenticatedPlanningRoute: AuthenticatedPlanningRoute,
+  AuthenticatedRatesRoute: AuthenticatedRatesRoute,
+  AuthenticatedReconciliationRoute: AuthenticatedReconciliationRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShipmentsRoute: AuthenticatedShipmentsRoute,
   AuthenticatedStoresRoute: AuthenticatedStoresRoute,
+  AuthenticatedTendersRoute: AuthenticatedTendersRoute,
   AuthenticatedTomorrowRoute: AuthenticatedTomorrowRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedYardRoute: AuthenticatedYardRoute,
@@ -525,6 +736,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSheetDrainRoute: ApiPublicSheetDrainRoute,
+  ApiPublicTrackingRoute: ApiPublicTrackingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

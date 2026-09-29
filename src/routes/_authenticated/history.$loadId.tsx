@@ -7,7 +7,7 @@ import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/history/$loadId")({
   beforeLoad: guard({ product: "trailer" }),
-  head: () => ({ meta: [{ title: "Trailer Timeline — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Trailer Timeline — Me Do Logistics" }] }),
   component: HistoryDetail,
 });
 

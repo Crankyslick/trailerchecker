@@ -83,15 +83,24 @@ export type Client = { id: string; name: string };
 // alias scopes the `as any` escape hatch to just those calls below, rather
 // than losing type-safety on the rest of the file.
 const sb = supabase as unknown as {
-  from: (table: string) => ReturnType<typeof supabase.from>;
-  rpc: (fn: string, args: Record<string, unknown>) => ReturnType<typeof supabase.rpc>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated Database types don't know this table/RPC yet
+  from: (table: string) => any;
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated Database types don't know this table/RPC yet
+  ) => Promise<{ data: any; error: { message: string } | null }>;
 };
 
 function realtimeSubscribe(table: string, onChange: () => void) {
   let ch: ReturnType<typeof supabase.channel> | undefined;
   try {
     ch = supabase.channel(`${table}-stream-${Math.random().toString(36).slice(2)}`);
-    ch.on("postgres_changes", { event: "*", schema: "public", table }, () => void onChange()).subscribe();
+    ch.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table },
+      () => void onChange(),
+    ).subscribe();
   } catch (e) {
     console.error(`[realtime:${table}] subscribe failed`, e);
   }
@@ -117,18 +126,37 @@ export function useClients() {
   });
 }
 
-/** Order list — most recent first. */
+export type LoadSummary = {
+  id: string;
+  driver: string | null;
+  outbound_trailer: string | null;
+  return_trailer: string | null;
+  status: string;
+  pro_number: string | null;
+};
+
+export type LegWithLoad = LegRow & { loads: LoadSummary[] };
+export type ShipmentWithDetail = ShipmentRow & { stops: StopRow[]; legs: LegWithLoad[] };
+export type OrderWithShipment = OrderRow & {
+  shipment_orders: { shipment_id: string; shipments: ShipmentWithDetail }[];
+};
+
+const LEG_LOAD_EMBED = `*, loads:trailer_loads ( id, driver, outbound_trailer, return_trailer, status, pro_number )`;
+
+/** Order list with each order's shipment, stops, legs, and dispatched load embedded. */
 export function useOrders() {
   const query = useQuery({
-    queryKey: ["orders"],
-    queryFn: async (): Promise<OrderRow[]> => {
+    queryKey: ["orders", "with-shipment"],
+    queryFn: async (): Promise<OrderWithShipment[]> => {
       const { data, error } = await sb
         .from("orders")
-        .select("*")
+        .select(
+          `*, shipment_orders ( shipment_id, shipments ( *, stops (*), legs (${LEG_LOAD_EMBED}) ) )`,
+        )
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw new Error(error.message);
-      return (data ?? []) as OrderRow[];
+      return (data ?? []) as OrderWithShipment[];
     },
     retry: 2,
     placeholderData: keepPreviousData,
@@ -142,22 +170,24 @@ export function useOrders() {
   }, [query.error, query.dataUpdatedAt]);
 
   useEffect(() => realtimeSubscribe("orders", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtimeSubscribe("shipments", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtimeSubscribe("trailer_loads", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return query;
 }
 
-/** Shipments with their stops and legs nested, most recent first. */
+/** Shipments with their stops, legs, and each leg's dispatched load embedded. */
 export function useShipments() {
   const query = useQuery({
-    queryKey: ["shipments"],
-    queryFn: async (): Promise<(ShipmentRow & { stops: StopRow[]; legs: LegRow[] })[]> => {
+    queryKey: ["shipments", "with-detail"],
+    queryFn: async (): Promise<ShipmentWithDetail[]> => {
       const { data, error } = await sb
         .from("shipments")
-        .select("*, stops(*), legs(*)")
+        .select(`*, stops (*), legs (${LEG_LOAD_EMBED})`)
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw new Error(error.message);
-      return (data ?? []) as (ShipmentRow & { stops: StopRow[]; legs: LegRow[] })[];
+      return (data ?? []) as ShipmentWithDetail[];
     },
     retry: 2,
     placeholderData: keepPreviousData,
@@ -173,6 +203,7 @@ export function useShipments() {
   useEffect(() => realtimeSubscribe("shipments", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => realtimeSubscribe("stops", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => realtimeSubscribe("legs", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtimeSubscribe("trailer_loads", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return query;
 }
@@ -239,6 +270,237 @@ export async function addShipmentLeg(input: {
     p_shipment_id: input.shipmentId,
     p_origin_stop_id: input.originStopId,
     p_destination_stop_id: input.destinationStopId,
+  });
+  if (error) throw new Error(error.message);
+}
+
+// ---------------------------------------------------------------------------
+// Load-planning workspace: equipment, plannable legs, and the assign action.
+// ---------------------------------------------------------------------------
+
+export type Equipment = {
+  id: string;
+  equipment_number: string;
+  equipment_type: string;
+  status: string;
+};
+
+export function useEquipment() {
+  const query = useQuery({
+    queryKey: ["equipment"],
+    queryFn: async (): Promise<Equipment[]> => {
+      const { data, error } = await sb
+        .from("equipment")
+        .select("id, equipment_number, equipment_type, status")
+        .order("equipment_number");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Equipment[];
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  useEffect(() => realtimeSubscribe("equipment", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return query;
+}
+
+export type PlanningLeg = {
+  id: string;
+  leg_sequence: number;
+  status: LegStatus;
+  shipments: { id: string; shipment_number: string; status: string } | null;
+  origin: { location_name: string | null; location_code: string | null } | null;
+  destination: { location_name: string | null; location_code: string | null } | null;
+  loads: {
+    id: string;
+    driver_id: string | null;
+    equipment_id: string | null;
+    carrier_id: string | null;
+    driver: string | null;
+    outbound_trailer: string | null;
+    status: string;
+  }[];
+  tenders: {
+    id: string;
+    carrier_id: string;
+    status: TenderStatus;
+    offered_rate: number | null;
+    offered_at: string;
+  }[];
+};
+
+/** Every leg, with its shipment, both stop ends, its load, and any tenders embedded. */
+export function usePlanningLegs() {
+  const query = useQuery({
+    queryKey: ["legs", "planning"],
+    queryFn: async (): Promise<PlanningLeg[]> => {
+      const { data, error } = await sb
+        .from("legs")
+        .select(
+          `id, leg_sequence, status,
+           shipments ( id, shipment_number, status ),
+           origin:stops!legs_origin_stop_id_fkey ( location_name, location_code ),
+           destination:stops!legs_destination_stop_id_fkey ( location_name, location_code ),
+           loads:trailer_loads ( id, driver_id, equipment_id, carrier_id, driver, outbound_trailer, status ),
+           tenders ( id, carrier_id, status, offered_rate, offered_at )`,
+        )
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as PlanningLeg[];
+    },
+    retry: 2,
+    placeholderData: keepPreviousData,
+  });
+
+  useEffect(() => {
+    reportDataHealth("planning-legs", {
+      error: query.error ? (query.error as Error).message : null,
+      updatedAt: query.dataUpdatedAt || null,
+    });
+  }, [query.error, query.dataUpdatedAt]);
+
+  useEffect(() => realtimeSubscribe("legs", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtimeSubscribe("trailer_loads", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtimeSubscribe("tenders", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return query;
+}
+
+export async function planLeg(input: {
+  legId: string;
+  driverId: string | null;
+  equipmentId: string | null;
+}) {
+  const { data, error } = await sb.rpc("plan_leg", {
+    p_leg_id: input.legId,
+    p_driver_id: input.driverId,
+    p_equipment_id: input.equipmentId,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Carriers + tendering
+// ---------------------------------------------------------------------------
+
+export type Carrier = {
+  id: string;
+  name: string;
+  scac_code: string | null;
+  mc_number: string | null;
+  dot_number: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  status: string;
+};
+
+export function useCarriers() {
+  const query = useQuery({
+    queryKey: ["carriers"],
+    queryFn: async (): Promise<Carrier[]> => {
+      const { data, error } = await sb
+        .from("carriers")
+        .select(
+          "id, name, scac_code, mc_number, dot_number, contact_name, contact_email, contact_phone, status",
+        )
+        .order("name");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Carrier[];
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  useEffect(() => realtimeSubscribe("carriers", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return query;
+}
+
+export async function createCarrier(input: {
+  name: string;
+  scacCode: string | null;
+  mcNumber: string | null;
+  dotNumber: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+}) {
+  const { error } = await sb.from("carriers").insert({
+    name: input.name,
+    scac_code: input.scacCode,
+    mc_number: input.mcNumber,
+    dot_number: input.dotNumber,
+    contact_name: input.contactName ?? null,
+    contact_email: input.contactEmail ?? null,
+    contact_phone: input.contactPhone ?? null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Direct table update — RLS's existing "company write carriers" policy
+ * already permits this for dispatcher/admin, so no new RPC is needed. */
+export async function updateCarrier(
+  id: string,
+  patch: Partial<{
+    name: string;
+    scacCode: string | null;
+    mcNumber: string | null;
+    dotNumber: string | null;
+    contactName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    status: string;
+  }>,
+) {
+  const row: Record<string, unknown> = {};
+  if (patch.name !== undefined) row.name = patch.name;
+  if (patch.scacCode !== undefined) row.scac_code = patch.scacCode;
+  if (patch.mcNumber !== undefined) row.mc_number = patch.mcNumber;
+  if (patch.dotNumber !== undefined) row.dot_number = patch.dotNumber;
+  if (patch.contactName !== undefined) row.contact_name = patch.contactName;
+  if (patch.contactEmail !== undefined) row.contact_email = patch.contactEmail;
+  if (patch.contactPhone !== undefined) row.contact_phone = patch.contactPhone;
+  if (patch.status !== undefined) row.status = patch.status;
+
+  const { error } = await sb.from("carriers").update(row).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export type TenderStatus = "OFFERED" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "RESCINDED";
+export type Tender = {
+  id: string;
+  leg_id: string;
+  carrier_id: string;
+  status: TenderStatus;
+  offered_rate: number | null;
+  offered_at: string;
+  responded_at: string | null;
+};
+
+export async function createTender(input: {
+  legId: string;
+  carrierId: string;
+  offeredRate: number | null;
+}) {
+  const { error } = await sb.rpc("create_tender", {
+    p_leg_id: input.legId,
+    p_carrier_id: input.carrierId,
+    p_offered_rate: input.offeredRate,
+    p_expires_at: null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function respondToTender(input: {
+  tenderId: string;
+  response: "ACCEPTED" | "REJECTED";
+}) {
+  const { error } = await sb.rpc("respond_to_tender", {
+    p_tender_id: input.tenderId,
+    p_response: input.response,
+    p_response_notes: null,
   });
   if (error) throw new Error(error.message);
 }

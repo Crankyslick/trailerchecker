@@ -7,7 +7,7 @@ import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/drivers")({
   beforeLoad: guard({ product: "trailer" }),
-  head: () => ({ meta: [{ title: "Driver Board — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Driver Board — Me Do Logistics" }] }),
   component: DriverBoard,
 });
 

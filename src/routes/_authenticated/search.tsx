@@ -9,7 +9,7 @@ import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/search")({
   beforeLoad: guard({ product: "trailer" }),
-  head: () => ({ meta: [{ title: "Trailer Search — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Trailer Search — Me Do Logistics" }] }),
   component: SearchPage,
 });
 

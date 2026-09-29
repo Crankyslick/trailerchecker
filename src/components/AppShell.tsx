@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DataHealthBanner } from "@/components/DataHealthBanner";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
 import { useYardPolicy } from "@/hooks/use-company-settings";
@@ -114,6 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {profile?.full_name ?? profile?.email ?? "Signed in"} · {role}
               </span>
             </div>
+            <NotificationBell />
             <button
               onClick={signOut}
               title="Sign out"
