@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, PackageCheck, Truck, MapPin } from "lucide-react";
+import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import { useCurrentUser } from "@/hooks/use-auth";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   useMyLoads,
+  useNotifications,
+  markNotificationRead,
   driverUpdateStatus,
   flagException,
   capturePod,
