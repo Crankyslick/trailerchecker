@@ -16,7 +16,7 @@ import { useDrivers } from "@/hooks/use-drivers";
 
 export const Route = createFileRoute("/_authenticated/planning")({
   beforeLoad: guard({ product: "trailer" }),
-  head: () => ({ meta: [{ title: "Load Planning — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Load Planning — Me Do Logistics" }] }),
   component: PlanningPage,
 });
 

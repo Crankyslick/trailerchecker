@@ -7,7 +7,7 @@ import { useExceptions, resolveException, type ExceptionLoad } from "@/hooks/use
 
 export const Route = createFileRoute("/_authenticated/exceptions")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "Exceptions — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Exceptions — Me Do Logistics" }] }),
   component: ExceptionsPage,
 });
 

@@ -25,7 +25,7 @@ const bodySchema = z.union([
   z.object({ events: z.array(eventSchema).min(1).max(200) }),
 ]);
 
-export const Route = createFileRoute("/api/webhooks/tracking")({
+export const Route = createFileRoute("/api/public/tracking")({
   server: {
     handlers: {
       POST: async ({ request }) => {

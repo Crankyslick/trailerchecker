@@ -10,7 +10,7 @@ import { useCarriers, createCarrier, updateCarrier, type Carrier } from "@/hooks
 
 export const Route = createFileRoute("/_authenticated/carriers")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "Carriers — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Carriers — Me Do Logistics" }] }),
   component: CarriersPage,
 });
 

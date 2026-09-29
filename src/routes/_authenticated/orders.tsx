@@ -7,7 +7,7 @@ import { useOrders, useClients, createOrder, type OrderWithShipment } from "@/ho
 
 export const Route = createFileRoute("/_authenticated/orders")({
   beforeLoad: guard({ product: "trailer" }),
-  head: () => ({ meta: [{ title: "Orders — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Orders — Me Do Logistics" }] }),
   component: OrdersPage,
 });
 

@@ -15,7 +15,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/billing")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "Billing — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Billing — Me Do Logistics" }] }),
   component: BillingPage,
 });
 

@@ -10,7 +10,7 @@ import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/yard")({
   beforeLoad: guard({ product: "trailer" }),
-  head: () => ({ meta: [{ title: "Yard Inventory — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Yard Inventory — Me Do Logistics" }] }),
   component: YardPage,
 });
 

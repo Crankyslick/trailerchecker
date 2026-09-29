@@ -8,12 +8,12 @@ export const Route = createFileRoute("/_authenticated/history/")({
   beforeLoad: guard({ product: "trailer" }),
   head: () => ({
     meta: [
-      { title: "Load History Archive — VTCD Dispatch" },
+      { title: "Load History Archive — Me Do Logistics" },
       {
         name: "description",
         content: "Archived past loads with date range, schedule ID and trailer number filters.",
       },
-      { property: "og:title", content: "Load History Archive — VTCD Dispatch" },
+      { property: "og:title", content: "Load History Archive — Me Do Logistics" },
       {
         property: "og:description",
         content:

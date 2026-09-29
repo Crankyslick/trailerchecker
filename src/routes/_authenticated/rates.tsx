@@ -8,7 +8,7 @@ import { useClients } from "@/hooks/use-orders";
 
 export const Route = createFileRoute("/_authenticated/rates")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "Rates — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Rates — Me Do Logistics" }] }),
   component: RatesPage,
 });
 

@@ -18,7 +18,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/driver")({
   beforeLoad: guard({ roles: ["driver", "admin", "dispatcher", "owner"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "My Loads — VTCD" }] }),
+  head: () => ({ meta: [{ title: "My Loads — Me Do Logistics" }] }),
   component: DriverPage,
 });
 

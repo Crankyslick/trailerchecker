@@ -4,7 +4,7 @@ import { useReconciliation, type ReconciliationLoad } from "@/hooks/use-integrat
 
 export const Route = createFileRoute("/_authenticated/reconciliation")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "Reconciliation — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Reconciliation — Me Do Logistics" }] }),
   component: ReconciliationPage,
 });
 

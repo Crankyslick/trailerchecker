@@ -13,7 +13,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   beforeLoad: guard({ roles: ["owner", "admin"], product: "trailer" }),
-  head: () => ({ meta: [{ title: "Integrations — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Integrations — Me Do Logistics" }] }),
   component: IntegrationsPage,
 });
 
@@ -39,8 +39,8 @@ function WebhookSection() {
   const [busy, setBusy] = useState(false);
   const url =
     typeof window !== "undefined"
-      ? `${window.location.origin}/api/webhooks/tracking`
-      : "/api/webhooks/tracking";
+      ? `${window.location.origin}/api/public/tracking`
+      : "/api/public/tracking";
 
   async function rotate() {
     setBusy(true);

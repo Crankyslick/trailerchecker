@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/shipments")({
   validateSearch: (s: Record<string, unknown>) => ({
     open: typeof s.open === "string" ? s.open : undefined,
   }),
-  head: () => ({ meta: [{ title: "Shipments — VTCD Dispatch" }] }),
+  head: () => ({ meta: [{ title: "Shipments — Me Do Logistics" }] }),
   component: ShipmentsPage,
 });
 
