@@ -16,18 +16,18 @@ export type OrderStatus = Database["public"]["Enums"]["order_status"];
 
 /** Load statuses that mean work is under way on the leg. */
 const ACTIVE_STATUSES: LoadStatus[] = [
-  "Assigned",
   "Heading To DC",
   "Loaded",
   "En Route",
   "Picked Up Return Trailer",
   "Returning",
   "At Yard",
-  "Delayed",
+  "Delivered",
+  "Returned To DC",
 ];
 
 /** Load statuses that finish the leg. */
-const COMPLETING_STATUSES: LoadStatus[] = ["Delivered", "Returned To DC", "Completed"];
+const COMPLETING_STATUSES: LoadStatus[] = ["Completed"];
 
 /**
  * Leg status a load status implies. `null` means "leave the hierarchy alone"
@@ -36,7 +36,8 @@ const COMPLETING_STATUSES: LoadStatus[] = ["Delivered", "Returned To DC", "Compl
 export function legStatusForLoad(status: LoadStatus): LegStatus | null {
   if (COMPLETING_STATUSES.includes(status)) return "COMPLETED";
   if (ACTIVE_STATUSES.includes(status)) return "ACTIVE";
-  return null;
+  if (status === "Assigned") return "PLANNED";
+  return null; // Delayed / Exception are overlays
 }
 
 /** A completed leg is never pushed back to active by a later load update. */
@@ -44,8 +45,7 @@ export function nextLegStatus(current: LegStatus, loadStatus: LoadStatus): LegSt
   if (current === "CANCELLED") return current;
   const target = legStatusForLoad(loadStatus);
   if (target === null) return current;
-  if (current === "COMPLETED" && target === "ACTIVE") return current;
-  return target;
+  return target; // derived from the load: a reopened load reopens the leg
 }
 
 /** Pickup stop clears once the trailer is loaded; delivery stop on delivery. */
@@ -53,13 +53,11 @@ export function stopsCompletedBy(status: LoadStatus): {
   origin: boolean;
   destination: boolean;
 } {
-  const destination = COMPLETING_STATUSES.includes(status);
+  const destination = ["Delivered", "Returned To DC", "Completed"].includes(status);
   const origin = destination || status === "Loaded" || status === "En Route";
   return { origin, destination };
 }
 
-const legDone = (s: LegStatus) => s === "COMPLETED" || s === "CANCELLED";
-const shipmentDone = (s: ShipmentStatus) => s === "COMPLETED" || s === "CANCELLED";
 
 /** A shipment is complete only when every one of its legs is done. */
 export function rollUpShipmentStatus(
@@ -68,7 +66,11 @@ export function rollUpShipmentStatus(
 ): ShipmentStatus {
   if (current === "CANCELLED") return current;
   if (legStatuses.length === 0) return current;
-  return legStatuses.every(legDone) ? "COMPLETED" : "IN_PROGRESS";
+  const live = legStatuses.filter((s) => s !== "CANCELLED");
+  if (live.length === 0) return current;
+  if (live.every((s) => s === "COMPLETED")) return "COMPLETED";
+  if (live.some((s) => s === "ACTIVE" || s === "COMPLETED")) return "IN_PROGRESS";
+  return current === "IN_PROGRESS" || current === "COMPLETED" ? "PLANNED" : current;
 }
 
 /** An order closes only when every shipment carrying it is done. */
@@ -78,5 +80,8 @@ export function rollUpOrderStatus(
 ): OrderStatus {
   if (current === "CANCELLED") return current;
   if (shipmentStatuses.length === 0) return current;
-  return shipmentStatuses.every(shipmentDone) ? "CLOSED" : "ALLOCATED";
+  const live = shipmentStatuses.filter((s) => s !== "CANCELLED");
+  if (live.length === 0) return current;
+  if (live.every((s) => s === "COMPLETED")) return "CLOSED";
+  return current === "CLOSED" ? "ALLOCATED" : current;
 }
