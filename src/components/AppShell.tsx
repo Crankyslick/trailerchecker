@@ -38,6 +38,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Loads the company's yard rule once and publishes it to the shared
   // aging helpers, so every board colours trailers by the saved thresholds.
   useYardPolicy();
+  const isDispatchStaff = roles.some((r) => r === "owner" || r === "admin" || r === "dispatcher");
+  useDispatcherRealtime(isDispatchStaff);
+  useDriverRealtime(roles.includes("driver"));
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
