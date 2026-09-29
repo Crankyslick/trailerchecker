@@ -122,7 +122,16 @@ function NewRateModal({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-4 space-y-3 text-sm">
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">Customer</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs text-muted-foreground">Customer</label>
+              <button
+                type="button"
+                onClick={() => setAddingCustomer(true)}
+                className="text-xs text-primary hover:underline"
+              >
+                + Add customer
+              </button>
+            </div>
             <select
               className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
               value={clientId}
