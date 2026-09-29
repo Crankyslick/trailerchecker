@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
 import { DataHealthBanner } from "@/components/DataHealthBanner";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useDispatcherRealtime, useDriverRealtime } from "@/hooks/use-realtime";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useSheetOutboxWorker } from "@/hooks/use-sheet-sync";
 import { useYardPolicy } from "@/hooks/use-company-settings";
