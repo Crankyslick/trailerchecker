@@ -34,10 +34,12 @@ describe("yard aging tiers (<24h green, 24-48h yellow, >48h red)", () => {
 });
 
 describe("yardHours", () => {
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => vi.restoreAllMocks());
 
   it("computes elapsed hours from the auto-stamped arrival", () => {
-    vi.useFakeTimers({ now: new Date("2026-09-14T12:00:00Z") });
+    vi.spyOn(Date, "now").mockReturnValue(
+      new Date("2026-09-14T12:00:00Z").getTime(),
+    );
     expect(yardHours("2026-09-14T00:00:00Z")).toBe(12);
     expect(yardHours("2026-09-12T12:00:00Z")).toBe(48);
   });
