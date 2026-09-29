@@ -209,6 +209,12 @@ function NewRateModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
+      {addingCustomer && (
+        <CustomerModal
+          onClose={() => setAddingCustomer(false)}
+          onCreated={(c) => setClientId(c.id)}
+        />
+      )}
     </div>
   );
 }
