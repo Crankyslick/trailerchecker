@@ -2060,6 +2060,7 @@ export type Database = {
       }
       tracking_events: {
         Row: {
+          asset_type: string | null
           company_id: string
           external_id: string
           heading_deg: number | null
@@ -2067,6 +2068,8 @@ export type Database = {
           latitude: number | null
           load_id: string | null
           longitude: number | null
+          matched_by: string | null
+          provider: string | null
           raw_payload: Json | null
           received_at: string
           recorded_at: string
@@ -2074,6 +2077,7 @@ export type Database = {
           speed_mph: number | null
         }
         Insert: {
+          asset_type?: string | null
           company_id: string
           external_id: string
           heading_deg?: number | null
@@ -2081,6 +2085,8 @@ export type Database = {
           latitude?: number | null
           load_id?: string | null
           longitude?: number | null
+          matched_by?: string | null
+          provider?: string | null
           raw_payload?: Json | null
           received_at?: string
           recorded_at: string
@@ -2088,6 +2094,7 @@ export type Database = {
           speed_mph?: number | null
         }
         Update: {
+          asset_type?: string | null
           company_id?: string
           external_id?: string
           heading_deg?: number | null
@@ -2095,6 +2102,8 @@ export type Database = {
           latitude?: number | null
           load_id?: string | null
           longitude?: number | null
+          matched_by?: string | null
+          provider?: string | null
           raw_payload?: Json | null
           received_at?: string
           recorded_at?: string
@@ -3184,40 +3193,83 @@ export type Database = {
         }
         Returns: boolean
       }
-      ingest_tracking_event: {
-        Args: {
-          p_company_id: string
-          p_eta_at?: string
-          p_eta_source?: string
-          p_external_id: string
-          p_heading_deg: number
-          p_latitude: number
-          p_longitude: number
-          p_raw_payload?: Json
-          p_recorded_at: string
-          p_speed_mph: number
-        }
-        Returns: {
-          company_id: string
-          external_id: string
-          heading_deg: number | null
-          id: string
-          latitude: number | null
-          load_id: string | null
-          longitude: number | null
-          raw_payload: Json | null
-          received_at: string
-          recorded_at: string
-          source: string
-          speed_mph: number | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "tracking_events"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      ingest_tracking_event:
+        | {
+            Args: {
+              p_company_id: string
+              p_eta_at?: string
+              p_eta_source?: string
+              p_external_id: string
+              p_heading_deg: number
+              p_latitude: number
+              p_longitude: number
+              p_raw_payload?: Json
+              p_recorded_at: string
+              p_speed_mph: number
+            }
+            Returns: {
+              asset_type: string | null
+              company_id: string
+              external_id: string
+              heading_deg: number | null
+              id: string
+              latitude: number | null
+              load_id: string | null
+              longitude: number | null
+              matched_by: string | null
+              provider: string | null
+              raw_payload: Json | null
+              received_at: string
+              recorded_at: string
+              source: string
+              speed_mph: number | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "tracking_events"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_asset_type?: string
+              p_company_id: string
+              p_eta_at?: string
+              p_eta_source?: string
+              p_external_id: string
+              p_heading_deg: number
+              p_latitude: number
+              p_longitude: number
+              p_provider?: string
+              p_raw_payload?: Json
+              p_recorded_at: string
+              p_speed_mph: number
+            }
+            Returns: {
+              asset_type: string | null
+              company_id: string
+              external_id: string
+              heading_deg: number | null
+              id: string
+              latitude: number | null
+              load_id: string | null
+              longitude: number | null
+              matched_by: string | null
+              provider: string | null
+              raw_payload: Json | null
+              received_at: string
+              recorded_at: string
+              source: string
+              speed_mph: number | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "tracking_events"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       is_assigned_driver: { Args: { p_load_id: string }; Returns: boolean }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
@@ -3314,6 +3366,22 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      recent_tracking_events: {
+        Args: { p_limit?: number }
+        Returns: {
+          asset_type: string
+          external_id: string
+          id: string
+          latitude: number
+          load_schedule_id: string
+          longitude: number
+          matched_by: string
+          provider: string
+          received_at: string
+          recorded_at: string
+          speed_mph: number
+        }[]
       }
       resolve_exception: {
         Args: { p_load_id: string; p_resolution_note: string }
