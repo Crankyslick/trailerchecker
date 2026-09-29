@@ -78,7 +78,9 @@ function RatesPage() {
 }
 
 function NewRateModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
   const { data: clients } = useClients();
+  const [addingCustomer, setAddingCustomer] = useState(false);
   const [clientId, setClientId] = useState("");
   const [origin, setOrigin] = useState("");
   const [dest, setDest] = useState("");
