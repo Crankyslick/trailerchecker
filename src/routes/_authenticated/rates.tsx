@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import { useRateAgreements, createRateAgreement, type RateAgreement } from "@/hooks/use-billing";
 import { useClients } from "@/hooks/use-orders";
+import { CustomerModal } from "@/components/CustomerModal";
 
 export const Route = createFileRoute("/_authenticated/rates")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
