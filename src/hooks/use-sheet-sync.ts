@@ -58,5 +58,5 @@ export function useSheetOutboxWorker(intervalMs = 60_000, enabled = true) {
       clearTimeout(t);
       clearInterval(i);
     };
-  }, [mutateAsync, intervalMs]);
+  }, [mutateAsync, intervalMs, enabled]);
 }
