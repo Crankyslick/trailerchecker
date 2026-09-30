@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, User, Truck, CheckCircle2, Building2 } from "lucide-react";
+import { ArrowRight, User, Truck, CheckCircle2, Building2, Mail } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import {
   usePlanningLegs,
@@ -11,8 +11,10 @@ import {
   createTender,
   respondToTender,
   type PlanningLeg,
+  type Carrier,
 } from "@/hooks/use-orders";
 import { useDrivers } from "@/hooks/use-drivers";
+import { buildTenderMailto, validateOfferedRate } from "@/lib/brokerage";
 
 export const Route = createFileRoute("/_authenticated/planning")({
   beforeLoad: guard({ product: "trailer" }),
@@ -41,8 +43,8 @@ function PlanningPage() {
         <div>
           <h1 className="text-lg font-semibold">Load Planning</h1>
           <p className="text-sm text-muted-foreground">
-            Dispatch a leg with your own driver + trailer, or tender it to a carrier. Either creates
-            the leg's dispatchable load if it doesn't have one yet.
+            Dispatch a leg with your own driver + trailer, or record a carrier offer. Offer records
+            do not contact carriers; use the email draft or another channel and log the reply.
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -87,7 +89,7 @@ function PlanningRow({
   leg: PlanningLeg;
   drivers: { id: string; name: string; active: boolean }[];
   equipment: { id: string; equipment_number: string; equipment_type: string }[];
-  carriers: { id: string; name: string }[];
+  carriers: Carrier[];
 }) {
   const load = leg.loads?.[0];
   const openTender = leg.tenders?.find((t) => t.status === "OFFERED");
@@ -222,13 +224,25 @@ function CarrierControls({
   disabled,
 }: {
   leg: PlanningLeg;
-  carriers: { id: string; name: string }[];
+  carriers: Carrier[];
   openTender: PlanningLeg["tenders"][number] | undefined;
   disabled: boolean;
 }) {
   const [carrierId, setCarrierId] = useState("");
   const [rate, setRate] = useState("");
   const [busy, setBusy] = useState(false);
+  const tenderCarrier = openTender
+    ? carriers.find((carrier) => carrier.id === openTender.carrier_id)
+    : undefined;
+  const emailDraft = openTender
+    ? buildTenderMailto({
+        recipient: tenderCarrier?.contact_email,
+        shipmentNumber: leg.shipments?.shipment_number,
+        origin: leg.origin?.location_name,
+        destination: leg.destination?.location_name,
+        offeredRate: openTender.offered_rate,
+      })
+    : null;
 
   if (openTender) {
     return (
@@ -237,8 +251,21 @@ function CarrierControls({
         <span className="chip border bg-warning/10 text-warning border-warning/30">
           Tender offered
         </span>
+        <span className="text-muted-foreground">{tenderCarrier?.name ?? "Carrier"}</span>
         {openTender.offered_rate != null && (
-          <span className="text-muted-foreground">${openTender.offered_rate}</span>
+          <span className="text-muted-foreground">
+            ${Number(openTender.offered_rate).toFixed(2)}
+          </span>
+        )}
+        {emailDraft ? (
+          <a
+            href={emailDraft}
+            className="inline-flex items-center gap-1 text-primary hover:underline"
+          >
+            <Mail className="h-3 w-3" /> Email draft
+          </a>
+        ) : (
+          <span className="text-[11px] text-warning">No carrier email saved</span>
         )}
         <button
           disabled={busy}
@@ -246,7 +273,7 @@ function CarrierControls({
             setBusy(true);
             try {
               await respondToTender({ tenderId: openTender.id, response: "ACCEPTED" });
-              toast.success("Tender accepted");
+              toast.success("Carrier acceptance recorded");
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Failed");
             } finally {
@@ -255,7 +282,7 @@ function CarrierControls({
           }}
           className="rounded-md bg-success text-white px-2 py-1 font-medium disabled:opacity-40"
         >
-          Accept
+          Log acceptance
         </button>
         <button
           disabled={busy}
@@ -263,7 +290,7 @@ function CarrierControls({
             setBusy(true);
             try {
               await respondToTender({ tenderId: openTender.id, response: "REJECTED" });
-              toast.success("Tender rejected");
+              toast.success("Carrier rejection recorded");
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Failed");
             } finally {
@@ -272,7 +299,7 @@ function CarrierControls({
           }}
           className="rounded-md border border-border px-2 py-1 font-medium text-muted-foreground hover:text-foreground disabled:opacity-40"
         >
-          Reject
+          Log rejection
         </button>
       </div>
     );
@@ -297,6 +324,8 @@ function CarrierControls({
       <input
         disabled={disabled}
         type="number"
+        min="0"
+        step="0.01"
         placeholder="Rate $"
         className="w-20 rounded-md border border-border bg-surface px-2 py-1.5 text-sm disabled:opacity-40"
         value={rate}
@@ -305,6 +334,11 @@ function CarrierControls({
       <button
         disabled={busy || disabled || !carrierId}
         onClick={async () => {
+          const invalidRate = validateOfferedRate(rate);
+          if (invalidRate) {
+            toast.error(invalidRate);
+            return;
+          }
           setBusy(true);
           try {
             await createTender({
@@ -312,7 +346,7 @@ function CarrierControls({
               carrierId,
               offeredRate: rate ? Number(rate) : null,
             });
-            toast.success("Tender sent");
+            toast.success("Offer record created; contact the carrier separately.");
           } catch (e) {
             toast.error(e instanceof Error ? e.message : "Failed to tender");
           } finally {
@@ -321,7 +355,7 @@ function CarrierControls({
         }}
         className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-surface-2 disabled:opacity-40"
       >
-        {busy ? "Sending…" : "Tender"}
+        {busy ? "Recording…" : "Record offer"}
       </button>
     </div>
   );
