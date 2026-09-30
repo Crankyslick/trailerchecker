@@ -41,3 +41,24 @@ export function useSaveYardPolicy() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["company-settings"] }),
   });
 }
+
+export function useBusinessModel() {
+  const query = useQuery({
+    queryKey: ["company-settings", "business-model"],
+    queryFn: readBusinessModel,
+    staleTime: 60_000,
+  });
+  return {
+    model: query.data ?? "ASSET_BASED_3PL",
+    loading: query.isLoading,
+    error: query.error ? (query.error as Error).message : null,
+  };
+}
+
+export function useSaveBusinessModel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (model: BusinessModel) => saveBusinessModel(model),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["company-settings"] }),
+  });
+}
