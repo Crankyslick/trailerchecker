@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { PRODUCTS, type ProductKey } from "@/lib/products";
 import { useTenantProducts } from "@/hooks/use-products";
 import { guard } from "@/lib/route-guard";
+import { BusinessModelCard } from "@/components/BusinessModelCard";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   beforeLoad: guard({ roles: ["owner", "admin"] }),
@@ -108,6 +109,7 @@ function SettingsPage() {
           Compliance thresholds and bidirectional Google Sheet sync.
         </p>
       </div>
+      <BusinessModelCard />
       <ProductsCard />
 
       <YardPolicyCard />

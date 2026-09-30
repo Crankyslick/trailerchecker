@@ -21,6 +21,7 @@ import {
   Tags,
   Send,
   Briefcase,
+  Handshake,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useTenantProducts } from "@/hooks/use-products";
@@ -46,6 +47,13 @@ const items: readonly Item[] = [
     to: "/orders",
     label: "Orders",
     icon: ClipboardList,
+    roles: ["owner", "admin", "dispatcher"],
+    product: "trailer",
+  },
+  {
+    to: "/broker",
+    label: "Broker Desk",
+    icon: Handshake,
     roles: ["owner", "admin", "dispatcher"],
     product: "trailer",
   },

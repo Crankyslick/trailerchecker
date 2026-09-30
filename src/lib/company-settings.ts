@@ -8,6 +8,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { YARD_POLICY, type YardPolicy } from "@/lib/loads";
+import { normalizeBusinessModel, type BusinessModel } from "@/lib/brokerage";
 
 export type { YardPolicy };
 
@@ -22,6 +23,65 @@ export type CompanySettingsRow = {
   yard_deadline_hours: number;
   yard_critical_hours: number;
 };
+
+/** Read the org operating profile; missing-column fallback keeps older deployments usable. */
+export async function readBusinessModel(): Promise<BusinessModel> {
+  const { data, error } = await supabase
+    .from("company_settings")
+    .select("business_model")
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    if (isMissingBusinessModelColumn(error)) return "ASSET_BASED_3PL";
+    throw new Error(error.message);
+  }
+  return normalizeBusinessModel((data as { business_model?: unknown } | null)?.business_model);
+}
+
+/** Settings are admin-controlled by the existing company_settings RLS policies. */
+export async function saveBusinessModel(model: BusinessModel): Promise<void> {
+  if (!isBusinessModel(model)) throw new Error("Choose a supported business model.");
+
+  const { data: existing, error: readError } = await supabase
+    .from("company_settings")
+    .select("company_id")
+    .limit(1)
+    .maybeSingle();
+  if (readError) throw new Error(readError.message);
+
+  if (existing) {
+    const { error } = await supabase
+      .from("company_settings")
+      .update({ business_model: model })
+      .eq("company_id", (existing as { company_id: string }).company_id);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .select("id")
+    .limit(1)
+    .maybeSingle();
+  if (companyError) throw new Error(companyError.message);
+  if (!company) throw new Error("No company is linked to your account.");
+  const { error } = await supabase
+    .from("company_settings")
+    .insert({ company_id: (company as { id: string }).id, business_model: model });
+  if (error) throw new Error(error.message);
+}
+
+function isBusinessModel(value: string): value is BusinessModel {
+  return value === "ASSET_BASED_3PL" || value === "FREIGHT_BROKER" || value === "HYBRID";
+}
+
+function isMissingBusinessModelColumn(error: { code?: string; message: string }) {
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    error.message.toLowerCase().includes("business_model")
+  );
+}
 
 /** Current company policy, falling back to the shipped defaults. */
 export async function readYardPolicy(): Promise<YardPolicy> {

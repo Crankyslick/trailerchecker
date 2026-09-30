@@ -36,6 +36,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedContainersRouteImport } from './routes/_authenticated/containers'
 import { Route as AuthenticatedCarriersRouteImport } from './routes/_authenticated/carriers'
+import { Route as AuthenticatedBrokerRouteImport } from './routes/_authenticated/broker'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
 import { Route as ApiPublicTrackingRouteImport } from './routes/api/public/tracking'
@@ -181,6 +182,11 @@ const AuthenticatedCarriersRoute = AuthenticatedCarriersRouteImport.update({
   path: '/carriers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBrokerRoute = AuthenticatedBrokerRouteImport.update({
+  id: '/broker',
+  path: '/broker',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/billing': typeof AuthenticatedBillingRoute
+  '/broker': typeof AuthenticatedBrokerRoute
   '/carriers': typeof AuthenticatedCarriersRoute
   '/containers': typeof AuthenticatedContainersRoute
   '/customers': typeof AuthenticatedCustomersRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/billing': typeof AuthenticatedBillingRoute
+  '/broker': typeof AuthenticatedBrokerRoute
   '/carriers': typeof AuthenticatedCarriersRoute
   '/containers': typeof AuthenticatedContainersRoute
   '/customers': typeof AuthenticatedCustomersRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
+  '/_authenticated/broker': typeof AuthenticatedBrokerRoute
   '/_authenticated/carriers': typeof AuthenticatedCarriersRoute
   '/_authenticated/containers': typeof AuthenticatedContainersRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/billing'
+    | '/broker'
     | '/carriers'
     | '/containers'
     | '/customers'
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/billing'
+    | '/broker'
     | '/carriers'
     | '/containers'
     | '/customers'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/billing'
+    | '/_authenticated/broker'
     | '/_authenticated/carriers'
     | '/_authenticated/containers'
     | '/_authenticated/customers'
@@ -648,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCarriersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/broker': {
+      id: '/_authenticated/broker'
+      path: '/broker'
+      fullPath: '/broker'
+      preLoaderRoute: typeof AuthenticatedBrokerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/billing': {
       id: '/_authenticated/billing'
       path: '/billing'
@@ -709,6 +728,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
+  AuthenticatedBrokerRoute: typeof AuthenticatedBrokerRoute
   AuthenticatedCarriersRoute: typeof AuthenticatedCarriersRoute
   AuthenticatedContainersRoute: typeof AuthenticatedContainersRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
@@ -739,6 +759,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
+  AuthenticatedBrokerRoute: AuthenticatedBrokerRoute,
   AuthenticatedCarriersRoute: AuthenticatedCarriersRoute,
   AuthenticatedContainersRoute: AuthenticatedContainersRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,

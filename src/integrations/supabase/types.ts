@@ -388,6 +388,7 @@ export type Database = {
       }
       company_settings: {
         Row: {
+          business_model: string
           company_id: string
           created_at: string
           updated_at: string
@@ -395,6 +396,7 @@ export type Database = {
           yard_deadline_hours: number
         }
         Insert: {
+          business_model?: string
           company_id: string
           created_at?: string
           updated_at?: string
@@ -402,6 +404,7 @@ export type Database = {
           yard_deadline_hours?: number
         }
         Update: {
+          business_model?: string
           company_id?: string
           created_at?: string
           updated_at?: string
