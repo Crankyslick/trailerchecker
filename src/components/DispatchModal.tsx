@@ -7,6 +7,8 @@ import { queueSheetUpdate } from "@/lib/sheet-outbox";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompanySites } from "@/hooks/use-sites";
+import { triggerAlert } from "@/lib/alerts/triggerAlert";
+
 
 type Props = {
   open: boolean;
@@ -157,7 +159,11 @@ export function DispatchModal({
         void drain.mutateAsync().catch(() => undefined);
       }
 
+      // Fire-and-forget driver text/email; never blocks or fails the dispatch.
+      void triggerAlert("dispatch", loadId);
+
       toast.success(`Trailer ${trailer} dispatched to ${nextDestination}`);
+
       onDispatched();
       onClose();
     } catch (e) {

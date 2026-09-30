@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerAlert } from "@/lib/alerts/triggerAlert";
+
 
 const sb = supabase as unknown as {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated Database types don't know this table/RPC yet
@@ -97,7 +99,10 @@ export async function driverUpdateStatus(loadId: string, newStatus: string) {
 export async function flagException(loadId: string, reason: string) {
   const { error } = await sb.rpc("flag_exception", { p_load_id: loadId, p_reason: reason });
   if (error) throw new Error(error.message);
+  // Fire-and-forget: an alert failure must never fail the driver's action.
+  void triggerAlert("exception", loadId);
 }
+
 
 export async function resolveException(loadId: string, resolutionNote: string | null) {
   const { error } = await sb.rpc("resolve_exception", {
@@ -122,7 +127,9 @@ export async function capturePod(input: {
     p_notes: input.notes,
   });
   if (error) throw new Error(error.message);
+  void triggerAlert("pod", input.loadId);
 }
+
 
 /** Uploads a POD photo to the private pod-photos bucket; returns its storage path. */
 export async function uploadPodPhoto(

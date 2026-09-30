@@ -42,6 +42,7 @@ import { Route as ApiPublicTrackingRouteImport } from './routes/api/public/track
 import { Route as ApiPublicSheetDrainRouteImport } from './routes/api/public/sheet-drain'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiAlertsNotifyRouteImport } from './routes/api/alerts/notify'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -211,6 +212,11 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAlertsNotifyRoute = ApiAlertsNotifyRouteImport.update({
+  id: '/api/alerts/notify',
+  path: '/api/alerts/notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedHistoryLoadIdRoute =
   AuthenticatedHistoryLoadIdRouteImport.update({
     id: '/history/$loadId',
@@ -247,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/yard': typeof AuthenticatedYardRoute
   '/_authenticated/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
+  '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
@@ -356,6 +365,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/yard'
     | '/history/$loadId'
+    | '/api/alerts/notify'
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
@@ -391,6 +401,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/yard'
     | '/history/$loadId'
+    | '/api/alerts/notify'
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users'
     | '/_authenticated/yard'
     | '/_authenticated/history/$loadId'
+    | '/api/alerts/notify'
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
@@ -438,6 +450,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiAlertsNotifyRoute: typeof ApiAlertsNotifyRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSheetDrainRoute: typeof ApiPublicSheetDrainRoute
@@ -677,6 +690,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/alerts/notify': {
+      id: '/api/alerts/notify'
+      path: '/api/alerts/notify'
+      fullPath: '/api/alerts/notify'
+      preLoaderRoute: typeof ApiAlertsNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/history/$loadId': {
       id: '/_authenticated/history/$loadId'
       path: '/history/$loadId'
@@ -754,6 +774,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiAlertsNotifyRoute: ApiAlertsNotifyRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSheetDrainRoute: ApiPublicSheetDrainRoute,
