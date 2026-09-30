@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Wifi, WifiOff, LogOut, ShieldCheck } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { Wifi, Settings as SettingsIcon, LogOut, ShieldCheck } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
