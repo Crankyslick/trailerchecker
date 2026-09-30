@@ -125,7 +125,9 @@ export async function capturePod(input: {
     p_notes: input.notes,
   });
   if (error) throw new Error(error.message);
+  void triggerAlert("pod", input.loadId);
 }
+
 
 /** Uploads a POD photo to the private pod-photos bucket; returns its storage path. */
 export async function uploadPodPhoto(
