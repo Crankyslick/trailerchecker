@@ -63,16 +63,19 @@ type CarrierFormValues = z.infer<typeof carrierSchema>;
 function CarriersPage() {
   const { data: carriers, isLoading } = useCarriers();
   const [modal, setModal] = useState<"add" | Carrier | null>(null);
+  const qc = useQueryClient();
 
   async function toggleActive(c: Carrier) {
     const next = c.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
       await updateCarrier(c.id, { status: next });
+      await qc.invalidateQueries({ queryKey: ["carriers"] });
       toast.success(`${c.name} marked ${next.toLowerCase()}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to update carrier");
     }
   }
+
 
   return (
     <div className="p-4 md:p-6 space-y-4">
