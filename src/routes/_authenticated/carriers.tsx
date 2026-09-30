@@ -160,6 +160,8 @@ function CarriersPage() {
 
 function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClose: () => void }) {
   const isEdit = !!carrier;
+  const qc = useQueryClient();
+
   const {
     register,
     handleSubmit,
