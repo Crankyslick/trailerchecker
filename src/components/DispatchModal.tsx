@@ -7,6 +7,8 @@ import { queueSheetUpdate } from "@/lib/sheet-outbox";
 import { useDrainSheetOutbox } from "@/hooks/use-sheet-sync";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompanySites } from "@/hooks/use-sites";
+import { triggerAlert } from "@/lib/alerts/triggerAlert";
+
 
 type Props = {
   open: boolean;
