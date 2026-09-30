@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 import {
   Truck,
   ShieldCheck,
@@ -184,6 +187,38 @@ const ROI = [
 ];
 
 function Landing() {
+  const navigate = useNavigate();
+  const [signedIn, setSignedIn] = useState(false);
+
+  // Someone who just finished signing up (or is already signed in) lands back
+  // here from the Google flow. Send them straight into the app instead of
+  // showing the marketing page again.
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (data.session) {
+        setSignedIn(true);
+        void navigate({ to: "/dashboard", replace: true });
+      }
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (session) {
+        setSignedIn(true);
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          void navigate({ to: "/dashboard", replace: true });
+        }
+      } else {
+        setSignedIn(false);
+      }
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-surface/70 backdrop-blur">
@@ -202,14 +237,15 @@ function Landing() {
               Book a Demo
             </a>
             <Link
-              to="/auth"
+              to={signedIn ? "/dashboard" : "/auth"}
               className="rounded-full bg-brand-gradient px-5 py-2 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110"
             >
-              Start Free Trial
+              {signedIn ? "Go to Dashboard" : "Start Free Trial"}
             </Link>
           </div>
         </div>
       </header>
+
 
       <main>
         {/* HERO */}

@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: ControlTower,
 });
 
-/* -------------------- Types & seed -------------------- */
+/* -------------------- Types -------------------- */
 
 type ActiveTrailer = {
   id: string;
@@ -52,69 +52,11 @@ type ActiveTrailer = {
   nextRdcTrailer: string | null;
   nextSchedule: string | null;
   pickupCutoff: string | null; // HH:MM
-  source: "live" | "seed";
+  source: "live";
 };
 
 const YARDS: ActiveTrailer["yard"][] = ["Yard 91", "Yard 301", "Paterson Yard"];
 
-function hoursAgo(h: number) {
-  return Date.now() - h * 3_600_000;
-}
-
-const SEED: ActiveTrailer[] = [
-  {
-    id: "s1",
-    trailer: "482917",
-    store: "2247",
-    destination: "Riverdale Rt 23",
-    yard: "Yard 91",
-    returnTime: hoursAgo(4.9),
-    nextDriver: "Ahmed Beshir",
-    nextRdcTrailer: "551204",
-    nextSchedule: "SCH-2181",
-    pickupCutoff: "14:30",
-    source: "seed",
-  },
-  {
-    id: "s2",
-    trailer: "553108",
-    store: "1888",
-    destination: "Bethlehem PA",
-    yard: "Yard 301",
-    returnTime: hoursAgo(14.25),
-    nextDriver: null,
-    nextRdcTrailer: "480127",
-    nextSchedule: "SCH-2189",
-    pickupCutoff: "16:00",
-    source: "seed",
-  },
-  {
-    id: "s3",
-    trailer: "617502",
-    store: "3391",
-    destination: "Paterson NJ",
-    yard: "Paterson Yard",
-    returnTime: hoursAgo(19.7),
-    nextDriver: "Miguel Ortiz",
-    nextRdcTrailer: null,
-    nextSchedule: "SCH-2192",
-    pickupCutoff: "12:15",
-    source: "seed",
-  },
-  {
-    id: "s4",
-    trailer: "701845",
-    store: "1120",
-    destination: "Wilkes-Barre PA",
-    yard: "Yard 91",
-    returnTime: hoursAgo(24.8),
-    nextDriver: null,
-    nextRdcTrailer: "552901",
-    nextSchedule: "SCH-2198",
-    pickupCutoff: "10:45",
-    source: "seed",
-  },
-];
 
 /* -------------------- 1s ticker -------------------- */
 
@@ -203,7 +145,7 @@ function ControlTower() {
           source: "live" as const,
         };
       });
-    return [...live, ...SEED].filter((t) => !dispatched.has(t.id));
+    return live.filter((t) => !dispatched.has(t.id));
   }, [loads, dispatched]);
 
   // The company's saved yard rule — the same numbers the yard board and
