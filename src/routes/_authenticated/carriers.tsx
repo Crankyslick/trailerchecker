@@ -211,49 +211,50 @@ function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClo
           <Field label="Carrier name *" error={errors.name?.message}>
             <input
               className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-              {...register("name")}
+              {...register("name", { setValueAs: cleanText })}
             />
           </Field>
           <div className="grid grid-cols-3 gap-2">
             <Field label="SCAC" error={errors.scacCode?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-xs uppercase"
-                {...register("scacCode")}
+                {...register("scacCode", { setValueAs: cleanScac })}
               />
             </Field>
             <Field label="MC #" error={errors.mcNumber?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-xs"
-                {...register("mcNumber")}
+                {...register("mcNumber", { setValueAs: (v) => cleanNumber(v, MC_PREFIX) })}
               />
             </Field>
             <Field label="DOT #" error={errors.dotNumber?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-xs"
-                {...register("dotNumber")}
+                {...register("dotNumber", { setValueAs: (v) => cleanNumber(v, DOT_PREFIX) })}
               />
             </Field>
           </div>
           <Field label="Contact name">
             <input
               className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-              {...register("contactName")}
+              {...register("contactName", { setValueAs: cleanText })}
             />
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field label="Contact email" error={errors.contactEmail?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-                {...register("contactEmail")}
+                {...register("contactEmail", { setValueAs: cleanText })}
               />
             </Field>
             <Field label="Contact phone">
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-                {...register("contactPhone")}
+                {...register("contactPhone", { setValueAs: cleanText })}
               />
             </Field>
           </div>
+
         </div>
         <div className="flex justify-end gap-2 px-4 py-3 border-t border-border">
           <button
