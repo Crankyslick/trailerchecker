@@ -29,10 +29,24 @@ export function DataHealthBanner() {
   const queryClient = useQueryClient();
 
   const stale = health.lastUpdatedAt != null && Date.now() - health.lastUpdatedAt > STALE_MS;
-  if (health.ok && !health.realtimeDown && !stale) return null;
-
   const failing = health.failing.map((k) => LABEL[k] ?? k);
   const critical = failing.length > 0;
+  const degraded = critical || health.realtimeDown || stale;
+
+  // Realtime channels blip while (re)subscribing — after login, on navigation,
+  // when a tab wakes. Showing the banner instantly makes it flash on and off.
+  // Hold it back until the condition has lasted GRACE_MS; real outages persist.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!degraded) {
+      setSettled(false);
+      return;
+    }
+    const t = setTimeout(() => setSettled(true), GRACE_MS);
+    return () => clearTimeout(t);
+  }, [degraded]);
+
+  if (!degraded || !settled) return null;
 
   return (
     <div
