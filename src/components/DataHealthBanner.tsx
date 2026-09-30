@@ -15,6 +15,9 @@ const LABEL: Record<string, string> = {
 /** Age after which data is considered stale even if no error was reported. */
 const STALE_MS = 5 * 60_000;
 
+/** How long a problem must persist before the banner is shown (anti-flicker). */
+const GRACE_MS = 6_000;
+
 function ago(ms: number | null) {
   if (ms == null) return "never";
   const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
