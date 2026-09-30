@@ -16,48 +16,41 @@ export const Route = createFileRoute("/_authenticated/carriers")({
   component: CarriersPage,
 });
 
-// Inputs are sanitized before validation so common real-world formats
-// ("MC# 123456", "usdot 1234", lowercase SCAC, stray spaces) are accepted
-// instead of blocking a dispatcher on a cosmetic mismatch.
-const trimmed = (v: unknown) => (typeof v === "string" ? v.trim() : v);
-const upper = (v: unknown) => (typeof v === "string" ? v.trim().toUpperCase() : v);
-const digitsOnly = (prefix: RegExp) => (v: unknown) =>
-  typeof v === "string" ? v.trim().replace(prefix, "").replace(/[\s-]/g, "") : v;
+// Inputs are sanitized as they're registered (see setValueAs below) so common
+// real-world formats ("MC# 123456", "usdot 1234", lowercase SCAC, stray
+// spaces) are accepted instead of blocking a dispatcher on a cosmetic mismatch.
+export const cleanText = (v: unknown) => String(v ?? "").trim();
+export const cleanScac = (v: unknown) => cleanText(v).toUpperCase();
+export const cleanNumber = (v: unknown, prefix: RegExp) =>
+  cleanText(v)
+    .replace(prefix, "")
+    .replace(/[\s.-]/g, "");
+const MC_PREFIX = /^(mc)?[\s#:.-]*/i;
+const DOT_PREFIX = /^(us)?\s*(dot)?[\s#:.-]*/i;
 
 const carrierSchema = z.object({
-  name: z.preprocess(trimmed, z.string().min(1, "Carrier name is required").max(120)),
-  scacCode: z.preprocess(
-    upper,
-    z
-      .string()
-      .regex(/^[A-Z]{2,4}$/, "SCAC is 2-4 letters")
-      .optional()
-      .or(z.literal("")),
-  ),
-  mcNumber: z.preprocess(
-    digitsOnly(/^(mc)?[\s#:-]*/i),
-    z
-      .string()
-      .regex(/^\d{1,7}$/, "MC number should be 1-7 digits")
-      .optional()
-      .or(z.literal("")),
-  ),
-  dotNumber: z.preprocess(
-    digitsOnly(/^(us)?(dot)?[\s#:-]*/i),
-    z
-      .string()
-      .regex(/^\d{1,8}$/, "DOT number should be 1-8 digits")
-      .optional()
-      .or(z.literal("")),
-  ),
-  contactName: z.preprocess(trimmed, z.string().max(120).optional().or(z.literal(""))),
-  contactEmail: z.preprocess(
-    trimmed,
-    z.string().email("Invalid email").max(255).optional().or(z.literal("")),
-  ),
-  contactPhone: z.preprocess(trimmed, z.string().max(40).optional().or(z.literal(""))),
+  name: z.string().min(1, "Carrier name is required").max(120),
+  scacCode: z
+    .string()
+    .regex(/^[A-Z]{2,4}$/, "SCAC is 2-4 letters")
+    .optional()
+    .or(z.literal("")),
+  mcNumber: z
+    .string()
+    .regex(/^\d{1,7}$/, "MC number should be 1-7 digits")
+    .optional()
+    .or(z.literal("")),
+  dotNumber: z
+    .string()
+    .regex(/^\d{1,8}$/, "DOT number should be 1-8 digits")
+    .optional()
+    .or(z.literal("")),
+  contactName: z.string().max(120).optional().or(z.literal("")),
+  contactEmail: z.string().email("Invalid email").max(255).optional().or(z.literal("")),
+  contactPhone: z.string().max(40).optional().or(z.literal("")),
 });
 type CarrierFormValues = z.infer<typeof carrierSchema>;
+
 
 
 function CarriersPage() {
