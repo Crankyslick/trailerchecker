@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,11 +16,20 @@ export const Route = createFileRoute("/_authenticated/carriers")({
   component: CarriersPage,
 });
 
-// MC# is 1-7 digits, optionally prefixed "MC-"; DOT# is 1-8 digits. Loosely
-// validated on purpose — formats vary and a dispatcher shouldn't get blocked
-// entering a real number because of an overly strict pattern.
+// Inputs are sanitized as they're registered (see setValueAs below) so common
+// real-world formats ("MC# 123456", "usdot 1234", lowercase SCAC, stray
+// spaces) are accepted instead of blocking a dispatcher on a cosmetic mismatch.
+export const cleanText = (v: unknown) => String(v ?? "").trim();
+export const cleanScac = (v: unknown) => cleanText(v).toUpperCase();
+export const cleanNumber = (v: unknown, prefix: RegExp) =>
+  cleanText(v)
+    .replace(prefix, "")
+    .replace(/[\s.-]/g, "");
+const MC_PREFIX = /^(mc)?[\s#:.-]*/i;
+const DOT_PREFIX = /^(us)?\s*(dot)?[\s#:.-]*/i;
+
 const carrierSchema = z.object({
-  name: z.string().min(1, "Carrier name is required"),
+  name: z.string().min(1, "Carrier name is required").max(120),
   scacCode: z
     .string()
     .regex(/^[A-Z]{2,4}$/, "SCAC is 2-4 letters")
@@ -26,7 +37,7 @@ const carrierSchema = z.object({
     .or(z.literal("")),
   mcNumber: z
     .string()
-    .regex(/^(MC-?)?\d{1,7}$/i, "MC number should look like 123456 or MC-123456")
+    .regex(/^\d{1,7}$/, "MC number should be 1-7 digits")
     .optional()
     .or(z.literal("")),
   dotNumber: z
@@ -34,25 +45,30 @@ const carrierSchema = z.object({
     .regex(/^\d{1,8}$/, "DOT number should be 1-8 digits")
     .optional()
     .or(z.literal("")),
-  contactName: z.string().optional().or(z.literal("")),
-  contactEmail: z.string().email("Invalid email").optional().or(z.literal("")),
-  contactPhone: z.string().optional().or(z.literal("")),
+  contactName: z.string().max(120).optional().or(z.literal("")),
+  contactEmail: z.string().email("Invalid email").max(255).optional().or(z.literal("")),
+  contactPhone: z.string().max(40).optional().or(z.literal("")),
 });
 type CarrierFormValues = z.infer<typeof carrierSchema>;
+
+
 
 function CarriersPage() {
   const { data: carriers, isLoading } = useCarriers();
   const [modal, setModal] = useState<"add" | Carrier | null>(null);
+  const qc = useQueryClient();
 
   async function toggleActive(c: Carrier) {
     const next = c.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
       await updateCarrier(c.id, { status: next });
+      await qc.invalidateQueries({ queryKey: ["carriers"] });
       toast.success(`${c.name} marked ${next.toLowerCase()}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to update carrier");
     }
   }
+
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -137,6 +153,8 @@ function CarriersPage() {
 
 function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClose: () => void }) {
   const isEdit = !!carrier;
+  const qc = useQueryClient();
+
   const {
     register,
     handleSubmit,
@@ -172,7 +190,9 @@ function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClo
         await createCarrier(payload);
         toast.success("Carrier added");
       }
+      await qc.invalidateQueries({ queryKey: ["carriers"] });
       onClose();
+
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save carrier");
     }
@@ -191,49 +211,50 @@ function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClo
           <Field label="Carrier name *" error={errors.name?.message}>
             <input
               className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-              {...register("name")}
+              {...register("name", { setValueAs: cleanText })}
             />
           </Field>
           <div className="grid grid-cols-3 gap-2">
             <Field label="SCAC" error={errors.scacCode?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-xs uppercase"
-                {...register("scacCode")}
+                {...register("scacCode", { setValueAs: cleanScac })}
               />
             </Field>
             <Field label="MC #" error={errors.mcNumber?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-xs"
-                {...register("mcNumber")}
+                {...register("mcNumber", { setValueAs: (v) => cleanNumber(v, MC_PREFIX) })}
               />
             </Field>
             <Field label="DOT #" error={errors.dotNumber?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5 font-mono text-xs"
-                {...register("dotNumber")}
+                {...register("dotNumber", { setValueAs: (v) => cleanNumber(v, DOT_PREFIX) })}
               />
             </Field>
           </div>
           <Field label="Contact name">
             <input
               className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-              {...register("contactName")}
+              {...register("contactName", { setValueAs: cleanText })}
             />
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field label="Contact email" error={errors.contactEmail?.message}>
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-                {...register("contactEmail")}
+                {...register("contactEmail", { setValueAs: cleanText })}
               />
             </Field>
             <Field label="Contact phone">
               <input
                 className="w-full rounded-md border border-border bg-surface px-2 py-1.5"
-                {...register("contactPhone")}
+                {...register("contactPhone", { setValueAs: cleanText })}
               />
             </Field>
           </div>
+
         </div>
         <div className="flex justify-end gap-2 px-4 py-3 border-t border-border">
           <button
