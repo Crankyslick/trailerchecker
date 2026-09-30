@@ -97,7 +97,10 @@ export async function driverUpdateStatus(loadId: string, newStatus: string) {
 export async function flagException(loadId: string, reason: string) {
   const { error } = await sb.rpc("flag_exception", { p_load_id: loadId, p_reason: reason });
   if (error) throw new Error(error.message);
+  // Fire-and-forget: an alert failure must never fail the driver's action.
+  void triggerAlert("exception", loadId);
 }
+
 
 export async function resolveException(loadId: string, resolutionNote: string | null) {
   const { error } = await sb.rpc("resolve_exception", {
