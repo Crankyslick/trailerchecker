@@ -157,7 +157,11 @@ export function DispatchModal({
         void drain.mutateAsync().catch(() => undefined);
       }
 
+      // Fire-and-forget driver text/email; never blocks or fails the dispatch.
+      void triggerAlert("dispatch", loadId);
+
       toast.success(`Trailer ${trailer} dispatched to ${nextDestination}`);
+
       onDispatched();
       onClose();
     } catch (e) {
