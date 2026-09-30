@@ -21,6 +21,7 @@ import {
   Tags,
   Send,
   Briefcase,
+  Handshake,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useTenantProducts } from "@/hooks/use-products";
