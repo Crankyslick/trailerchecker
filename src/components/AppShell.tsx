@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Wifi, WifiOff, LogOut, ShieldCheck } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { Wifi, Settings as SettingsIcon, LogOut, ShieldCheck } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -34,7 +34,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   });
   const [, tick] = useState(0);
   const { profile, roles, org } = useCurrentUser();
-  useSheetOutboxWorker();
+  // No spreadsheet linked means nothing can be delivered, so don't keep a
+  // background drain running for companies that don't use Google Sheets.
+  useSheetOutboxWorker(60_000, Boolean(sync.url));
   // Loads the company's yard rule once and publishes it to the shared
   // aging helpers, so every board colours trailers by the saved thresholds.
   useYardPolicy();
@@ -103,16 +105,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div
-              className={`chip border ${connected ? "bg-success/15 text-success border-success/30" : "bg-muted text-muted-foreground border-border"}`}
-              title={sync.url ?? "Not configured"}
-            >
-              {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              <span className="hidden sm:inline">
-                {connected ? "Connected to Sheet API" : "Sheet API not configured"}
-              </span>
-              <span className="hidden md:inline opacity-70">· Last: {timeAgo(sync.last)}</span>
-            </div>
+            {connected ? (
+              <div
+                className="chip border bg-success/15 text-success border-success/30"
+                title={sync.url ?? ""}
+              >
+                <Wifi className="h-3 w-3" />
+                <span className="hidden sm:inline">Connected to Sheet API</span>
+                <span className="hidden md:inline opacity-70">· Last: {timeAgo(sync.last)}</span>
+              </div>
+            ) : (
+              <Link
+                to="/settings"
+                className="chip border bg-surface-2/60 text-muted-foreground border-border hover:text-foreground hover:bg-surface-2"
+                title="Link a Google Sheet in Settings (optional)"
+              >
+                <SettingsIcon className="h-3 w-3" />
+                <span className="hidden sm:inline">Set up Google Sheet</span>
+              </Link>
+            )}
             <div className="hidden sm:flex items-center gap-1.5 chip border border-primary/30 bg-primary/10 text-primary">
               <ShieldCheck className="h-3 w-3" />
               <span className="max-w-[140px] truncate">

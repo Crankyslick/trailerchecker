@@ -43,9 +43,10 @@ export function useDrainSheetOutbox() {
  * Low-latency helper only. Delivery does not depend on it: an hourly
  * server-side job drains the same queue when nobody has the app open.
  */
-export function useSheetOutboxWorker(intervalMs = 60_000) {
+export function useSheetOutboxWorker(intervalMs = 60_000, enabled = true) {
   const { mutateAsync } = useDrainSheetOutbox();
   useEffect(() => {
+    if (!enabled) return;
     let stopped = false;
     const run = () => {
       if (!stopped) void mutateAsync().catch(() => undefined);
@@ -57,5 +58,5 @@ export function useSheetOutboxWorker(intervalMs = 60_000) {
       clearTimeout(t);
       clearInterval(i);
     };
-  }, [mutateAsync, intervalMs]);
+  }, [mutateAsync, intervalMs, enabled]);
 }

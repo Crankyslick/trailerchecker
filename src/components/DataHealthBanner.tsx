@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AlertTriangle, RefreshCw, WifiOff } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDataHealth } from "@/lib/data-health";
@@ -14,6 +15,9 @@ const LABEL: Record<string, string> = {
 /** Age after which data is considered stale even if no error was reported. */
 const STALE_MS = 5 * 60_000;
 
+/** How long a problem must persist before the banner is shown (anti-flicker). */
+const GRACE_MS = 6_000;
+
 function ago(ms: number | null) {
   if (ms == null) return "never";
   const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
@@ -28,10 +32,24 @@ export function DataHealthBanner() {
   const queryClient = useQueryClient();
 
   const stale = health.lastUpdatedAt != null && Date.now() - health.lastUpdatedAt > STALE_MS;
-  if (health.ok && !health.realtimeDown && !stale) return null;
-
   const failing = health.failing.map((k) => LABEL[k] ?? k);
   const critical = failing.length > 0;
+  const degraded = critical || health.realtimeDown || stale;
+
+  // Realtime channels blip while (re)subscribing — after login, on navigation,
+  // when a tab wakes. Showing the banner instantly makes it flash on and off.
+  // Hold it back until the condition has lasted GRACE_MS; real outages persist.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (!degraded) {
+      setSettled(false);
+      return;
+    }
+    const t = setTimeout(() => setSettled(true), GRACE_MS);
+    return () => clearTimeout(t);
+  }, [degraded]);
+
+  if (!degraded || !settled) return null;
 
   return (
     <div
