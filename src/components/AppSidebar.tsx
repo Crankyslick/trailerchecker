@@ -50,6 +50,13 @@ const items: readonly Item[] = [
     product: "trailer",
   },
   {
+    to: "/broker",
+    label: "Broker Desk",
+    icon: Handshake,
+    roles: ["owner", "admin", "dispatcher"],
+    product: "trailer",
+  },
+  {
     to: "/shipments",
     label: "Shipments",
     icon: Boxes,
