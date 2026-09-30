@@ -145,7 +145,7 @@ function ControlTower() {
           source: "live" as const,
         };
       });
-    return [...live, ...SEED].filter((t) => !dispatched.has(t.id));
+    return live.filter((t) => !dispatched.has(t.id));
   }, [loads, dispatched]);
 
   // The company's saved yard rule — the same numbers the yard board and
