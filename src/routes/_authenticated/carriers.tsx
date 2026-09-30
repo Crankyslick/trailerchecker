@@ -197,7 +197,9 @@ function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClo
         await createCarrier(payload);
         toast.success("Carrier added");
       }
+      await qc.invalidateQueries({ queryKey: ["carriers"] });
       onClose();
+
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save carrier");
     }
