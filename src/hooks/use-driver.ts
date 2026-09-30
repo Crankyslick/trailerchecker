@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerAlert } from "@/lib/alerts/triggerAlert";
+
 
 const sb = supabase as unknown as {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated Database types don't know this table/RPC yet
