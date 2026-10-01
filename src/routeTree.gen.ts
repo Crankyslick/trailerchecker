@@ -45,6 +45,7 @@ import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiAlertsNotifyRouteImport } from './routes/api/alerts/notify'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
+import { Route as ApiPublicQboCallbackRouteImport } from './routes/api/public/qbo/callback'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -229,6 +230,11 @@ const AuthenticatedHistoryLoadIdRoute =
     path: '/history/$loadId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicQboCallbackRoute = ApiPublicQboCallbackRouteImport.update({
+  id: '/api/public/qbo/callback',
+  path: '/api/public/qbo/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -266,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history/': typeof AuthenticatedHistoryIndexRoute
+  '/api/public/qbo/callback': typeof ApiPublicQboCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history': typeof AuthenticatedHistoryIndexRoute
+  '/api/public/qbo/callback': typeof ApiPublicQboCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
+  '/api/public/qbo/callback': typeof ApiPublicQboCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/api/public/sheet-drain'
     | '/api/public/tracking'
     | '/history/'
+    | '/api/public/qbo/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/api/public/sheet-drain'
     | '/api/public/tracking'
     | '/history'
+    | '/api/public/qbo/callback'
   id:
     | '__root__'
     | '/'
@@ -456,6 +467,7 @@ export interface FileRouteTypes {
     | '/api/public/sheet-drain'
     | '/api/public/tracking'
     | '/_authenticated/history/'
+    | '/api/public/qbo/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -467,6 +479,7 @@ export interface RootRouteChildren {
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSheetDrainRoute: typeof ApiPublicSheetDrainRoute
   ApiPublicTrackingRoute: typeof ApiPublicTrackingRoute
+  ApiPublicQboCallbackRoute: typeof ApiPublicQboCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -723,6 +736,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoryLoadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/qbo/callback': {
+      id: '/api/public/qbo/callback'
+      path: '/api/public/qbo/callback'
+      fullPath: '/api/public/qbo/callback'
+      preLoaderRoute: typeof ApiPublicQboCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -800,6 +820,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSheetDrainRoute: ApiPublicSheetDrainRoute,
   ApiPublicTrackingRoute: ApiPublicTrackingRoute,
+  ApiPublicQboCallbackRoute: ApiPublicQboCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
