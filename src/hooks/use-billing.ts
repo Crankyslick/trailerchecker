@@ -216,6 +216,9 @@ export type CustomerInvoice = {
   status: string;
   total_amount: number;
   issued_at: string | null;
+  qbo_sync_status: string | null;
+  qbo_sync_error: string | null;
+  qbo_invoice_id: string | null;
   trailer_clients: { name: string } | null;
 };
 
@@ -225,7 +228,9 @@ export function useCustomerInvoices() {
     queryFn: async (): Promise<CustomerInvoice[]> => {
       const { data, error } = await sb
         .from("customer_invoices")
-        .select("id, invoice_number, status, total_amount, issued_at, trailer_clients ( name )")
+        .select(
+          "id, invoice_number, status, total_amount, issued_at, qbo_sync_status, qbo_sync_error, qbo_invoice_id, trailer_clients ( name )",
+        )
         .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
       return (data ?? []) as unknown as CustomerInvoice[];
