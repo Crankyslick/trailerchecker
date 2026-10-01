@@ -23,16 +23,18 @@ export const Route = createFileRoute("/_authenticated/integrations")({
 
 function IntegrationsPage() {
   return (
-    <div className="p-4 md:p-6 space-y-8 max-w-3xl">
+    <div className="p-4 md:p-6 space-y-8 max-w-4xl">
       <div>
         <h1 className="text-lg font-semibold">Integrations</h1>
         <p className="text-sm text-muted-foreground">
-          No GPS/ELD/EDI provider is connected. This is the receiving side: point any provider's
-          webhook (or a small adapter in front of one) at the tracking endpoint below.
+          This is the receiving side for location data. Point Motive, Samsara, Geotab, a driver
+          phone app, or any custom source at the tracking endpoint below — the payload shape is
+          detected automatically.
         </p>
       </div>
 
       <WebhookSection />
+      <TrackingActivitySection />
       <GeofenceSection />
     </div>
   );
