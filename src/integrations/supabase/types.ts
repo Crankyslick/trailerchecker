@@ -396,7 +396,10 @@ export type Database = {
       companies: {
         Row: {
           created_at: string
+          dispatch_phone: string | null
+          dot_number: string | null
           id: string
+          mc_number: string | null
           name: string
           slug: string | null
           tenant_id: string
@@ -404,7 +407,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dispatch_phone?: string | null
+          dot_number?: string | null
           id?: string
+          mc_number?: string | null
           name: string
           slug?: string | null
           tenant_id?: string
@@ -412,7 +418,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dispatch_phone?: string | null
+          dot_number?: string | null
           id?: string
+          mc_number?: string | null
           name?: string
           slug?: string | null
           tenant_id?: string
@@ -504,35 +513,62 @@ export type Database = {
       company_sites: {
         Row: {
           active: boolean
+          address_line: string | null
+          city: string | null
           code: string | null
           company_id: string
+          contact_phone: string | null
           created_at: string
+          gate_hours: string | null
+          geofence_radius_m: number | null
           id: string
           is_default: boolean
           kind: string
+          latitude: number | null
+          longitude: number | null
           name: string
+          postal_code: string | null
+          region: string | null
           updated_at: string
         }
         Insert: {
           active?: boolean
+          address_line?: string | null
+          city?: string | null
           code?: string | null
           company_id?: string
+          contact_phone?: string | null
           created_at?: string
+          gate_hours?: string | null
+          geofence_radius_m?: number | null
           id?: string
           is_default?: boolean
           kind?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
+          postal_code?: string | null
+          region?: string | null
           updated_at?: string
         }
         Update: {
           active?: boolean
+          address_line?: string | null
+          city?: string | null
           code?: string | null
           company_id?: string
+          contact_phone?: string | null
           created_at?: string
+          gate_hours?: string | null
+          geofence_radius_m?: number | null
           id?: string
           is_default?: boolean
           kind?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
+          postal_code?: string | null
+          region?: string | null
           updated_at?: string
         }
         Relationships: [
