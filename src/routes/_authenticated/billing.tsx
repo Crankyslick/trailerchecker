@@ -34,6 +34,20 @@ function BillingPage() {
   const { data: invoices } = useCustomerInvoices();
   const { data: settlements } = useCarrierSettlements();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { canManageBilling } = useCurrentUser();
+  const qc = useQueryClient();
+  const pushFn = useServerFn(syncInvoicesToQbo);
+
+  const pushToQbo = useMutation({
+    mutationFn: async (invoiceId: string) => pushFn({ data: { invoiceIds: [invoiceId] } }),
+    onSuccess: (results) => {
+      const failed = results.find((r) => !r.ok);
+      if (failed) toast.error(failed.error ?? "QuickBooks rejected the invoice");
+      else toast.success("Invoice sent to QuickBooks");
+      void qc.invalidateQueries({ queryKey: ["customer_invoices"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const rows = loads ?? [];
   const totalMargin = rows.reduce((sum, l) => sum + (margin(l) ?? 0), 0);
