@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/alerts/notify")({
           // been regenerated against yet — same documented escape hatch used
           // throughout the app's newer hooks.
           const supabaseAdmin = rawAdmin as unknown as {
-            from: (table: string) => ReturnType<typeof rawAdmin.from>;
+            from: (table: string) => ReturnType<typeof rawAdmin.from<"trailer_loads">>;
             auth: typeof rawAdmin.auth;
           };
 

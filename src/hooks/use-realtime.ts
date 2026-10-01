@@ -11,7 +11,7 @@ import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 // blanket `as any` on the whole file — swap for the real Database type once
 // `supabase gen types typescript` is re-run.
 const sb = supabase as unknown as {
-  from: (table: string) => ReturnType<typeof supabase.from>;
+  from: (table: string) => ReturnType<typeof supabase.from<"trailer_loads">>;
 };
 
 // ============================================================================
