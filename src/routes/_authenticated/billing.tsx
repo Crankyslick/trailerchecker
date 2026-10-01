@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FileText, Receipt } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { FileText, Receipt, Upload } from "lucide-react";
 import { guard } from "@/lib/route-guard";
+import { useCurrentUser } from "@/hooks/use-auth";
+import { QuickBooksPanel } from "@/components/QuickBooksPanel";
+import { syncInvoicesToQbo } from "@/lib/qbo.functions";
 import {
   useBillableLoads,
   setLoadFinancials,
