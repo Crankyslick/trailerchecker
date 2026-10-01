@@ -144,3 +144,90 @@ export function useReconciliation() {
 
   return query;
 }
+
+// ---------------------------------------------------------------------------
+// Live tracking activity
+// ---------------------------------------------------------------------------
+
+export type TrackingEvent = {
+  id: string;
+  external_id: string;
+  asset_type: string | null;
+  matched_by: string | null;
+  provider: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  speed_mph: number | null;
+  heading_deg: number | null;
+  recorded_at: string;
+  received_at: string;
+  load_id: string | null;
+  load_schedule_id: string | null;
+};
+
+export type TrackedAsset = {
+  external_id: string;
+  latitude: number | null;
+  longitude: number | null;
+  speed_mph: number | null;
+  heading_deg: number | null;
+  recorded_at: string;
+  received_at: string;
+  load_id: string | null;
+  load_schedule_id: string | null;
+  matched_by: string | null;
+};
+
+/** Most recent inbound pings for the signed-in company. */
+export function useRecentTrackingEvents(limit = 25) {
+  const query = useQuery({
+    queryKey: ["tracking_events", "recent", limit],
+    queryFn: async (): Promise<TrackingEvent[]> => {
+      const { data, error } = await sb.rpc("recent_tracking_events", { p_limit: limit });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as TrackingEvent[];
+    },
+    placeholderData: keepPreviousData,
+    refetchInterval: 30_000,
+  });
+
+  useEffect(() => {
+    let ch: ReturnType<typeof supabase.channel> | undefined;
+    try {
+      ch = supabase
+        .channel(`tracking-stream-${Math.random().toString(36).slice(2)}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "tracking_events" },
+          () => void query.refetch(),
+        )
+        .subscribe();
+    } catch {
+      /* noop */
+    }
+    return () => {
+      try {
+        if (ch) supabase.removeChannel(ch);
+      } catch {
+        /* noop */
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return query;
+}
+
+/** Latest known position per tracked asset. */
+export function useLatestTrackingLocations() {
+  return useQuery({
+    queryKey: ["tracking_events", "latest"],
+    queryFn: async (): Promise<TrackedAsset[]> => {
+      const { data, error } = await sb.rpc("latest_tracking_locations");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as TrackedAsset[];
+    },
+    placeholderData: keepPreviousData,
+    refetchInterval: 30_000,
+  });
+}

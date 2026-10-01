@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, RefreshCw, Plus, MapPin } from "lucide-react";
+import { Copy, RefreshCw, Plus, MapPin, Radio } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import {
   useGeofences,
   createGeofence,
   useInboundToken,
   rotateInboundToken,
+  useRecentTrackingEvents,
+  useLatestTrackingLocations,
   type Geofence,
+  type TrackingEvent,
+  type TrackedAsset,
 } from "@/hooks/use-integrations";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
@@ -19,16 +23,18 @@ export const Route = createFileRoute("/_authenticated/integrations")({
 
 function IntegrationsPage() {
   return (
-    <div className="p-4 md:p-6 space-y-8 max-w-3xl">
+    <div className="p-4 md:p-6 space-y-8 max-w-4xl">
       <div>
         <h1 className="text-lg font-semibold">Integrations</h1>
         <p className="text-sm text-muted-foreground">
-          No GPS/ELD/EDI provider is connected. This is the receiving side: point any provider's
-          webhook (or a small adapter in front of one) at the tracking endpoint below.
+          This is the receiving side for location data. Point Motive, Samsara, Geotab, a driver
+          phone app, or any custom source at the tracking endpoint below — the payload shape is
+          detected automatically.
         </p>
       </div>
 
       <WebhookSection />
+      <TrackingActivitySection />
       <GeofenceSection />
     </div>
   );
@@ -93,15 +99,151 @@ function WebhookSection() {
           <RefreshCw className="h-3 w-3" /> {token ? "Rotate token" : "Generate token"}
         </button>
         <p className="text-xs text-muted-foreground pt-1">
-          Send <code>Authorization: Bearer &lt;token&gt;</code> with a JSON body of{" "}
+          Send <code>Authorization: Bearer &lt;token&gt;</code> with the provider's own payload.
+          Motive, Samsara and Geotab bodies are recognised as-is. A custom source can post{" "}
           <code>{`{ external_id, latitude, longitude, speed_mph, recorded_at, eta_at? }`}</code> (or{" "}
           <code>{`{ events: [...] }`}</code> for a batch). <code>external_id</code> is matched
-          against the trailer number on an open load.
+          against the outbound trailer, the return trailer, or the driver on an open load. Repeated
+          deliveries of the same ping are stored only once.
         </p>
       </div>
     </section>
   );
 }
+
+const MATCH_LABELS: Record<string, { label: string; tone: string }> = {
+  outbound_trailer: { label: "Outbound trailer", tone: "bg-emerald-500/15 text-emerald-400" },
+  return_trailer: { label: "Return trailer", tone: "bg-sky-500/15 text-sky-400" },
+  driver: { label: "Driver", tone: "bg-violet-500/15 text-violet-400" },
+  ambiguous: { label: "Unclear match", tone: "bg-amber-500/15 text-amber-400" },
+};
+
+function MatchChip({ matchedBy }: { matchedBy: string | null }) {
+  const m = matchedBy ? MATCH_LABELS[matchedBy] : undefined;
+  if (!m) {
+    return (
+      <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
+        No load
+      </span>
+    );
+  }
+  return (
+    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${m.tone}`}>{m.label}</span>
+  );
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+}
+
+function coords(lat: number | null, lng: number | null) {
+  if (lat === null || lng === null) return "—";
+  return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+}
+
+function TrackingActivitySection() {
+  const { data: events, isLoading, error } = useRecentTrackingEvents(25);
+  const { data: assets } = useLatestTrackingLocations();
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Radio className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-sm font-semibold">Live tracking activity</h2>
+      </div>
+
+      {error && (
+        <div className="rounded-md border border-border p-3 text-sm text-muted-foreground">
+          {error instanceof Error ? error.message : "Could not load tracking data"}
+        </div>
+      )}
+
+      {!error && (
+        <>
+          <div className="rounded-lg border border-border overflow-hidden">
+            <div className="px-3 py-2 border-b border-border text-xs font-medium text-muted-foreground">
+              Assets reporting now ({(assets ?? []).length})
+            </div>
+            {(assets ?? []).length === 0 ? (
+              <div className="px-3 py-4 text-sm text-muted-foreground">
+                No asset has reported a position yet.
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {(assets ?? []).map((a: TrackedAsset) => (
+                  <div
+                    key={a.external_id}
+                    className="px-3 py-2 flex items-center gap-2 text-sm flex-wrap"
+                  >
+                    <span className="font-mono text-xs font-medium">{a.external_id}</span>
+                    <MatchChip matchedBy={a.matched_by} />
+                    {a.load_schedule_id && (
+                      <span className="text-xs text-muted-foreground">{a.load_schedule_id}</span>
+                    )}
+                    <span className="ml-auto text-xs text-muted-foreground font-mono">
+                      {coords(a.latitude, a.longitude)}
+                    </span>
+                    <span className="text-xs text-muted-foreground w-20 text-right">
+                      {a.speed_mph === null ? "—" : `${a.speed_mph} mph`}
+                    </span>
+                    <span className="text-xs text-muted-foreground w-20 text-right">
+                      {timeAgo(a.recorded_at)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-border overflow-hidden">
+            <div className="px-3 py-2 border-b border-border text-xs font-medium text-muted-foreground">
+              Recent pings
+            </div>
+            {isLoading && <div className="px-3 py-4 text-sm text-muted-foreground">Loading…</div>}
+            {!isLoading && (events ?? []).length === 0 && (
+              <div className="px-3 py-4 text-sm text-muted-foreground">
+                Nothing received yet. Generate a token above and point a provider or driver phone at
+                the tracking URL.
+              </div>
+            )}
+            <div className="divide-y divide-border">
+              {(events ?? []).map((e: TrackingEvent) => (
+                <div key={e.id} className="px-3 py-2 flex items-center gap-2 text-sm flex-wrap">
+                  <span className="font-mono text-xs font-medium">{e.external_id}</span>
+                  <MatchChip matchedBy={e.matched_by} />
+                  {e.load_schedule_id && (
+                    <span className="text-xs text-muted-foreground">{e.load_schedule_id}</span>
+                  )}
+                  {e.provider && (
+                    <span className="rounded px-1.5 py-0.5 text-[10px] bg-surface-2 text-muted-foreground">
+                      {e.provider}
+                    </span>
+                  )}
+                  <span className="ml-auto text-xs text-muted-foreground font-mono">
+                    {coords(e.latitude, e.longitude)}
+                  </span>
+                  <span className="text-xs text-muted-foreground w-20 text-right">
+                    {e.speed_mph === null ? "—" : `${e.speed_mph} mph`}
+                  </span>
+                  <span className="text-xs text-muted-foreground w-20 text-right">
+                    {timeAgo(e.recorded_at)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 
 function GeofenceSection() {
   const { data: geofences, isLoading, refetch } = useGeofences();
