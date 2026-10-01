@@ -164,6 +164,8 @@ function BillingPage() {
         </table>
       </div>
 
+      {canManageBilling && <QuickBooksPanel canWrite={canManageBilling} />}
+
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <h2 className="text-sm font-semibold mb-2">Customer invoices</h2>
@@ -176,12 +178,29 @@ function BillingPage() {
                 <span>
                   <span className="font-mono text-xs">{inv.invoice_number}</span> —{" "}
                   {inv.trailer_clients?.name ?? "—"}
+                  {inv.qbo_sync_error && (
+                    <span className="block text-xs text-danger">{inv.qbo_sync_error}</span>
+                  )}
                 </span>
                 <span className="flex items-center gap-2">
                   <span className="chip border bg-surface-2 text-foreground border-border text-xs">
                     {inv.status}
                   </span>
                   <span className="font-medium">${inv.total_amount.toFixed(2)}</span>
+                  {canManageBilling &&
+                    (inv.qbo_invoice_id ? (
+                      <span className="chip border bg-success/10 text-success border-success/30 text-[10px]">
+                        In QuickBooks
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => pushToQbo.mutate(inv.id)}
+                        disabled={pushToQbo.isPending}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium hover:bg-surface-2 disabled:opacity-50"
+                      >
+                        <Upload className="h-3 w-3" /> Send to QuickBooks
+                      </button>
+                    ))}
                 </span>
               </div>
             ))}
