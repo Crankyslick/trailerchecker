@@ -1049,6 +1049,232 @@ export type Database = {
           },
         ]
       }
+      exception_case_events: {
+        Row: {
+          actor_id: string | null
+          case_id: string
+          company_id: string
+          created_at: string
+          details: Json
+          event_type: string
+          id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          case_id: string
+          company_id: string
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: string
+        }
+        Update: {
+          actor_id?: string | null
+          case_id?: string
+          company_id?: string
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exception_case_events_case_company_fk"
+            columns: ["case_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "exception_cases"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "exception_case_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exception_case_evidence: {
+        Row: {
+          capture_source: string
+          captured_at: string
+          case_id: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          evidence_kind: string
+          id: string
+          metadata: Json
+          note: string | null
+          source_reference: string | null
+          storage_path: string | null
+        }
+        Insert: {
+          capture_source?: string
+          captured_at?: string
+          case_id: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          evidence_kind: string
+          id?: string
+          metadata?: Json
+          note?: string | null
+          source_reference?: string | null
+          storage_path?: string | null
+        }
+        Update: {
+          capture_source?: string
+          captured_at?: string
+          case_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          evidence_kind?: string
+          id?: string
+          metadata?: Json
+          note?: string | null
+          source_reference?: string | null
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exception_case_evidence_case_company_fk"
+            columns: ["case_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "exception_cases"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "exception_case_evidence_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exception_cases: {
+        Row: {
+          arrived_at: string | null
+          carrier_amount_approved: number | null
+          carrier_amount_claimed: number | null
+          carrier_amount_paid: number | null
+          carrier_claim_status: string
+          carrier_rate_per_hour: number | null
+          case_status: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency_code: string
+          customer_amount_approved: number | null
+          customer_amount_claimed: number | null
+          customer_amount_paid: number | null
+          customer_claim_status: string
+          customer_rate_per_hour: number | null
+          departed_at: string | null
+          description: string | null
+          exception_type: string
+          facility_name: string | null
+          free_time_minutes: number | null
+          id: string
+          load_id: string
+          metadata: Json
+          occurred_at: string
+          responsible_party: string
+          stop_id: string | null
+          trailer_number: string | null
+          trailer_role: string
+          updated_at: string
+        }
+        Insert: {
+          arrived_at?: string | null
+          carrier_amount_approved?: number | null
+          carrier_amount_claimed?: number | null
+          carrier_amount_paid?: number | null
+          carrier_claim_status?: string
+          carrier_rate_per_hour?: number | null
+          case_status?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          customer_amount_approved?: number | null
+          customer_amount_claimed?: number | null
+          customer_amount_paid?: number | null
+          customer_claim_status?: string
+          customer_rate_per_hour?: number | null
+          departed_at?: string | null
+          description?: string | null
+          exception_type: string
+          facility_name?: string | null
+          free_time_minutes?: number | null
+          id?: string
+          load_id: string
+          metadata?: Json
+          occurred_at?: string
+          responsible_party?: string
+          stop_id?: string | null
+          trailer_number?: string | null
+          trailer_role?: string
+          updated_at?: string
+        }
+        Update: {
+          arrived_at?: string | null
+          carrier_amount_approved?: number | null
+          carrier_amount_claimed?: number | null
+          carrier_amount_paid?: number | null
+          carrier_claim_status?: string
+          carrier_rate_per_hour?: number | null
+          case_status?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency_code?: string
+          customer_amount_approved?: number | null
+          customer_amount_claimed?: number | null
+          customer_amount_paid?: number | null
+          customer_claim_status?: string
+          customer_rate_per_hour?: number | null
+          departed_at?: string | null
+          description?: string | null
+          exception_type?: string
+          facility_name?: string | null
+          free_time_minutes?: number | null
+          id?: string
+          load_id?: string
+          metadata?: Json
+          occurred_at?: string
+          responsible_party?: string
+          stop_id?: string | null
+          trailer_number?: string | null
+          trailer_role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exception_cases_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exception_cases_load_company_fk"
+            columns: ["load_id", "company_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id", "company_id"]
+          },
+          {
+            foreignKeyName: "exception_cases_stop_id_fkey"
+            columns: ["stop_id"]
+            isOneToOne: false
+            referencedRelation: "stops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geofences: {
         Row: {
           center_lat: number
@@ -3392,6 +3618,10 @@ export type Database = {
           raised: number
           resolved: number
         }[]
+      }
+      exception_case_exists_for_current_company: {
+        Args: { _case_id: string }
+        Returns: boolean
       }
       flag_exception: {
         Args: { p_load_id: string; p_reason: string }
