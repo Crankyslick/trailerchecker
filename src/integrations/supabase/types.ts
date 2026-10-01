@@ -275,6 +275,44 @@ export type Database = {
           },
         ]
       }
+      chassis: {
+        Row: {
+          chassis_number: string
+          created_at: string
+          id: string
+          pool_provider: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          chassis_number: string
+          created_at?: string
+          id?: string
+          pool_provider?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          chassis_number?: string
+          created_at?: string
+          id?: string
+          pool_provider?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chassis_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           contact_info: string | null
@@ -514,19 +552,24 @@ export type Database = {
         Row: {
           appointment_at: string | null
           bill_of_lading: string | null
+          chassis_id: string | null
           chassis_number: string | null
           client_id: string | null
           container_number: string
           created_at: string
           created_by: string | null
+          customer_id: string | null
           delivered_at: string | null
           delivery_location: string | null
+          detention_free_days: number
+          discharged_at: string | null
           driver_id: string | null
           eta: string | null
           id: string
           invoiced: boolean
           last_free_day: string | null
           notes: string | null
+          picked_up_at: string | null
           pickup_location: string | null
           port_terminal: string | null
           rate: number | null
@@ -540,19 +583,24 @@ export type Database = {
         Insert: {
           appointment_at?: string | null
           bill_of_lading?: string | null
+          chassis_id?: string | null
           chassis_number?: string | null
           client_id?: string | null
           container_number: string
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           delivered_at?: string | null
           delivery_location?: string | null
+          detention_free_days?: number
+          discharged_at?: string | null
           driver_id?: string | null
           eta?: string | null
           id?: string
           invoiced?: boolean
           last_free_day?: string | null
           notes?: string | null
+          picked_up_at?: string | null
           pickup_location?: string | null
           port_terminal?: string | null
           rate?: number | null
@@ -566,19 +614,24 @@ export type Database = {
         Update: {
           appointment_at?: string | null
           bill_of_lading?: string | null
+          chassis_id?: string | null
           chassis_number?: string | null
           client_id?: string | null
           container_number?: string
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           delivered_at?: string | null
           delivery_location?: string | null
+          detention_free_days?: number
+          discharged_at?: string | null
           driver_id?: string | null
           eta?: string | null
           id?: string
           invoiced?: boolean
           last_free_day?: string | null
           notes?: string | null
+          picked_up_at?: string | null
           pickup_location?: string | null
           port_terminal?: string | null
           rate?: number | null
@@ -591,10 +644,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "containers_chassis_id_fkey"
+            columns: ["chassis_id"]
+            isOneToOne: false
+            referencedRelation: "chassis"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "containers_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "containers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
             referencedColumns: ["id"]
           },
           {
@@ -3344,6 +3411,46 @@ export type Database = {
       leg_status_for_load: {
         Args: { p_status: Database["public"]["Enums"]["trailer_load_status"] }
         Returns: Database["public"]["Enums"]["leg_status"]
+      }
+      log_container_milestone: {
+        Args: { p_container_id: string; p_milestone: string; p_note?: string }
+        Returns: {
+          appointment_at: string | null
+          bill_of_lading: string | null
+          chassis_id: string | null
+          chassis_number: string | null
+          client_id: string | null
+          container_number: string
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          delivered_at: string | null
+          delivery_location: string | null
+          detention_free_days: number
+          discharged_at: string | null
+          driver_id: string | null
+          eta: string | null
+          id: string
+          invoiced: boolean
+          last_free_day: string | null
+          notes: string | null
+          picked_up_at: string | null
+          pickup_location: string | null
+          port_terminal: string | null
+          rate: number | null
+          returned_at: string | null
+          size: string | null
+          status: Database["public"]["Enums"]["container_status"]
+          steamship_line: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "containers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       notify_role: {
         Args: {
