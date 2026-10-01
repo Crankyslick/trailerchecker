@@ -729,6 +729,10 @@ export type Database = {
           invoice_number: string
           issued_at: string | null
           paid_at: string | null
+          qbo_invoice_id: string | null
+          qbo_sync_error: string | null
+          qbo_sync_status: string
+          qbo_synced_at: string | null
           status: string
           total_amount: number
         }
@@ -741,6 +745,10 @@ export type Database = {
           invoice_number: string
           issued_at?: string | null
           paid_at?: string | null
+          qbo_invoice_id?: string | null
+          qbo_sync_error?: string | null
+          qbo_sync_status?: string
+          qbo_synced_at?: string | null
           status?: string
           total_amount?: number
         }
@@ -753,6 +761,10 @@ export type Database = {
           invoice_number?: string
           issued_at?: string | null
           paid_at?: string | null
+          qbo_invoice_id?: string | null
+          qbo_sync_error?: string | null
+          qbo_sync_status?: string
+          qbo_synced_at?: string | null
           status?: string
           total_amount?: number
         }
@@ -1610,6 +1622,129 @@ export type Database = {
           },
         ]
       }
+      qbo_account_mappings: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          qbo_income_account: string | null
+          qbo_item_name: string | null
+          revenue_code: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          qbo_income_account?: string | null
+          qbo_item_name?: string | null
+          revenue_code: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          qbo_income_account?: string | null
+          qbo_item_name?: string | null
+          revenue_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qbo_account_mappings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qbo_connections: {
+        Row: {
+          access_expires_at: string
+          access_token: string
+          company_id: string
+          company_name: string | null
+          connected_by: string | null
+          created_at: string
+          environment: string
+          id: string
+          last_synced_at: string | null
+          realm_id: string
+          refresh_expires_at: string | null
+          refresh_token: string
+          updated_at: string
+        }
+        Insert: {
+          access_expires_at: string
+          access_token: string
+          company_id: string
+          company_name?: string | null
+          connected_by?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          last_synced_at?: string | null
+          realm_id: string
+          refresh_expires_at?: string | null
+          refresh_token: string
+          updated_at?: string
+        }
+        Update: {
+          access_expires_at?: string
+          access_token?: string
+          company_id?: string
+          company_name?: string | null
+          connected_by?: string | null
+          created_at?: string
+          environment?: string
+          id?: string
+          last_synced_at?: string | null
+          realm_id?: string
+          refresh_expires_at?: string | null
+          refresh_token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qbo_connections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qbo_oauth_states: {
+        Row: {
+          company_id: string
+          created_at: string
+          state: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          state: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          state?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qbo_oauth_states_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_agreements: {
         Row: {
           client_id: string | null
@@ -2246,6 +2381,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          qbo_customer_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2255,6 +2391,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          qbo_customer_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2264,6 +2401,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          qbo_customer_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3310,6 +3448,10 @@ export type Database = {
           invoice_number: string
           issued_at: string | null
           paid_at: string | null
+          qbo_invoice_id: string | null
+          qbo_sync_error: string | null
+          qbo_sync_status: string
+          qbo_synced_at: string | null
           status: string
           total_amount: number
         }
