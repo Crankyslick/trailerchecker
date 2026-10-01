@@ -1,21 +1,8 @@
 // Server-only. Never import this from client code — it reads TWILIO_AUTH_TOKEN,
 // which must never reach the browser bundle.
-import Twilio from "twilio";
-
-let client: ReturnType<typeof Twilio> | null | undefined;
-
-function getClient(): ReturnType<typeof Twilio> | null {
-  if (client !== undefined) return client;
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token) {
-    console.error("[sendSms] TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN not set — SMS disabled");
-    client = null;
-    return client;
-  }
-  client = Twilio(sid, token);
-  return client;
-}
+//
+// Uses the Twilio REST API over native fetch instead of the `twilio` npm SDK:
+// the SDK pulls in Node-only built-ins that crash the edge runtime at startup.
 
 // Loose E.164 check — "+" then 8 to 15 digits. Good enough to catch obviously
 // malformed input before it reaches Twilio; Twilio is the real validator.
@@ -41,11 +28,32 @@ export async function sendSms(to: string, message: string): Promise<SendSmsResul
     return { sent: false, reason: "not_configured" };
   }
 
-  const twilioClient = getClient();
-  if (!twilioClient) return { sent: false, reason: "not_configured" };
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !token) {
+    console.error("[sendSms] TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN not set — SMS disabled");
+    return { sent: false, reason: "not_configured" };
+  }
 
   try {
-    await twilioClient.messages.create({ to, from, body: message });
+    const res = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages.json`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa(`${sid}:${token}`)}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ To: to, From: from, Body: message }).toString(),
+      },
+    );
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(`[sendSms] failed to send to ${to}: ${res.status} ${detail.slice(0, 300)}`);
+      return { sent: false, reason: "send_failed" };
+    }
+
     return { sent: true };
   } catch (e) {
     console.error(`[sendSms] failed to send to ${to}:`, (e as Error).message);
