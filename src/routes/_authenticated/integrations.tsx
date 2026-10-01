@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, RefreshCw, Plus, MapPin } from "lucide-react";
+import { Copy, RefreshCw, Plus, MapPin, Radio } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import {
   useGeofences,
   createGeofence,
   useInboundToken,
   rotateInboundToken,
+  useRecentTrackingEvents,
+  useLatestTrackingLocations,
   type Geofence,
+  type TrackingEvent,
+  type TrackedAsset,
 } from "@/hooks/use-integrations";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
