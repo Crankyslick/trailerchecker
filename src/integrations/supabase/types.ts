@@ -1275,6 +1275,49 @@ export type Database = {
           },
         ]
       }
+      geofence_presence: {
+        Row: {
+          company_id: string
+          entered_at: string
+          geofence_id: string
+          load_id: string
+        }
+        Insert: {
+          company_id: string
+          entered_at: string
+          geofence_id: string
+          load_id: string
+        }
+        Update: {
+          company_id?: string
+          entered_at?: string
+          geofence_id?: string
+          load_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geofence_presence_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_presence_geofence_id_fkey"
+            columns: ["geofence_id"]
+            isOneToOne: false
+            referencedRelation: "geofences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_presence_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geofences: {
         Row: {
           center_lat: number
@@ -2583,6 +2626,7 @@ export type Database = {
         Row: {
           asset_type: string | null
           company_id: string
+          dedupe_key: string | null
           external_id: string
           heading_deg: number | null
           id: string
@@ -2600,6 +2644,7 @@ export type Database = {
         Insert: {
           asset_type?: string | null
           company_id: string
+          dedupe_key?: string | null
           external_id: string
           heading_deg?: number | null
           id?: string
@@ -2617,6 +2662,7 @@ export type Database = {
         Update: {
           asset_type?: string | null
           company_id?: string
+          dedupe_key?: string | null
           external_id?: string
           heading_deg?: number | null
           id?: string
@@ -3758,86 +3804,64 @@ export type Database = {
         }
         Returns: boolean
       }
-      ingest_tracking_event:
-        | {
-            Args: {
-              p_company_id: string
-              p_eta_at?: string
-              p_eta_source?: string
-              p_external_id: string
-              p_heading_deg: number
-              p_latitude: number
-              p_longitude: number
-              p_raw_payload?: Json
-              p_recorded_at: string
-              p_speed_mph: number
-            }
-            Returns: {
-              asset_type: string | null
-              company_id: string
-              external_id: string
-              heading_deg: number | null
-              id: string
-              latitude: number | null
-              load_id: string | null
-              longitude: number | null
-              matched_by: string | null
-              provider: string | null
-              raw_payload: Json | null
-              received_at: string
-              recorded_at: string
-              source: string
-              speed_mph: number | null
-            }
-            SetofOptions: {
-              from: "*"
-              to: "tracking_events"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
-        | {
-            Args: {
-              p_asset_type?: string
-              p_company_id: string
-              p_eta_at?: string
-              p_eta_source?: string
-              p_external_id: string
-              p_heading_deg: number
-              p_latitude: number
-              p_longitude: number
-              p_provider?: string
-              p_raw_payload?: Json
-              p_recorded_at: string
-              p_speed_mph: number
-            }
-            Returns: {
-              asset_type: string | null
-              company_id: string
-              external_id: string
-              heading_deg: number | null
-              id: string
-              latitude: number | null
-              load_id: string | null
-              longitude: number | null
-              matched_by: string | null
-              provider: string | null
-              raw_payload: Json | null
-              received_at: string
-              recorded_at: string
-              source: string
-              speed_mph: number | null
-            }
-            SetofOptions: {
-              from: "*"
-              to: "tracking_events"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
+      ingest_tracking_event: {
+        Args: {
+          p_asset_type?: string
+          p_company_id: string
+          p_eta_at?: string
+          p_eta_source?: string
+          p_external_id: string
+          p_heading_deg: number
+          p_latitude: number
+          p_longitude: number
+          p_provider?: string
+          p_raw_payload?: Json
+          p_recorded_at: string
+          p_speed_mph: number
+        }
+        Returns: {
+          asset_type: string | null
+          company_id: string
+          dedupe_key: string | null
+          external_id: string
+          heading_deg: number | null
+          id: string
+          latitude: number | null
+          load_id: string | null
+          longitude: number | null
+          matched_by: string | null
+          provider: string | null
+          raw_payload: Json | null
+          received_at: string
+          recorded_at: string
+          source: string
+          speed_mph: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tracking_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       is_assigned_driver: { Args: { p_load_id: string }; Returns: boolean }
       is_dispatcher_or_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      latest_tracking_locations: {
+        Args: never
+        Returns: {
+          external_id: string
+          heading_deg: number
+          latitude: number
+          load_id: string
+          load_schedule_id: string
+          longitude: number
+          matched_by: string
+          received_at: string
+          recorded_at: string
+          speed_mph: number
+        }[]
+      }
       leg_status_for_load: {
         Args: { p_status: Database["public"]["Enums"]["trailer_load_status"] }
         Returns: Database["public"]["Enums"]["leg_status"]
@@ -3992,8 +4016,10 @@ export type Database = {
         Returns: {
           asset_type: string
           external_id: string
+          heading_deg: number
           id: string
           latitude: number
+          load_id: string
           load_schedule_id: string
           longitude: number
           matched_by: string
