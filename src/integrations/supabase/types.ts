@@ -65,6 +65,48 @@ export type Database = {
           },
         ]
       }
+      alert_state: {
+        Row: {
+          alert_type: string
+          company_id: string
+          id: string
+          load_id: string
+          raised_at: string
+          resolved_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          company_id: string
+          id?: string
+          load_id: string
+          raised_at?: string
+          resolved_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          company_id?: string
+          id?: string
+          load_id?: string
+          raised_at?: string
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_state_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_state_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           company_id: string
@@ -2881,7 +2923,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      load_alert_conditions: {
+        Row: {
+          alert_type: string | null
+          body: string | null
+          company_id: string | null
+          load_id: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _log_status_propagation: {
@@ -3334,6 +3385,13 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      evaluate_alerts: {
+        Args: { p_notify?: boolean }
+        Returns: {
+          raised: number
+          resolved: number
+        }[]
       }
       flag_exception: {
         Args: { p_load_id: string; p_reason: string }
