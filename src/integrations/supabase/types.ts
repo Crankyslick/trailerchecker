@@ -17,6 +17,8 @@ export type Database = {
       accessorials: {
         Row: {
           amount: number
+          approved_at: string | null
+          approved_by: string | null
           billable_to: string
           code: string
           company_id: string
@@ -25,9 +27,13 @@ export type Database = {
           description: string | null
           id: string
           load_id: string
+          rejected_reason: string | null
+          status: string
         }
         Insert: {
           amount: number
+          approved_at?: string | null
+          approved_by?: string | null
           billable_to?: string
           code: string
           company_id?: string
@@ -36,9 +42,13 @@ export type Database = {
           description?: string | null
           id?: string
           load_id: string
+          rejected_reason?: string | null
+          status?: string
         }
         Update: {
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           billable_to?: string
           code?: string
           company_id?: string
@@ -47,6 +57,8 @@ export type Database = {
           description?: string | null
           id?: string
           load_id?: string
+          rejected_reason?: string | null
+          status?: string
         }
         Relationships: [
           {
@@ -785,6 +797,13 @@ export type Database = {
             foreignKeyName: "customer_invoice_lines_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "customer_invoice_aging"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "customer_invoices"
             referencedColumns: ["id"]
           },
@@ -802,6 +821,9 @@ export type Database = {
           client_id: string
           company_id: string
           created_at: string
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          disputed_at: string | null
           due_at: string | null
           id: string
           invoice_number: string
@@ -818,6 +840,9 @@ export type Database = {
           client_id: string
           company_id?: string
           created_at?: string
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          disputed_at?: string | null
           due_at?: string | null
           id?: string
           invoice_number: string
@@ -834,6 +859,9 @@ export type Database = {
           client_id?: string
           company_id?: string
           created_at?: string
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          disputed_at?: string | null
           due_at?: string | null
           id?: string
           invoice_number?: string
@@ -2094,8 +2122,10 @@ export type Database = {
       }
       rate_agreements: {
         Row: {
+          additional_stop_rate: number
           client_id: string | null
           company_id: string
+          contract_number: string | null
           created_at: string
           destination_code: string | null
           effective_end: string | null
@@ -2105,11 +2135,16 @@ export type Database = {
           linehaul_rate: number
           origin_code: string | null
           rate_type: string
+          root_id: string
+          superseded_by_id: string | null
           updated_at: string
+          version: number
         }
         Insert: {
+          additional_stop_rate?: number
           client_id?: string | null
           company_id?: string
+          contract_number?: string | null
           created_at?: string
           destination_code?: string | null
           effective_end?: string | null
@@ -2119,11 +2154,16 @@ export type Database = {
           linehaul_rate: number
           origin_code?: string | null
           rate_type?: string
+          root_id?: string
+          superseded_by_id?: string | null
           updated_at?: string
+          version?: number
         }
         Update: {
+          additional_stop_rate?: number
           client_id?: string | null
           company_id?: string
+          contract_number?: string | null
           created_at?: string
           destination_code?: string | null
           effective_end?: string | null
@@ -2133,7 +2173,10 @@ export type Database = {
           linehaul_rate?: number
           origin_code?: string | null
           rate_type?: string
+          root_id?: string
+          superseded_by_id?: string | null
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -2148,6 +2191,45 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_agreements_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
+            referencedRelation: "rate_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_breaks: {
+        Row: {
+          id: string
+          linehaul_rate: number
+          max_weight: number | null
+          min_weight: number
+          rate_agreement_id: string
+        }
+        Insert: {
+          id?: string
+          linehaul_rate: number
+          max_weight?: number | null
+          min_weight?: number
+          rate_agreement_id: string
+        }
+        Update: {
+          id?: string
+          linehaul_rate?: number
+          max_weight?: number | null
+          min_weight?: number
+          rate_agreement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_breaks_rate_agreement_id_fkey"
+            columns: ["rate_agreement_id"]
+            isOneToOne: false
+            referencedRelation: "rate_agreements"
             referencedColumns: ["id"]
           },
         ]
@@ -2723,14 +2805,112 @@ export type Database = {
           },
         ]
       }
+      trailer_client_activities: {
+        Row: {
+          activity_type: string
+          client_id: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+        }
+        Insert: {
+          activity_type: string
+          client_id: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          activity_type?: string
+          client_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trailer_client_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_client_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trailer_client_contacts: {
+        Row: {
+          client_id: string
+          company_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          phone: string | null
+          title: string | null
+        }
+        Insert: {
+          client_id: string
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          phone?: string | null
+          title?: string | null
+        }
+        Update: {
+          client_id?: string
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          phone?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trailer_client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_client_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trailer_clients: {
         Row: {
           company_id: string
           contact_info: string | null
           created_at: string
+          credit_limit: number | null
           id: string
           name: string
           notes: string | null
+          payment_terms_days: number
           qbo_customer_id: string | null
           updated_at: string
         }
@@ -2738,9 +2918,11 @@ export type Database = {
           company_id?: string
           contact_info?: string | null
           created_at?: string
+          credit_limit?: number | null
           id?: string
           name: string
           notes?: string | null
+          payment_terms_days?: number
           qbo_customer_id?: string | null
           updated_at?: string
         }
@@ -2748,9 +2930,11 @@ export type Database = {
           company_id?: string
           contact_info?: string | null
           created_at?: string
+          credit_limit?: number | null
           id?: string
           name?: string
           notes?: string | null
+          payment_terms_days?: number
           qbo_customer_id?: string | null
           updated_at?: string
         }
@@ -3231,6 +3415,36 @@ export type Database = {
       }
     }
     Views: {
+      customer_invoice_aging: {
+        Row: {
+          aging_bucket: string | null
+          client_id: string | null
+          client_name: string | null
+          company_id: string | null
+          days_past_due: number | null
+          due_at: string | null
+          id: string | null
+          invoice_number: string | null
+          status: string | null
+          total_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       load_alert_conditions: {
         Row: {
           alert_type: string | null
@@ -3295,6 +3509,7 @@ export type Database = {
           p_load_id: string
           p_miles?: number
           p_rate_agreement_id: string
+          p_weight?: number
         }
         Returns: {
           alert_status: string | null
@@ -3373,6 +3588,30 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      approve_accessorial: {
+        Args: { p_accessorial_id: string }
+        Returns: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          billable_to: string
+          code: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          load_id: string
+          rejected_reason: string | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "accessorials"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -3575,6 +3814,34 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      dispute_invoice: {
+        Args: { p_invoice_id: string; p_reason: string }
+        Returns: {
+          client_id: string
+          company_id: string
+          created_at: string
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          disputed_at: string | null
+          due_at: string | null
+          id: string
+          invoice_number: string
+          issued_at: string | null
+          paid_at: string | null
+          qbo_invoice_id: string | null
+          qbo_sync_error: string | null
+          qbo_sync_status: string
+          qbo_synced_at: string | null
+          status: string
+          total_amount: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "customer_invoices"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -3813,6 +4080,9 @@ export type Database = {
           client_id: string
           company_id: string
           created_at: string
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          disputed_at: string | null
           due_at: string | null
           id: string
           invoice_number: string
@@ -4071,6 +4341,30 @@ export type Database = {
         Args: { p_shipment_id: string }
         Returns: undefined
       }
+      reject_accessorial: {
+        Args: { p_accessorial_id: string; p_reason: string }
+        Returns: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          billable_to: string
+          code: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          load_id: string
+          rejected_reason: string | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "accessorials"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       resolve_exception: {
         Args: { p_load_id: string; p_resolution_note: string }
         Returns: {
@@ -4154,6 +4448,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      resolve_invoice_dispute: {
+        Args: { p_invoice_id: string; p_new_status: string }
+        Returns: {
+          client_id: string
+          company_id: string
+          created_at: string
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          disputed_at: string | null
+          due_at: string | null
+          id: string
+          invoice_number: string
+          issued_at: string | null
+          paid_at: string | null
+          qbo_invoice_id: string | null
+          qbo_sync_error: string | null
+          qbo_sync_status: string
+          qbo_synced_at: string | null
+          status: string
+          total_amount: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "customer_invoices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       respond_to_tender: {
         Args: {
           p_response: Database["public"]["Enums"]["tender_status"]
@@ -4175,6 +4497,39 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "tenders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      revise_rate_agreement: {
+        Args: {
+          p_effective_start?: string
+          p_new_fuel_surcharge_pct: number
+          p_new_linehaul_rate: number
+          p_rate_agreement_id: string
+        }
+        Returns: {
+          additional_stop_rate: number
+          client_id: string | null
+          company_id: string
+          contract_number: string | null
+          created_at: string
+          destination_code: string | null
+          effective_end: string | null
+          effective_start: string
+          fuel_surcharge_pct: number
+          id: string
+          linehaul_rate: number
+          origin_code: string | null
+          rate_type: string
+          root_id: string
+          superseded_by_id: string | null
+          updated_at: string
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "rate_agreements"
           isOneToOne: true
           isSetofReturn: false
         }

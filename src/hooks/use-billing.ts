@@ -45,8 +45,14 @@ export type RateAgreement = {
   rate_type: "FLAT" | "PER_MILE";
   linehaul_rate: number;
   fuel_surcharge_pct: number;
+  root_id: string;
+  version: number;
+  contract_number: string | null;
+  additional_stop_rate: number;
+  effective_start: string | null;
 };
 
+/** Current (non-superseded) rate versions only; history lives in RateDetailModal. */
 export function useRateAgreements() {
   const qc = useQueryClient();
   useEffect(
@@ -62,8 +68,9 @@ export function useRateAgreements() {
       const { data, error } = await sb
         .from("rate_agreements")
         .select(
-          "id, client_id, origin_code, destination_code, rate_type, linehaul_rate, fuel_surcharge_pct",
+          "id, client_id, origin_code, destination_code, rate_type, linehaul_rate, fuel_surcharge_pct, root_id, version, contract_number, additional_stop_rate, effective_start",
         )
+        .is("superseded_by_id", null)
         .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
       return (data ?? []) as RateAgreement[];
