@@ -7,6 +7,7 @@ import { FileText, Receipt, Upload } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { QuickBooksPanel } from "@/components/QuickBooksPanel";
+import { ReceivablesPanel, InvoiceActions } from "@/components/ReceivablesPanel";
 import { syncInvoicesToQbo } from "@/lib/qbo.functions";
 import {
   useBillableLoads,
@@ -34,7 +35,7 @@ function BillingPage() {
   const { data: invoices } = useCustomerInvoices();
   const { data: settlements } = useCarrierSettlements();
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const { canManageBilling } = useCurrentUser();
+  const { canManageBilling, isAdmin } = useCurrentUser();
   const qc = useQueryClient();
   const pushFn = useServerFn(syncInvoicesToQbo);
 
@@ -164,6 +165,8 @@ function BillingPage() {
         </table>
       </div>
 
+      <ReceivablesPanel canApprove={isAdmin} />
+
       {canManageBilling && <QuickBooksPanel canWrite={canManageBilling} />}
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -183,10 +186,13 @@ function BillingPage() {
                   )}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="chip border bg-surface-2 text-foreground border-border text-xs">
+                  <span
+                    className={`chip border text-xs ${inv.status === "DISPUTED" ? "bg-warning/10 text-warning border-warning/30" : "bg-surface-2 text-foreground border-border"}`}
+                  >
                     {inv.status}
                   </span>
                   <span className="font-medium">${inv.total_amount.toFixed(2)}</span>
+                  <InvoiceActions id={inv.id} status={inv.status} />
                   {canManageBilling &&
                     (inv.qbo_invoice_id ? (
                       <span className="chip border bg-success/10 text-success border-success/30 text-[10px]">

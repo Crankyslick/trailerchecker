@@ -7,6 +7,7 @@ import { guard } from "@/lib/route-guard";
 import { useRateAgreements, createRateAgreement, type RateAgreement } from "@/hooks/use-billing";
 import { useClients } from "@/hooks/use-orders";
 import { CustomerModal } from "@/components/CustomerModal";
+import { RateDetailModal } from "@/components/RateDetailModal";
 
 export const Route = createFileRoute("/_authenticated/rates")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
@@ -18,6 +19,7 @@ function RatesPage() {
   const { data: rates, isLoading } = useRateAgreements();
   const { data: clients } = useClients();
   const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<RateAgreement | null>(null);
   const clientName = (id: string | null) =>
     clients?.find((c) => c.id === id)?.name ?? "Any customer";
 
@@ -52,12 +54,22 @@ function RatesPage() {
               <th className="text-left px-3 py-2">Type</th>
               <th className="text-right px-3 py-2">Rate</th>
               <th className="text-right px-3 py-2">Fuel SC %</th>
+              <th className="text-right px-3 py-2">Version</th>
             </tr>
           </thead>
           <tbody>
             {(rates ?? []).map((r: RateAgreement) => (
-              <tr key={r.id} className="border-t border-border">
-                <td className="px-3 py-2">{clientName(r.client_id)}</td>
+              <tr
+                key={r.id}
+                onClick={() => setDetail(r)}
+                className="border-t border-border cursor-pointer hover:bg-surface-2/50"
+              >
+                <td className="px-3 py-2">
+                  {clientName(r.client_id)}
+                  {r.contract_number && (
+                    <span className="block text-[11px] text-muted-foreground">#{r.contract_number}</span>
+                  )}
+                </td>
                 <td className="px-3 py-2 text-xs">
                   {r.origin_code ?? "Any"} → {r.destination_code ?? "Any"}
                 </td>
@@ -66,6 +78,7 @@ function RatesPage() {
                 </td>
                 <td className="px-3 py-2 text-right">${r.linehaul_rate.toFixed(2)}</td>
                 <td className="px-3 py-2 text-right">{r.fuel_surcharge_pct}%</td>
+                <td className="px-3 py-2 text-right text-xs text-muted-foreground">v{r.version}</td>
               </tr>
             ))}
           </tbody>
@@ -73,6 +86,7 @@ function RatesPage() {
       </div>
 
       {open && <NewRateModal onClose={() => setOpen(false)} />}
+      {detail && <RateDetailModal rate={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }

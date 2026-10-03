@@ -23,6 +23,8 @@ import { GuardCheckInModal } from "@/components/GuardCheckInModal";
 import { useTenantProducts } from "@/hooks/use-products";
 import { guard } from "@/lib/route-guard";
 import { useYardPolicy } from "@/hooks/use-company-settings";
+import { useCurrentUser } from "@/hooks/use-auth";
+import { AttentionFeed, buildAttentionItems } from "@/components/AttentionFeed";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   beforeLoad: guard({ product: "trailer" }),
@@ -192,6 +194,20 @@ function ControlTower() {
       ? 100
       : Math.round(((enriched.length - over24.length) / enriched.length) * 100);
 
+  const { canManageBilling } = useCurrentUser();
+  const minuteBucket = mounted ? Math.floor(Date.now() / 60_000) : 0;
+  const attention = useMemo(
+    () =>
+      buildAttentionItems(allLoads, {
+        now: minuteBucket * 60_000,
+        today,
+        tomorrow,
+        deadlineHours: policy.deadlineHours,
+        criticalHours: policy.criticalHours,
+      }),
+    [allLoads, minuteBucket, today, tomorrow, policy.deadlineHours, policy.criticalHours],
+  );
+
   const [modal, setModal] = useState<{
     id: string;
     trailer: string;
@@ -242,6 +258,8 @@ function ControlTower() {
           </span>
         </div>
       </div>
+
+      {mounted && <AttentionFeed items={attention} showMoney={canManageBilling} />}
 
       {/* KPI grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

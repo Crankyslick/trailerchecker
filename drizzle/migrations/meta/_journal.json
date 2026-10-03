@@ -8,6 +8,13 @@
       "when": 1790970136054,
       "tag": "0000_fix_company_update_and_sheet_cron",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791032670860,
+      "tag": "0001_rating_depth_ar_and_crm",
+      "breakpoints": true
     }
   ]
 }

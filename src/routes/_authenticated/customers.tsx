@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Pencil, Search } from "lucide-react";
+import { Plus, Pencil, Search, Users } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import { useCustomers, type Customer } from "@/hooks/use-customers";
 import { CustomerModal } from "@/components/CustomerModal";
+import { CustomerAccountPanel } from "@/components/CustomerAccountPanel";
 
 export const Route = createFileRoute("/_authenticated/customers")({
   beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
@@ -30,6 +31,7 @@ function CustomersPage() {
   const { data: customers, isLoading, error } = useCustomers();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
+  const [account, setAccount] = useState<Customer | null>(null);
   const [q, setQ] = useState("");
 
   const rows = useMemo(() => {
@@ -103,7 +105,13 @@ function CustomersPage() {
                     <td className="py-2.5 px-4 text-muted-foreground max-w-md truncate">
                       {c.notes ?? "—"}
                     </td>
-                    <td className="py-2.5 px-4 text-right">
+                    <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => setAccount(c)}
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mr-3"
+                      >
+                        <Users className="h-3.5 w-3.5" /> Account
+                      </button>
                       <button
                         onClick={() => setEditing(c)}
                         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
@@ -121,6 +129,7 @@ function CustomersPage() {
 
       {adding && <CustomerModal onClose={() => setAdding(false)} />}
       {editing && <CustomerModal customer={editing} onClose={() => setEditing(null)} />}
+      {account && <CustomerAccountPanel customer={account} onClose={() => setAccount(null)} />}
     </div>
   );
 }
