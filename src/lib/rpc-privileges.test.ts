@@ -61,11 +61,11 @@ const PRIVILEGED_RPCS: Record<string, Record<string, unknown>> = {
   recent_tracking_events: { p_limit: 1 },
   // Alert fan-out, intended for the scheduled job only.
   evaluate_alerts: { p_notify: false },
-  revise_rate_agreement: { p_rate_agreement_id: ZERO_UUID, p_new_linehaul_rate: 1, p_new_fuel_surcharge_pct: 0 },
-  approve_accessorial: { p_accessorial_id: ZERO_UUID },
-  reject_accessorial: { p_accessorial_id: ZERO_UUID, p_reason: "x" },
-  dispute_invoice: { p_invoice_id: ZERO_UUID, p_reason: "x" },
-  resolve_invoice_dispute: { p_invoice_id: ZERO_UUID, p_new_status: "PAID" },
+  revise_rate_agreement: { p_rate_agreement_id: "00000000-0000-0000-0000-000000000000", p_new_linehaul_rate: 1, p_new_fuel_surcharge_pct: 0 },
+  approve_accessorial: { p_accessorial_id: "00000000-0000-0000-0000-000000000000" },
+  reject_accessorial: { p_accessorial_id: "00000000-0000-0000-0000-000000000000", p_reason: "x" },
+  dispute_invoice: { p_invoice_id: "00000000-0000-0000-0000-000000000000", p_reason: "x" },
+  resolve_invoice_dispute: { p_invoice_id: "00000000-0000-0000-0000-000000000000", p_new_status: "PAID" },
   notify_user: {
     p_company_id: "00000000-0000-0000-0000-000000000000",
     p_user_id: "00000000-0000-0000-0000-000000000000",
