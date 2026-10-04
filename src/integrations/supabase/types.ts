@@ -1037,6 +1037,94 @@ export type Database = {
           },
         ]
       }
+      dvir_inspections: {
+        Row: {
+          brakes_ok: boolean
+          cargo_securement_ok: boolean
+          company_id: string
+          coupling_devices_ok: boolean
+          created_at: string
+          defect_notes: string | null
+          defects_found: boolean
+          driver_id: string
+          emergency_equipment_ok: boolean
+          fluid_leaks_ok: boolean
+          horn_ok: boolean
+          id: string
+          inspection_type: Database["public"]["Enums"]["dvir_inspection_type"]
+          lights_reflectors_ok: boolean
+          load_id: string
+          mirrors_windshield_ok: boolean
+          odometer_miles: number | null
+          passed: boolean
+          tires_wheels_ok: boolean
+        }
+        Insert: {
+          brakes_ok: boolean
+          cargo_securement_ok: boolean
+          company_id?: string
+          coupling_devices_ok: boolean
+          created_at?: string
+          defect_notes?: string | null
+          defects_found?: boolean
+          driver_id: string
+          emergency_equipment_ok: boolean
+          fluid_leaks_ok: boolean
+          horn_ok: boolean
+          id?: string
+          inspection_type: Database["public"]["Enums"]["dvir_inspection_type"]
+          lights_reflectors_ok: boolean
+          load_id: string
+          mirrors_windshield_ok: boolean
+          odometer_miles?: number | null
+          passed: boolean
+          tires_wheels_ok: boolean
+        }
+        Update: {
+          brakes_ok?: boolean
+          cargo_securement_ok?: boolean
+          company_id?: string
+          coupling_devices_ok?: boolean
+          created_at?: string
+          defect_notes?: string | null
+          defects_found?: boolean
+          driver_id?: string
+          emergency_equipment_ok?: boolean
+          fluid_leaks_ok?: boolean
+          horn_ok?: boolean
+          id?: string
+          inspection_type?: Database["public"]["Enums"]["dvir_inspection_type"]
+          lights_reflectors_ok?: boolean
+          load_id?: string
+          mirrors_windshield_ok?: boolean
+          odometer_miles?: number | null
+          passed?: boolean
+          tires_wheels_ok?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dvir_inspections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dvir_inspections_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dvir_inspections_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entities: {
         Row: {
           country: string | null
@@ -2690,7 +2778,9 @@ export type Database = {
           offered_rate: number | null
           responded_at: string | null
           response_notes: string | null
+          response_token: string | null
           status: Database["public"]["Enums"]["tender_status"]
+          token_expires_at: string | null
         }
         Insert: {
           carrier_id: string
@@ -2702,7 +2792,9 @@ export type Database = {
           offered_rate?: number | null
           responded_at?: string | null
           response_notes?: string | null
+          response_token?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
+          token_expires_at?: string | null
         }
         Update: {
           carrier_id?: string
@@ -2714,7 +2806,9 @@ export type Database = {
           offered_rate?: number | null
           responded_at?: string | null
           response_notes?: string | null
+          response_token?: string | null
           status?: Database["public"]["Enums"]["tender_status"]
+          token_expires_at?: string | null
         }
         Relationships: [
           {
@@ -3072,6 +3166,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -3146,6 +3241,7 @@ export type Database = {
           superseded_by_id?: string | null
           target_load_id?: string | null
           total_distance?: string | null
+          tracking_token?: string | null
           trip_id?: string | null
           trl_location_code?: string | null
           unload_date?: string | null
@@ -3220,6 +3316,7 @@ export type Database = {
           superseded_by_id?: string | null
           target_load_id?: string | null
           total_distance?: string | null
+          tracking_token?: string | null
           trip_id?: string | null
           trl_location_code?: string | null
           unload_date?: string | null
@@ -3574,6 +3671,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -3713,7 +3811,9 @@ export type Database = {
           offered_rate: number | null
           responded_at: string | null
           response_notes: string | null
+          response_token: string | null
           status: Database["public"]["Enums"]["tender_status"]
+          token_expires_at: string | null
         }
         SetofOptions: {
           from: "*"
@@ -3800,6 +3900,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -3921,6 +4022,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -3961,6 +4063,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      ensure_tracking_token: { Args: { p_load_id: string }; Returns: string }
       evaluate_alerts: {
         Args: { p_notify?: boolean }
         Returns: {
@@ -4037,6 +4140,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -4103,6 +4207,49 @@ export type Database = {
         }
       }
       get_inbound_token: { Args: never; Returns: string }
+      get_tender_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          carrier_name: string
+          destination_name: string
+          expires_at: string
+          offered_at: string
+          offered_rate: number
+          origin_name: string
+          responded_at: string
+          schedule_id: string
+          status: Database["public"]["Enums"]["tender_status"]
+          tender_id: string
+          token_valid: boolean
+        }[]
+      }
+      get_tracking_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          destination_name: string
+          eta_at: string
+          expected_delivery: string
+          expected_pickup: string
+          found: boolean
+          is_exception: boolean
+          origin_name: string
+          schedule_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          updated_at: string
+        }[]
+      }
+      get_tracking_milestones_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          created_at: string
+          event_type: string
+          note: string
+        }[]
+      }
+      has_passing_pretrip_dvir: {
+        Args: { p_load_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4299,6 +4446,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -4430,6 +4578,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -4492,7 +4641,9 @@ export type Database = {
           offered_rate: number | null
           responded_at: string | null
           response_notes: string | null
+          response_token: string | null
           status: Database["public"]["Enums"]["tender_status"]
+          token_expires_at: string | null
         }
         SetofOptions: {
           from: "*"
@@ -4500,6 +4651,18 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      respond_to_tender_by_token: {
+        Args: {
+          p_response: Database["public"]["Enums"]["tender_status"]
+          p_response_notes?: string
+          p_token: string
+        }
+        Returns: {
+          message: string
+          ok: boolean
+          status: Database["public"]["Enums"]["tender_status"]
+        }[]
       }
       revise_rate_agreement: {
         Args: {
@@ -4605,6 +4768,7 @@ export type Database = {
           superseded_by_id: string | null
           target_load_id: string | null
           total_distance: string | null
+          tracking_token: string | null
           trip_id: string | null
           trl_location_code: string | null
           unload_date: string | null
@@ -4645,6 +4809,50 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "driver_sessions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      submit_dvir: {
+        Args: {
+          p_brakes_ok: boolean
+          p_cargo_securement_ok: boolean
+          p_coupling_devices_ok: boolean
+          p_defect_notes?: string
+          p_emergency_equipment_ok: boolean
+          p_fluid_leaks_ok: boolean
+          p_horn_ok: boolean
+          p_inspection_type: Database["public"]["Enums"]["dvir_inspection_type"]
+          p_lights_reflectors_ok: boolean
+          p_load_id: string
+          p_mirrors_windshield_ok: boolean
+          p_odometer_miles?: number
+          p_tires_wheels_ok: boolean
+        }
+        Returns: {
+          brakes_ok: boolean
+          cargo_securement_ok: boolean
+          company_id: string
+          coupling_devices_ok: boolean
+          created_at: string
+          defect_notes: string | null
+          defects_found: boolean
+          driver_id: string
+          emergency_equipment_ok: boolean
+          fluid_leaks_ok: boolean
+          horn_ok: boolean
+          id: string
+          inspection_type: Database["public"]["Enums"]["dvir_inspection_type"]
+          lights_reflectors_ok: boolean
+          load_id: string
+          mirrors_windshield_ok: boolean
+          odometer_miles: number | null
+          passed: boolean
+          tires_wheels_ok: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "dvir_inspections"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -4726,6 +4934,7 @@ export type Database = {
         | "Completed"
         | "Delayed"
         | "Exception"
+      dvir_inspection_type: "PRE_TRIP" | "POST_TRIP"
       leg_status: "PLANNED" | "ACTIVE" | "COMPLETED" | "CANCELLED"
       legacy_trailer_location:
         | "DC"
@@ -4927,6 +5136,7 @@ export const Constants = {
         "Delayed",
         "Exception",
       ],
+      dvir_inspection_type: ["PRE_TRIP", "POST_TRIP"],
       leg_status: ["PLANNED", "ACTIVE", "COMPLETED", "CANCELLED"],
       legacy_trailer_location: [
         "DC",
