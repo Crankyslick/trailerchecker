@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin } from "lucide-react";
+import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin, WifiOff } from "lucide-react";
+import {
+  enqueue,
+  flushQueue,
+  isLikelyOffline,
+  onQueueChanged,
+  queueSize,
+} from "@/lib/driver-offline-queue";
+import { registerDriverServiceWorker } from "@/lib/register-sw";
 import { guard } from "@/lib/route-guard";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -36,11 +44,49 @@ const NEXT_STATUS: Record<string, string | null> = {
   "Returned To DC": "Completed",
 };
 
+async function flushDriverQueue() {
+  const r = await flushQueue({
+    status: driverUpdateStatus,
+    exception: flagException,
+    resolveException: async () => {
+      throw new Error("resolve_exception is not a driver action");
+    },
+    pod: (input) => capturePod({ ...input, photoPath: null }),
+  });
+  if (r.done > 0) toast.success(`Synced ${r.done} queued action${r.done === 1 ? "" : "s"}`);
+  if (r.dropped > 0)
+    toast.error(
+      `${r.dropped} queued action${r.dropped === 1 ? " was" : "s were"} rejected by the server — check your loads`,
+    );
+}
+
 function DriverPage() {
   const { data: loads, isLoading, refetch } = useMyLoads();
   const { profile } = useCurrentUser();
   const sessionId = useDriverSession();
   const { data: notifications } = useNotifications();
+  const [pending, setPending] = useState(0);
+  const [offline, setOffline] = useState(false);
+
+  useEffect(() => {
+    setPending(queueSize());
+    setOffline(!navigator.onLine);
+    const unsub = onQueueChanged(() => setPending(queueSize()));
+    const goOnline = () => {
+      setOffline(false);
+      void flushDriverQueue().then(() => refetch());
+    };
+    const goOffline = () => setOffline(true);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    void flushDriverQueue();
+    void registerDriverServiceWorker();
+    return () => {
+      unsub();
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, [refetch]);
 
   const assignments = (notifications ?? []).filter((n) => n.type === "load_assigned");
   const unreadAssignments = assignments.filter((n) => !n.read_at);
@@ -102,6 +148,19 @@ function DriverPage() {
         </div>
       )}
 
+      {(offline || pending > 0) && (
+        <div className="flex items-center gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs">
+          <WifiOff className="h-3.5 w-3.5 shrink-0" />
+          <span>
+            {offline ? "No connection" : "Syncing"}
+            {pending > 0
+              ? ` — ${pending} action${pending === 1 ? "" : "s"} queued, will sync automatically`
+              : ""}
+          </span>
+        </div>
+      )}
+
+
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && (loads ?? []).length === 0 && (
@@ -141,7 +200,10 @@ function LoadCard({ load, sessionId }: { load: MyLoad; sessionId: string | null 
         });
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to update");
+      if (isLikelyOffline(e)) {
+        enqueue({ kind: "status", loadId: load.id, newStatus: next });
+        toast.info("Offline — status queued, will sync when you're back online");
+      } else toast.error(e instanceof Error ? e.message : "Failed to update");
     } finally {
       setBusy(false);
     }
@@ -272,7 +334,11 @@ function ExceptionForm({
       }
       onClose();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to report");
+      if (isLikelyOffline(e)) {
+        enqueue({ kind: "exception", loadId, reason });
+        toast.info("Offline — exception queued, will send when you're back online");
+        onClose();
+      } else toast.error(e instanceof Error ? e.message : "Failed to report");
     } finally {
       setSaving(false);
     }
@@ -359,12 +425,12 @@ function PodForm({
       return;
     }
     setSaving(true);
+    const signatureSvg = canvasRef.current?.toDataURL("image/png") ?? null;
     try {
       let photoPath: string | null = null;
       // The RPC resolves company_id server-side from the load itself; the
       // upload path just needs to be unique, so a placeholder segment is fine.
       if (photo) photoPath = await uploadPodPhoto(load.id, "shared", photo);
-      const signatureSvg = canvasRef.current?.toDataURL("image/png") ?? null;
       await capturePod({
         loadId: load.id,
         recipientName: recipient,
@@ -383,7 +449,21 @@ function PodForm({
       }
       onClose();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to record delivery");
+      if (isLikelyOffline(e)) {
+        enqueue({
+          kind: "pod",
+          loadId: load.id,
+          recipientName: recipient,
+          signatureSvg,
+          notes: notes || null,
+        });
+        toast.info(
+          photo
+            ? "Offline — delivery and signature queued. The photo can't be queued; re-attach it when online."
+            : "Offline — delivery queued, will sync when you're back online",
+        );
+        onClose();
+      } else toast.error(e instanceof Error ? e.message : "Failed to record delivery");
     } finally {
       setSaving(false);
     }
