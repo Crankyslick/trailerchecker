@@ -21,6 +21,7 @@ export default defineConfig({
         injectRegister: null,
         manifest: false, // static public/manifest.webmanifest is used
         filename: "sw.js",
+        outDir: "dist/client",
         devOptions: { enabled: false },
         workbox: {
           navigateFallback: null,
