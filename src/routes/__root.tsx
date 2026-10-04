@@ -38,7 +38,8 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent({ error: rawError, reset }: ErrorComponentProps) {
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -88,6 +89,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Me Do Logistics is a web application for dispatchers to manage trailer operations and track trailer yard duration.",
       },
       { name: "author", content: "Lovable" },
+      { name: "theme-color", content: "#0f172a" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "MDL Driver" },
       { property: "og:title", content: "Me Do Logistics" },
       {
         property: "og:description",
@@ -119,6 +125,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
     ],
   }),
   shellComponent: RootShell,
