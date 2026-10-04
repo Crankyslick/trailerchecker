@@ -15,6 +15,13 @@
       "when": 1791032670860,
       "tag": "0001_rating_depth_ar_and_crm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791077606549,
+      "tag": "0002_zero_login_tender_dvir_tracking",
+      "breakpoints": true
     }
   ]
 }
