@@ -38,6 +38,8 @@ import { Route as AuthenticatedTendersRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTomorrowRouteImport } from './routes/_authenticated/tomorrow'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/yard'
+import { Route as TendersRespondRouteImport } from './routes/tenders.respond'
+import { Route as TrackTokenRouteImport } from './routes/track.$token'
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 import { Route as ApiAlertsNotifyRouteImport } from './routes/api/alerts/notify'
@@ -193,6 +195,16 @@ const AuthenticatedYardRoute = AuthenticatedYardRouteImport.update({
   path: '/yard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const TendersRespondRoute = TendersRespondRouteImport.update({
+  id: '/tenders/respond',
+  path: '/tenders/respond',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackTokenRoute = TrackTokenRouteImport.update({
+  id: '/track/$token',
+  path: '/track/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedHistoryIndexRoute =
   AuthenticatedHistoryIndexRouteImport.update({
     id: '/history/',
@@ -265,6 +277,8 @@ export interface FileRoutesByFullPath {
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
+  '/tenders/respond': typeof TendersRespondRoute
+  '/track/$token': typeof TrackTokenRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -303,6 +317,8 @@ export interface FileRoutesByTo {
   '/tomorrow': typeof AuthenticatedTomorrowRoute
   '/users': typeof AuthenticatedUsersRoute
   '/yard': typeof AuthenticatedYardRoute
+  '/tenders/respond': typeof TendersRespondRoute
+  '/track/$token': typeof TrackTokenRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -343,6 +359,8 @@ export interface FileRoutesById {
   '/_authenticated/tomorrow': typeof AuthenticatedTomorrowRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/yard': typeof AuthenticatedYardRoute
+  '/tenders/respond': typeof TendersRespondRoute
+  '/track/$token': typeof TrackTokenRoute
   '/_authenticated/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
@@ -383,6 +401,8 @@ export interface FileRouteTypes {
     | '/tomorrow'
     | '/users'
     | '/yard'
+    | '/tenders/respond'
+    | '/track/$token'
     | '/history/$loadId'
     | '/api/alerts/notify'
     | '/api/public/health'
@@ -421,6 +441,8 @@ export interface FileRouteTypes {
     | '/tomorrow'
     | '/users'
     | '/yard'
+    | '/tenders/respond'
+    | '/track/$token'
     | '/history/$loadId'
     | '/api/alerts/notify'
     | '/api/public/health'
@@ -460,6 +482,8 @@ export interface FileRouteTypes {
     | '/_authenticated/tomorrow'
     | '/_authenticated/users'
     | '/_authenticated/yard'
+    | '/tenders/respond'
+    | '/track/$token'
     | '/_authenticated/history/$loadId'
     | '/api/alerts/notify'
     | '/api/public/health'
@@ -474,6 +498,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  TendersRespondRoute: typeof TendersRespondRoute
+  TrackTokenRoute: typeof TrackTokenRoute
   ApiAlertsNotifyRoute: typeof ApiAlertsNotifyRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
@@ -687,6 +713,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedYardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/tenders/respond': {
+      id: '/tenders/respond'
+      path: '/tenders/respond'
+      fullPath: '/tenders/respond'
+      preLoaderRoute: typeof TendersRespondRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track/$token': {
+      id: '/track/$token'
+      path: '/track/$token'
+      fullPath: '/track/$token'
+      preLoaderRoute: typeof TrackTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/history/': {
       id: '/_authenticated/history/'
       path: '/history'
@@ -815,6 +855,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  TendersRespondRoute: TendersRespondRoute,
+  TrackTokenRoute: TrackTokenRoute,
   ApiAlertsNotifyRoute: ApiAlertsNotifyRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,

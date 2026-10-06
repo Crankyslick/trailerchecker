@@ -43,12 +43,20 @@ export function validateOfferedRate(value: string): string | null {
   return null;
 }
 
+/** Builds the zero-login carrier response link for a tender, given its token. */
+export function buildTenderResponseUrl(responseToken: string | null | undefined): string | null {
+  if (!responseToken) return null;
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/tenders/respond?token=${encodeURIComponent(responseToken)}`;
+}
+
 export function buildTenderMailto(input: {
   recipient: string | null | undefined;
   shipmentNumber: string | null | undefined;
   origin: string | null | undefined;
   destination: string | null | undefined;
   offeredRate: number | null;
+  responseUrl?: string | null;
 }): string | null {
   const recipient = input.recipient?.trim().replace(/[\r\n]/g, "");
   if (!recipient) return null;
@@ -66,9 +74,13 @@ export function buildTenderMailto(input: {
     `Lane: ${origin} to ${destination}`,
     `Carrier pay offered: ${rate}`,
     "",
-    "Please reply to confirm acceptance or rejection. The dispatcher will record your response in the operations system.",
+    input.responseUrl
+      ? `Accept or decline with one click, no account needed: ${input.responseUrl}`
+      : "Please reply to confirm acceptance or rejection. The dispatcher will record your response in the operations system.",
     "",
-    "This message is a manually prepared draft. It has not been sent, and carrier outreach and response are handled by email.",
+    input.responseUrl
+      ? "This message is a manually prepared draft. It has not been sent."
+      : "This message is a manually prepared draft. It has not been sent, and carrier outreach and response are handled by email.",
   ].join("\n");
 
   const encodedRecipient = encodeURIComponent(recipient).replace(/%40/gi, "@");

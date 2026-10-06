@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Building2, Mail, Send } from "lucide-react";
+import { ArrowRight, Building2, Link2, Mail, Send } from "lucide-react";
 import {
   useTenderBoard,
   useTenderStatus,
@@ -12,7 +12,12 @@ import {
 } from "@/hooks/use-tendering";
 import type { Carrier } from "@/hooks/use-orders";
 import { useBusinessModel } from "@/hooks/use-company-settings";
-import { businessModelLabel, buildTenderMailto, validateOfferedRate } from "@/lib/brokerage";
+import {
+  businessModelLabel,
+  buildTenderMailto,
+  buildTenderResponseUrl,
+  validateOfferedRate,
+} from "@/lib/brokerage";
 import { guard } from "@/lib/route-guard";
 
 export const Route = createFileRoute("/_authenticated/tenders")({
@@ -45,10 +50,10 @@ function TendersPage() {
         </p>
       </div>
 
-      <div className="rounded-md border border-warning/30 bg-warning/5 p-3 text-xs text-muted-foreground">
-        <strong className="text-foreground">Manual outreach:</strong> saving a tender only records
-        it in this workspace. Use the email-draft button to contact the carrier; this app does not
-        send email or receive carrier replies automatically.
+      <div className="rounded-md border border-border bg-surface-2/40 p-3 text-xs text-muted-foreground">
+        <strong className="text-foreground">Carrier self-service:</strong> every offer gets a
+        zero-login link the carrier can open to accept or decline with one click — no account or EDI
+        integration needed. Use the email-draft button (or copy the link) to send it.
       </div>
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
@@ -230,6 +235,7 @@ function TenderModal({ leg, onClose }: { leg: PlanningLeg; onClose: () => void }
   const [carrierId, setCarrierId] = useState("");
   const [rate, setRate] = useState("");
   const [mailto, setMailto] = useState<string | null>(null);
+  const [responseUrl, setResponseUrl] = useState<string | null>(null);
   const [recorded, setRecorded] = useState(false);
   const carrier = carriers?.find((candidate) => candidate.id === carrierId);
 
@@ -238,11 +244,13 @@ function TenderModal({ leg, onClose }: { leg: PlanningLeg; onClose: () => void }
     const invalidRate = validateOfferedRate(rate);
     if (invalidRate) return toast.error(invalidRate);
     try {
-      await createTender.mutateAsync({
+      const { responseToken } = await createTender.mutateAsync({
         legId: leg.id,
         carrierId,
         offeredRate: rate.trim() ? Number(rate) : null,
       });
+      const url = buildTenderResponseUrl(responseToken);
+      setResponseUrl(url);
       setMailto(
         buildTenderMailto({
           recipient: carrier?.contact_email,
@@ -250,10 +258,11 @@ function TenderModal({ leg, onClose }: { leg: PlanningLeg; onClose: () => void }
           origin: leg.origin?.location_name,
           destination: leg.destination?.location_name,
           offeredRate: rate.trim() ? Number(rate) : null,
+          responseUrl: url,
         }),
       );
       setRecorded(true);
-      toast.success("Tender recorded; no email was sent.");
+      toast.success("Tender recorded — carrier can accept or decline from their own link.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record tender");
     }
@@ -310,25 +319,43 @@ function TenderModal({ leg, onClose }: { leg: PlanningLeg; onClose: () => void }
           ) : (
             <div className="space-y-3 rounded-md border border-border bg-surface-2/40 p-3">
               <p className="text-xs">
-                <strong>Tender record created.</strong> It remains open until staff log the
-                carrier's reply.
+                <strong>Tender record created.</strong> The carrier can accept or decline from their
+                own link — staff can also log the reply here if the carrier contacts you another
+                way.
               </p>
-              {mailto ? (
-                <a
-                  href={mailto}
-                  className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                >
-                  <Mail className="h-3.5 w-3.5" />
-                  Open email draft
-                </a>
-              ) : (
+              <div className="flex flex-wrap gap-2">
+                {mailto && (
+                  <a
+                    href={mailto}
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Open email draft
+                  </a>
+                )}
+                {responseUrl && (
+                  <button
+                    onClick={() => {
+                      void navigator.clipboard.writeText(responseUrl).then(
+                        () => toast.success("Link copied"),
+                        () => toast.error("Could not copy link"),
+                      );
+                    }}
+                    className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-surface-2"
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                    Copy carrier link
+                  </button>
+                )}
+              </div>
+              {!mailto && (
                 <p className="text-xs text-warning">
-                  No carrier contact email is saved. Contact this carrier using your usual channel;
-                  the offer has only been recorded here.
+                  No carrier contact email is saved — copy the link above and send it through your
+                  usual channel.
                 </p>
               )}
               <p className="text-[11px] text-muted-foreground">
-                Opening a draft does not send the message.
+                Opening a draft does not send the message. The carrier link requires no account.
               </p>
             </div>
           )}

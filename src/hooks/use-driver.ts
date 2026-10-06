@@ -3,7 +3,6 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerAlert } from "@/lib/alerts/triggerAlert";
 
-
 const sb = supabase as unknown as {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated Database types don't know this table/RPC yet
   from: (table: string) => any;
@@ -88,6 +87,79 @@ export function useMyLoads() {
   return query;
 }
 
+// ---------------------------------------------------------------------------
+// DVIR — 9-point DOT pre/post-trip inspection
+// ---------------------------------------------------------------------------
+
+export const DVIR_CHECKLIST_ITEMS: { key: DvirItemKey; label: string }[] = [
+  { key: "tires_wheels_ok", label: "Tires & wheels" },
+  { key: "brakes_ok", label: "Brakes" },
+  { key: "lights_reflectors_ok", label: "Lights & reflectors" },
+  { key: "mirrors_windshield_ok", label: "Mirrors & windshield" },
+  { key: "coupling_devices_ok", label: "Coupling devices" },
+  { key: "cargo_securement_ok", label: "Cargo securement" },
+  { key: "horn_ok", label: "Horn" },
+  { key: "fluid_leaks_ok", label: "Fluid leaks" },
+  { key: "emergency_equipment_ok", label: "Emergency equipment" },
+];
+
+export type DvirItemKey =
+  | "tires_wheels_ok"
+  | "brakes_ok"
+  | "lights_reflectors_ok"
+  | "mirrors_windshield_ok"
+  | "coupling_devices_ok"
+  | "cargo_securement_ok"
+  | "horn_ok"
+  | "fluid_leaks_ok"
+  | "emergency_equipment_ok";
+
+export type DvirInspectionType = "PRE_TRIP" | "POST_TRIP";
+
+/** Whether this load already has a passing pre-trip DVIR on file. */
+export function useHasPassingPretripDvir(loadId: string) {
+  return useQuery({
+    queryKey: ["dvir", "pretrip-passing", loadId],
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await sb
+        .from("dvir_inspections")
+        .select("id")
+        .eq("load_id", loadId)
+        .eq("inspection_type", "PRE_TRIP")
+        .eq("passed", true)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return !!data;
+    },
+  });
+}
+
+export async function submitDvir(input: {
+  loadId: string;
+  inspectionType: DvirInspectionType;
+  items: Record<DvirItemKey, boolean>;
+  odometerMiles: number | null;
+  defectNotes: string | null;
+}) {
+  const { error } = await sb.rpc("submit_dvir", {
+    p_load_id: input.loadId,
+    p_inspection_type: input.inspectionType,
+    p_tires_wheels_ok: input.items.tires_wheels_ok,
+    p_brakes_ok: input.items.brakes_ok,
+    p_lights_reflectors_ok: input.items.lights_reflectors_ok,
+    p_mirrors_windshield_ok: input.items.mirrors_windshield_ok,
+    p_coupling_devices_ok: input.items.coupling_devices_ok,
+    p_cargo_securement_ok: input.items.cargo_securement_ok,
+    p_horn_ok: input.items.horn_ok,
+    p_fluid_leaks_ok: input.items.fluid_leaks_ok,
+    p_emergency_equipment_ok: input.items.emergency_equipment_ok,
+    p_odometer_miles: input.odometerMiles,
+    p_defect_notes: input.defectNotes,
+  });
+  if (error) throw new Error(error.message);
+}
+
 export async function driverUpdateStatus(loadId: string, newStatus: string) {
   const { error } = await sb.rpc("driver_update_status", {
     p_load_id: loadId,
@@ -102,7 +174,6 @@ export async function flagException(loadId: string, reason: string) {
   // Fire-and-forget: an alert failure must never fail the driver's action.
   void triggerAlert("exception", loadId);
 }
-
 
 export async function resolveException(loadId: string, resolutionNote: string | null) {
   const { error } = await sb.rpc("resolve_exception", {
@@ -129,7 +200,6 @@ export async function capturePod(input: {
   if (error) throw new Error(error.message);
   void triggerAlert("pod", input.loadId);
 }
-
 
 /** Uploads a POD photo to the private pod-photos bucket; returns its storage path. */
 export async function uploadPodPhoto(
