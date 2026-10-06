@@ -48,7 +48,6 @@ import { Route as ApiAlertsNotifyRouteImport } from './routes/api/alerts/notify'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicSheetDrainRouteImport } from './routes/api/public/sheet-drain'
-import { Route as ApiPublicSyntheticCheckRouteImport } from './routes/api/public/synthetic-check'
 import { Route as ApiPublicTrackingRouteImport } from './routes/api/public/tracking'
 import { Route as ApiPublicEdiSpsRouteImport } from './routes/api/public/edi/sps'
 import { Route as ApiPublicQboCallbackRouteImport } from './routes/api/public/qbo/callback'
@@ -251,11 +250,6 @@ const ApiPublicSheetDrainRoute = ApiPublicSheetDrainRouteImport.update({
   path: '/api/public/sheet-drain',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSyntheticCheckRoute = ApiPublicSyntheticCheckRouteImport.update({
-  id: '/api/public/synthetic-check',
-  path: '/api/public/synthetic-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicTrackingRoute = ApiPublicTrackingRouteImport.update({
   id: '/api/public/tracking',
   path: '/api/public/tracking',
@@ -310,7 +304,6 @@ export interface FileRoutesByFullPath {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
-  '/api/public/synthetic-check': typeof ApiPublicSyntheticCheckRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history/': typeof AuthenticatedHistoryIndexRoute
   '/api/public/edi/sps': typeof ApiPublicEdiSpsRoute
@@ -354,7 +347,6 @@ export interface FileRoutesByTo {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
-  '/api/public/synthetic-check': typeof ApiPublicSyntheticCheckRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history': typeof AuthenticatedHistoryIndexRoute
   '/api/public/edi/sps': typeof ApiPublicEdiSpsRoute
@@ -400,7 +392,6 @@ export interface FileRoutesById {
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
-  '/api/public/synthetic-check': typeof ApiPublicSyntheticCheckRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
   '/api/public/edi/sps': typeof ApiPublicEdiSpsRoute
@@ -446,7 +437,6 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
-    | '/api/public/synthetic-check'
     | '/api/public/tracking'
     | '/history/'
     | '/api/public/edi/sps'
@@ -490,7 +480,6 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
-    | '/api/public/synthetic-check'
     | '/api/public/tracking'
     | '/history'
     | '/api/public/edi/sps'
@@ -535,7 +524,6 @@ export interface FileRouteTypes {
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
-    | '/api/public/synthetic-check'
     | '/api/public/tracking'
     | '/_authenticated/history/'
     | '/api/public/edi/sps'
@@ -552,7 +540,6 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSheetDrainRoute: typeof ApiPublicSheetDrainRoute
-  ApiPublicSyntheticCheckRoute: typeof ApiPublicSyntheticCheckRoute
   ApiPublicTrackingRoute: typeof ApiPublicTrackingRoute
   ApiPublicEdiSpsRoute: typeof ApiPublicEdiSpsRoute
   ApiPublicQboCallbackRoute: typeof ApiPublicQboCallbackRoute
@@ -833,13 +820,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSheetDrainRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/synthetic-check': {
-      id: '/api/public/synthetic-check'
-      path: '/api/public/synthetic-check'
-      fullPath: '/api/public/synthetic-check'
-      preLoaderRoute: typeof ApiPublicSyntheticCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/tracking': {
       id: '/api/public/tracking'
       path: '/api/public/tracking'
@@ -943,7 +923,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSheetDrainRoute: ApiPublicSheetDrainRoute,
-  ApiPublicSyntheticCheckRoute: ApiPublicSyntheticCheckRoute,
   ApiPublicTrackingRoute: ApiPublicTrackingRoute,
   ApiPublicEdiSpsRoute: ApiPublicEdiSpsRoute,
   ApiPublicQboCallbackRoute: ApiPublicQboCallbackRoute,
