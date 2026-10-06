@@ -79,7 +79,6 @@ const PRIVILEGED_RPCS: Record<string, Record<string, unknown>> = {
   // Tracking reads that expose live asset positions.
   latest_tracking_locations: {},
   recent_tracking_events: { p_limit: 1 },
-  check_tenant_rls_enabled: {},
   // Alert fan-out, intended for the scheduled job only.
   evaluate_alerts: { p_notify: false },
   revise_rate_agreement: {
