@@ -326,6 +326,7 @@ export type PlanningLeg = {
     status: TenderStatus;
     offered_rate: number | null;
     offered_at: string;
+    response_token: string | null;
   }[];
 };
 
@@ -342,7 +343,7 @@ export function usePlanningLegs() {
            origin:stops!legs_origin_stop_id_fkey ( location_name, location_code ),
            destination:stops!legs_destination_stop_id_fkey ( location_name, location_code ),
            loads:trailer_loads ( id, driver_id, equipment_id, carrier_id, driver, outbound_trailer, status ),
-           tenders ( id, carrier_id, status, offered_rate, offered_at )`,
+           tenders ( id, carrier_id, status, offered_rate, offered_at, response_token )`,
         )
         .order("created_at", { ascending: false })
         .limit(500);
@@ -477,20 +478,23 @@ export type Tender = {
   offered_rate: number | null;
   offered_at: string;
   responded_at: string | null;
+  response_token?: string | null;
 };
 
 export async function createTender(input: {
   legId: string;
   carrierId: string;
   offeredRate: number | null;
-}) {
-  const { error } = await sb.rpc("create_tender", {
+}): Promise<{ responseToken: string | null }> {
+  const { data, error } = await sb.rpc("create_tender", {
     p_leg_id: input.legId,
     p_carrier_id: input.carrierId,
     p_offered_rate: input.offeredRate,
     p_expires_at: null,
   });
   if (error) throw new Error(error.message);
+  const row = data as { response_token?: string | null } | null;
+  return { responseToken: row?.response_token ?? null };
 }
 
 export async function respondToTender(input: {

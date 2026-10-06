@@ -1,9 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, Link2 } from "lucide-react";
 import { StatusChip, LocationChip } from "@/components/Chips";
 import { guard } from "@/lib/route-guard";
+
+// get_tracking_by_token/ensure_tracking_token aren't in the generated
+// Database type yet — same escape hatch used elsewhere for new RPCs.
+const sb = supabase as unknown as {
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
+async function copyTrackingLink(loadId: string) {
+  const { data, error } = await sb.rpc("ensure_tracking_token", { p_load_id: loadId });
+  if (error) throw new Error(error.message);
+  const url = `${window.location.origin}/track/${data as string}`;
+  await navigator.clipboard.writeText(url);
+}
 
 export const Route = createFileRoute("/_authenticated/history/$loadId")({
   beforeLoad: guard({ product: "trailer" }),
@@ -13,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/history/$loadId")({
 
 function HistoryDetail() {
   const { loadId } = Route.useParams();
+  const [copying, setCopying] = useState(false);
   const { data } = useQuery({
     queryKey: ["history", loadId],
     queryFn: async () => {
@@ -46,9 +65,26 @@ function HistoryDetail() {
             <div className="text-xs text-muted-foreground">Schedule</div>
             <div className="font-mono text-lg font-bold">{l.schedule_id}</div>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             {l.status && <StatusChip status={l.status} />}
             {l.return_trailer_location && <LocationChip location={l.return_trailer_location} />}
+            <button
+              disabled={copying}
+              onClick={async () => {
+                setCopying(true);
+                try {
+                  await copyTrackingLink(loadId);
+                  toast.success("Tracking link copied — send it to the customer");
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Could not create tracking link");
+                } finally {
+                  setCopying(false);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium hover:bg-surface-2 disabled:opacity-50"
+            >
+              <Link2 className="h-3.5 w-3.5" /> {copying ? "Copying…" : "Copy tracking link"}
+            </button>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">

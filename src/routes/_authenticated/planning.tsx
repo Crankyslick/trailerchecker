@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, User, Truck, CheckCircle2, Building2, Mail } from "lucide-react";
+import { ArrowRight, User, Truck, CheckCircle2, Building2, Mail, Link2 } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import {
   usePlanningLegs,
@@ -14,7 +14,7 @@ import {
   type Carrier,
 } from "@/hooks/use-orders";
 import { useDrivers } from "@/hooks/use-drivers";
-import { buildTenderMailto, validateOfferedRate } from "@/lib/brokerage";
+import { buildTenderMailto, buildTenderResponseUrl, validateOfferedRate } from "@/lib/brokerage";
 
 export const Route = createFileRoute("/_authenticated/planning")({
   beforeLoad: guard({ product: "trailer" }),
@@ -234,6 +234,7 @@ function CarrierControls({
   const tenderCarrier = openTender
     ? carriers.find((carrier) => carrier.id === openTender.carrier_id)
     : undefined;
+  const responseUrl = openTender ? buildTenderResponseUrl(openTender.response_token) : null;
   const emailDraft = openTender
     ? buildTenderMailto({
         recipient: tenderCarrier?.contact_email,
@@ -241,6 +242,7 @@ function CarrierControls({
         origin: leg.origin?.location_name,
         destination: leg.destination?.location_name,
         offeredRate: openTender.offered_rate,
+        responseUrl,
       })
     : null;
 
@@ -257,14 +259,29 @@ function CarrierControls({
             ${Number(openTender.offered_rate).toFixed(2)}
           </span>
         )}
-        {emailDraft ? (
+        {emailDraft && (
           <a
             href={emailDraft}
             className="inline-flex items-center gap-1 text-primary hover:underline"
           >
             <Mail className="h-3 w-3" /> Email draft
           </a>
-        ) : (
+        )}
+        {responseUrl && (
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard.writeText(responseUrl).then(
+                () => toast.success("Carrier link copied"),
+                () => toast.error("Could not copy link"),
+              );
+            }}
+            className="inline-flex items-center gap-1 text-primary hover:underline"
+          >
+            <Link2 className="h-3 w-3" /> Copy link
+          </button>
+        )}
+        {!emailDraft && !responseUrl && (
           <span className="text-[11px] text-warning">No carrier email saved</span>
         )}
         <button
