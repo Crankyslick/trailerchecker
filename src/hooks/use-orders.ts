@@ -304,6 +304,8 @@ export function useEquipment() {
   return query;
 }
 
+export type HaulType = "INTERNAL" | "BROKERED_OUT";
+
 export type PlanningLeg = {
   id: string;
   leg_sequence: number;
@@ -316,6 +318,10 @@ export type PlanningLeg = {
     driver_id: string | null;
     equipment_id: string | null;
     carrier_id: string | null;
+    tractor_id: string | null;
+    broker_id: string | null;
+    rate_confirmation_id: string | null;
+    haul_type: HaulType;
     driver: string | null;
     outbound_trailer: string | null;
     status: string;
@@ -342,7 +348,7 @@ export function usePlanningLegs() {
            shipments ( id, shipment_number, status ),
            origin:stops!legs_origin_stop_id_fkey ( location_name, location_code ),
            destination:stops!legs_destination_stop_id_fkey ( location_name, location_code ),
-           loads:trailer_loads ( id, driver_id, equipment_id, carrier_id, driver, outbound_trailer, status ),
+           loads:trailer_loads ( id, driver_id, equipment_id, carrier_id, tractor_id, broker_id, rate_confirmation_id, haul_type, driver, outbound_trailer, status ),
            tenders ( id, carrier_id, status, offered_rate, offered_at, response_token )`,
         )
         .order("created_at", { ascending: false })
@@ -505,6 +511,234 @@ export async function respondToTender(input: {
     p_tender_id: input.tenderId,
     p_response: input.response,
     p_response_notes: null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+// ---------------------------------------------------------------------------
+// Carrier-owned fleet: tractors, brokers, and rate confirmations.
+//
+// None of these are required to complete a load — a load is fully valid
+// with only driver_id/equipment_id set (the in-house path plan_leg already
+// supports). These exist so an in-house haul can also record its tractor,
+// who brokered the freight in, and the rate-confirmation document, without
+// touching the carriers/tenders screens at all.
+// ---------------------------------------------------------------------------
+
+export type Tractor = {
+  id: string;
+  unit_number: string;
+  vin: string | null;
+  plate_number: string | null;
+  status: string;
+};
+
+export function useTractors() {
+  const query = useQuery({
+    queryKey: ["tractors"],
+    queryFn: async (): Promise<Tractor[]> => {
+      const { data, error } = await sb
+        .from("tractors")
+        .select("id, unit_number, vin, plate_number, status")
+        .order("unit_number");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Tractor[];
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  useEffect(() => realtimeSubscribe("tractors", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return query;
+}
+
+export async function createTractor(input: {
+  unitNumber: string;
+  vin?: string | null;
+  plateNumber?: string | null;
+}) {
+  const { error } = await sb.from("tractors").insert({
+    unit_number: input.unitNumber,
+    vin: input.vin ?? null,
+    plate_number: input.plateNumber ?? null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Direct table update — RLS's "company write tractors" policy already
+ * permits this for dispatcher/admin, so no new RPC is needed. */
+export async function updateTractor(
+  id: string,
+  patch: Partial<{
+    unitNumber: string;
+    vin: string | null;
+    plateNumber: string | null;
+    status: string;
+  }>,
+) {
+  const row: Record<string, unknown> = {};
+  if (patch.unitNumber !== undefined) row.unit_number = patch.unitNumber;
+  if (patch.vin !== undefined) row.vin = patch.vin;
+  if (patch.plateNumber !== undefined) row.plate_number = patch.plateNumber;
+  if (patch.status !== undefined) row.status = patch.status;
+
+  const { error } = await sb.from("tractors").update(row).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export type Broker = {
+  id: string;
+  name: string;
+  mc_number: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  active: boolean;
+};
+
+/** Brokers who tender freight TO this company — distinct from trailer_clients
+ * (this company's own direct shipper) and from carriers (who this company
+ * tenders loads OUT to). */
+export function useBrokers() {
+  const query = useQuery({
+    queryKey: ["brokers"],
+    queryFn: async (): Promise<Broker[]> => {
+      const { data, error } = await sb
+        .from("brokers")
+        .select("id, name, mc_number, contact_name, contact_email, contact_phone, active")
+        .order("name");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Broker[];
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  useEffect(() => realtimeSubscribe("brokers", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return query;
+}
+
+export async function createBroker(input: {
+  name: string;
+  mcNumber?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+}) {
+  const { error } = await sb.from("brokers").insert({
+    name: input.name,
+    mc_number: input.mcNumber ?? null,
+    contact_name: input.contactName ?? null,
+    contact_email: input.contactEmail ?? null,
+    contact_phone: input.contactPhone ?? null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Direct table update — RLS's "company write brokers" policy already
+ * permits this for dispatcher/admin, so no new RPC is needed. */
+export async function updateBroker(
+  id: string,
+  patch: Partial<{
+    name: string;
+    mcNumber: string | null;
+    contactName: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    active: boolean;
+  }>,
+) {
+  const row: Record<string, unknown> = {};
+  if (patch.name !== undefined) row.name = patch.name;
+  if (patch.mcNumber !== undefined) row.mc_number = patch.mcNumber;
+  if (patch.contactName !== undefined) row.contact_name = patch.contactName;
+  if (patch.contactEmail !== undefined) row.contact_email = patch.contactEmail;
+  if (patch.contactPhone !== undefined) row.contact_phone = patch.contactPhone;
+  if (patch.active !== undefined) row.active = patch.active;
+
+  const { error } = await sb.from("brokers").update(row).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export type RateConfirmation = {
+  id: string;
+  rc_number: string | null;
+  broker_id: string | null;
+  client_id: string | null;
+  operating_carrier_name: string | null;
+  operating_mc_number: string | null;
+  operating_dot_number: string | null;
+  total_rate: number | null;
+  issued_at: string;
+  document_url: string | null;
+};
+
+export function useRateConfirmations() {
+  const query = useQuery({
+    queryKey: ["rate-confirmations"],
+    queryFn: async (): Promise<RateConfirmation[]> => {
+      const { data, error } = await sb
+        .from("rate_confirmations")
+        .select(
+          "id, rc_number, broker_id, client_id, operating_carrier_name, operating_mc_number, operating_dot_number, total_rate, issued_at, document_url",
+        )
+        .order("issued_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as RateConfirmation[];
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  useEffect(() => realtimeSubscribe("rate_confirmations", () => query.refetch()), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return query;
+}
+
+/** operatingMcNumber/operatingDotNumber/operatingCarrierName left unset fall
+ * back to this company's own MC/DOT via the database trigger — the default
+ * for the carrier-owned-fleet model. */
+export async function createRateConfirmation(input: {
+  rcNumber?: string | null;
+  brokerId?: string | null;
+  clientId?: string | null;
+  operatingCarrierName?: string | null;
+  operatingMcNumber?: string | null;
+  operatingDotNumber?: string | null;
+  totalRate?: number | null;
+  documentUrl?: string | null;
+}): Promise<string> {
+  const { data, error } = await sb
+    .from("rate_confirmations")
+    .insert({
+      rc_number: input.rcNumber ?? null,
+      broker_id: input.brokerId ?? null,
+      client_id: input.clientId ?? null,
+      operating_carrier_name: input.operatingCarrierName ?? null,
+      operating_mc_number: input.operatingMcNumber ?? null,
+      operating_dot_number: input.operatingDotNumber ?? null,
+      total_rate: input.totalRate ?? null,
+      document_url: input.documentUrl ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return (data as { id: string }).id;
+}
+
+/** Attaches a tractor, broker and/or rate confirmation to an existing load —
+ * validated server-side so none of them can belong to another company. Any
+ * argument left null leaves that field on the load unchanged. */
+export async function assignLoadParties(input: {
+  loadId: string;
+  tractorId?: string | null;
+  brokerId?: string | null;
+  rateConfirmationId?: string | null;
+}) {
+  const { error } = await sb.rpc("assign_load_parties", {
+    p_load_id: input.loadId,
+    p_tractor_id: input.tractorId ?? null,
+    p_broker_id: input.brokerId ?? null,
+    p_rate_confirmation_id: input.rateConfirmationId ?? null,
   });
   if (error) throw new Error(error.message);
 }
