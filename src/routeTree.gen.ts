@@ -21,6 +21,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDriverRouteImport } from './routes/_authenticated/driver'
 import { Route as AuthenticatedDriversRouteImport } from './routes/_authenticated/drivers'
 import { Route as AuthenticatedExceptionsRouteImport } from './routes/_authenticated/exceptions'
+import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated/fleet'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
 import { Route as AuthenticatedLoadsRouteImport } from './routes/_authenticated/loads'
@@ -40,13 +41,16 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedYardRouteImport } from './routes/_authenticated/yard'
 import { Route as TendersRespondRouteImport } from './routes/tenders.respond'
 import { Route as TrackTokenRouteImport } from './routes/track.$token'
+import { Route as AuthenticatedBolLoadIdRouteImport } from './routes/_authenticated/bol.$loadId'
 import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history.index'
 import { Route as AuthenticatedHistoryLoadIdRouteImport } from './routes/_authenticated/history.$loadId'
 import { Route as ApiAlertsNotifyRouteImport } from './routes/api/alerts/notify'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicReadyRouteImport } from './routes/api/public/ready'
 import { Route as ApiPublicSheetDrainRouteImport } from './routes/api/public/sheet-drain'
+import { Route as ApiPublicSyntheticCheckRouteImport } from './routes/api/public/synthetic-check'
 import { Route as ApiPublicTrackingRouteImport } from './routes/api/public/tracking'
+import { Route as ApiPublicEdiSpsRouteImport } from './routes/api/public/edi/sps'
 import { Route as ApiPublicQboCallbackRouteImport } from './routes/api/public/qbo/callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -106,6 +110,11 @@ const AuthenticatedDriversRoute = AuthenticatedDriversRouteImport.update({
 const AuthenticatedExceptionsRoute = AuthenticatedExceptionsRouteImport.update({
   id: '/exceptions',
   path: '/exceptions',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFleetRoute = AuthenticatedFleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedIntegrationsRoute =
@@ -205,6 +214,11 @@ const TrackTokenRoute = TrackTokenRouteImport.update({
   path: '/track/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedBolLoadIdRoute = AuthenticatedBolLoadIdRouteImport.update({
+  id: '/bol/$loadId',
+  path: '/bol/$loadId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHistoryIndexRoute =
   AuthenticatedHistoryIndexRouteImport.update({
     id: '/history/',
@@ -237,9 +251,19 @@ const ApiPublicSheetDrainRoute = ApiPublicSheetDrainRouteImport.update({
   path: '/api/public/sheet-drain',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyntheticCheckRoute = ApiPublicSyntheticCheckRouteImport.update({
+  id: '/api/public/synthetic-check',
+  path: '/api/public/synthetic-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTrackingRoute = ApiPublicTrackingRouteImport.update({
   id: '/api/public/tracking',
   path: '/api/public/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicEdiSpsRoute = ApiPublicEdiSpsRouteImport.update({
+  id: '/api/public/edi/sps',
+  path: '/api/public/edi/sps',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicQboCallbackRoute = ApiPublicQboCallbackRouteImport.update({
@@ -260,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/driver': typeof AuthenticatedDriverRoute
   '/drivers': typeof AuthenticatedDriversRoute
   '/exceptions': typeof AuthenticatedExceptionsRoute
+  '/fleet': typeof AuthenticatedFleetRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
@@ -279,13 +304,16 @@ export interface FileRoutesByFullPath {
   '/yard': typeof AuthenticatedYardRoute
   '/tenders/respond': typeof TendersRespondRoute
   '/track/$token': typeof TrackTokenRoute
+  '/bol/$loadId': typeof AuthenticatedBolLoadIdRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
+  '/api/public/synthetic-check': typeof ApiPublicSyntheticCheckRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history/': typeof AuthenticatedHistoryIndexRoute
+  '/api/public/edi/sps': typeof ApiPublicEdiSpsRoute
   '/api/public/qbo/callback': typeof ApiPublicQboCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -300,6 +328,7 @@ export interface FileRoutesByTo {
   '/driver': typeof AuthenticatedDriverRoute
   '/drivers': typeof AuthenticatedDriversRoute
   '/exceptions': typeof AuthenticatedExceptionsRoute
+  '/fleet': typeof AuthenticatedFleetRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
@@ -319,13 +348,16 @@ export interface FileRoutesByTo {
   '/yard': typeof AuthenticatedYardRoute
   '/tenders/respond': typeof TendersRespondRoute
   '/track/$token': typeof TrackTokenRoute
+  '/bol/$loadId': typeof AuthenticatedBolLoadIdRoute
   '/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
+  '/api/public/synthetic-check': typeof ApiPublicSyntheticCheckRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/history': typeof AuthenticatedHistoryIndexRoute
+  '/api/public/edi/sps': typeof ApiPublicEdiSpsRoute
   '/api/public/qbo/callback': typeof ApiPublicQboCallbackRoute
 }
 export interface FileRoutesById {
@@ -342,6 +374,7 @@ export interface FileRoutesById {
   '/_authenticated/driver': typeof AuthenticatedDriverRoute
   '/_authenticated/drivers': typeof AuthenticatedDriversRoute
   '/_authenticated/exceptions': typeof AuthenticatedExceptionsRoute
+  '/_authenticated/fleet': typeof AuthenticatedFleetRoute
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/_authenticated/loads': typeof AuthenticatedLoadsRoute
@@ -361,13 +394,16 @@ export interface FileRoutesById {
   '/_authenticated/yard': typeof AuthenticatedYardRoute
   '/tenders/respond': typeof TendersRespondRoute
   '/track/$token': typeof TrackTokenRoute
+  '/_authenticated/bol/$loadId': typeof AuthenticatedBolLoadIdRoute
   '/_authenticated/history/$loadId': typeof AuthenticatedHistoryLoadIdRoute
   '/api/alerts/notify': typeof ApiAlertsNotifyRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ready': typeof ApiPublicReadyRoute
   '/api/public/sheet-drain': typeof ApiPublicSheetDrainRoute
+  '/api/public/synthetic-check': typeof ApiPublicSyntheticCheckRoute
   '/api/public/tracking': typeof ApiPublicTrackingRoute
   '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
+  '/api/public/edi/sps': typeof ApiPublicEdiSpsRoute
   '/api/public/qbo/callback': typeof ApiPublicQboCallbackRoute
 }
 export interface FileRouteTypes {
@@ -384,6 +420,7 @@ export interface FileRouteTypes {
     | '/driver'
     | '/drivers'
     | '/exceptions'
+    | '/fleet'
     | '/integrations'
     | '/kiosk'
     | '/loads'
@@ -403,13 +440,16 @@ export interface FileRouteTypes {
     | '/yard'
     | '/tenders/respond'
     | '/track/$token'
+    | '/bol/$loadId'
     | '/history/$loadId'
     | '/api/alerts/notify'
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
+    | '/api/public/synthetic-check'
     | '/api/public/tracking'
     | '/history/'
+    | '/api/public/edi/sps'
     | '/api/public/qbo/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -424,6 +464,7 @@ export interface FileRouteTypes {
     | '/driver'
     | '/drivers'
     | '/exceptions'
+    | '/fleet'
     | '/integrations'
     | '/kiosk'
     | '/loads'
@@ -443,13 +484,16 @@ export interface FileRouteTypes {
     | '/yard'
     | '/tenders/respond'
     | '/track/$token'
+    | '/bol/$loadId'
     | '/history/$loadId'
     | '/api/alerts/notify'
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
+    | '/api/public/synthetic-check'
     | '/api/public/tracking'
     | '/history'
+    | '/api/public/edi/sps'
     | '/api/public/qbo/callback'
   id:
     | '__root__'
@@ -465,6 +509,7 @@ export interface FileRouteTypes {
     | '/_authenticated/driver'
     | '/_authenticated/drivers'
     | '/_authenticated/exceptions'
+    | '/_authenticated/fleet'
     | '/_authenticated/integrations'
     | '/_authenticated/kiosk'
     | '/_authenticated/loads'
@@ -484,13 +529,16 @@ export interface FileRouteTypes {
     | '/_authenticated/yard'
     | '/tenders/respond'
     | '/track/$token'
+    | '/_authenticated/bol/$loadId'
     | '/_authenticated/history/$loadId'
     | '/api/alerts/notify'
     | '/api/public/health'
     | '/api/public/ready'
     | '/api/public/sheet-drain'
+    | '/api/public/synthetic-check'
     | '/api/public/tracking'
     | '/_authenticated/history/'
+    | '/api/public/edi/sps'
     | '/api/public/qbo/callback'
   fileRoutesById: FileRoutesById
 }
@@ -504,7 +552,9 @@ export interface RootRouteChildren {
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicReadyRoute: typeof ApiPublicReadyRoute
   ApiPublicSheetDrainRoute: typeof ApiPublicSheetDrainRoute
+  ApiPublicSyntheticCheckRoute: typeof ApiPublicSyntheticCheckRoute
   ApiPublicTrackingRoute: typeof ApiPublicTrackingRoute
+  ApiPublicEdiSpsRoute: typeof ApiPublicEdiSpsRoute
   ApiPublicQboCallbackRoute: typeof ApiPublicQboCallbackRoute
 }
 
@@ -592,6 +642,13 @@ declare module '@tanstack/react-router' {
       path: '/exceptions'
       fullPath: '/exceptions'
       preLoaderRoute: typeof AuthenticatedExceptionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/fleet': {
+      id: '/_authenticated/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof AuthenticatedFleetRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/integrations': {
@@ -727,6 +784,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/bol/$loadId': {
+      id: '/_authenticated/bol/$loadId'
+      path: '/bol/$loadId'
+      fullPath: '/bol/$loadId'
+      preLoaderRoute: typeof AuthenticatedBolLoadIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/history/': {
       id: '/_authenticated/history/'
       path: '/history'
@@ -769,11 +833,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSheetDrainRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/synthetic-check': {
+      id: '/api/public/synthetic-check'
+      path: '/api/public/synthetic-check'
+      fullPath: '/api/public/synthetic-check'
+      preLoaderRoute: typeof ApiPublicSyntheticCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/tracking': {
       id: '/api/public/tracking'
       path: '/api/public/tracking'
       fullPath: '/api/public/tracking'
       preLoaderRoute: typeof ApiPublicTrackingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/edi/sps': {
+      id: '/api/public/edi/sps'
+      path: '/api/public/edi/sps'
+      fullPath: '/api/public/edi/sps'
+      preLoaderRoute: typeof ApiPublicEdiSpsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/qbo/callback': {
@@ -796,6 +874,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDriverRoute: typeof AuthenticatedDriverRoute
   AuthenticatedDriversRoute: typeof AuthenticatedDriversRoute
   AuthenticatedExceptionsRoute: typeof AuthenticatedExceptionsRoute
+  AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
   AuthenticatedLoadsRoute: typeof AuthenticatedLoadsRoute
@@ -813,6 +892,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTomorrowRoute: typeof AuthenticatedTomorrowRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedYardRoute: typeof AuthenticatedYardRoute
+  AuthenticatedBolLoadIdRoute: typeof AuthenticatedBolLoadIdRoute
   AuthenticatedHistoryLoadIdRoute: typeof AuthenticatedHistoryLoadIdRoute
   AuthenticatedHistoryIndexRoute: typeof AuthenticatedHistoryIndexRoute
 }
@@ -827,6 +907,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDriverRoute: AuthenticatedDriverRoute,
   AuthenticatedDriversRoute: AuthenticatedDriversRoute,
   AuthenticatedExceptionsRoute: AuthenticatedExceptionsRoute,
+  AuthenticatedFleetRoute: AuthenticatedFleetRoute,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKioskRoute: AuthenticatedKioskRoute,
   AuthenticatedLoadsRoute: AuthenticatedLoadsRoute,
@@ -844,6 +925,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTomorrowRoute: AuthenticatedTomorrowRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedYardRoute: AuthenticatedYardRoute,
+  AuthenticatedBolLoadIdRoute: AuthenticatedBolLoadIdRoute,
   AuthenticatedHistoryLoadIdRoute: AuthenticatedHistoryLoadIdRoute,
   AuthenticatedHistoryIndexRoute: AuthenticatedHistoryIndexRoute,
 }
@@ -861,7 +943,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicReadyRoute: ApiPublicReadyRoute,
   ApiPublicSheetDrainRoute: ApiPublicSheetDrainRoute,
+  ApiPublicSyntheticCheckRoute: ApiPublicSyntheticCheckRoute,
   ApiPublicTrackingRoute: ApiPublicTrackingRoute,
+  ApiPublicEdiSpsRoute: ApiPublicEdiSpsRoute,
   ApiPublicQboCallbackRoute: ApiPublicQboCallbackRoute,
 }
 export const routeTree = rootRouteImport
