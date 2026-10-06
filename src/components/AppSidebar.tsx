@@ -79,6 +79,13 @@ const items: readonly Item[] = [
     product: "trailer",
   },
   {
+    to: "/fleet",
+    label: "Tractors & Brokers",
+    icon: Truck,
+    roles: ["owner", "admin", "dispatcher"],
+    product: "trailer",
+  },
+  {
     to: "/tenders",
     label: "Tenders",
     icon: Send,

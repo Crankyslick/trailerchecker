@@ -31,6 +31,20 @@ const PRIVILEGED_RPCS: Record<string, Record<string, unknown>> = {
   // Integration secrets.
   get_inbound_token: {},
   rotate_inbound_token: {},
+  get_edi_inbound_token: {},
+  rotate_edi_inbound_token: {},
+  review_edi_document: {
+    p_document_id: "00000000-0000-0000-0000-000000000000",
+    p_status: "REVIEWED",
+    p_related_load_id: null,
+    p_note: null,
+  },
+  queue_edi_response: {
+    p_in_reply_to: "00000000-0000-0000-0000-000000000000",
+    p_transaction_set: "990",
+    p_parsed: null,
+    p_note: null,
+  },
   // Tenant data mutation.
   dispatch_trailer: {
     p_load_id: "00000000-0000-0000-0000-000000000000",
@@ -56,16 +70,29 @@ const PRIVILEGED_RPCS: Record<string, Record<string, unknown>> = {
     p_fuel_surcharge_amount: 0,
     p_carrier_pay: 0,
   },
+  assign_load_parties: {
+    p_load_id: "00000000-0000-0000-0000-000000000000",
+    p_tractor_id: null,
+    p_broker_id: null,
+    p_rate_confirmation_id: null,
+  },
   // Tracking reads that expose live asset positions.
   latest_tracking_locations: {},
   recent_tracking_events: { p_limit: 1 },
   // Alert fan-out, intended for the scheduled job only.
   evaluate_alerts: { p_notify: false },
-  revise_rate_agreement: { p_rate_agreement_id: "00000000-0000-0000-0000-000000000000", p_new_linehaul_rate: 1, p_new_fuel_surcharge_pct: 0 },
+  revise_rate_agreement: {
+    p_rate_agreement_id: "00000000-0000-0000-0000-000000000000",
+    p_new_linehaul_rate: 1,
+    p_new_fuel_surcharge_pct: 0,
+  },
   approve_accessorial: { p_accessorial_id: "00000000-0000-0000-0000-000000000000" },
   reject_accessorial: { p_accessorial_id: "00000000-0000-0000-0000-000000000000", p_reason: "x" },
   dispute_invoice: { p_invoice_id: "00000000-0000-0000-0000-000000000000", p_reason: "x" },
-  resolve_invoice_dispute: { p_invoice_id: "00000000-0000-0000-0000-000000000000", p_new_status: "PAID" },
+  resolve_invoice_dispute: {
+    p_invoice_id: "00000000-0000-0000-0000-000000000000",
+    p_new_status: "PAID",
+  },
   notify_user: {
     p_company_id: "00000000-0000-0000-0000-000000000000",
     p_user_id: "00000000-0000-0000-0000-000000000000",

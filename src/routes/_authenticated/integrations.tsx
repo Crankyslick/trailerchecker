@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Copy, RefreshCw, Plus, MapPin, Radio } from "lucide-react";
+import { Copy, RefreshCw, Plus, MapPin, Radio, FileText, Check, X, Send } from "lucide-react";
 import { guard } from "@/lib/route-guard";
 import {
   useGeofences,
@@ -14,6 +14,14 @@ import {
   type TrackingEvent,
   type TrackedAsset,
 } from "@/hooks/use-integrations";
+import {
+  useEdiInboundToken,
+  rotateEdiInboundToken,
+  useEdiDocuments,
+  reviewEdiDocument,
+  queueEdiResponse,
+  type EdiDocument,
+} from "@/hooks/use-edi";
 
 export const Route = createFileRoute("/_authenticated/integrations")({
   beforeLoad: guard({ roles: ["owner", "admin"], product: "trailer" }),
@@ -36,7 +44,159 @@ function IntegrationsPage() {
       <WebhookSection />
       <TrackingActivitySection />
       <GeofenceSection />
+      <EdiSection />
     </div>
+  );
+}
+
+function EdiSection() {
+  const { data: token, refetch } = useEdiInboundToken();
+  const { data: documents } = useEdiDocuments();
+  const [busy, setBusy] = useState(false);
+  const url =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/public/edi/sps`
+      : "/api/public/edi/sps";
+
+  async function rotate() {
+    setBusy(true);
+    try {
+      await rotateEdiInboundToken();
+      await refetch();
+      toast.success("Token generated — any previous token stops working immediately");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate token");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function copy(text: string) {
+    navigator.clipboard?.writeText(text);
+    toast.success("Copied");
+  }
+
+  async function review(doc: EdiDocument, status: "REVIEWED" | "IGNORED") {
+    try {
+      await reviewEdiDocument({ documentId: doc.id, status });
+      toast.success(status === "REVIEWED" ? "Marked reviewed" : "Ignored");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update the document");
+    }
+  }
+
+  async function queueResponse(doc: EdiDocument) {
+    try {
+      await queueEdiResponse({ inReplyTo: doc.id, transactionSet: "990" });
+      toast.success("Response queued — not yet sent to SPS (outbound transport not configured)");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not queue the response");
+    }
+  }
+
+  const inbound = (documents ?? []).filter((d) => d.direction === "IN");
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center gap-2">
+        <FileText className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-sm font-semibold">EDI (SPS Commerce)</h2>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Point SPS (or any trading partner) at the URL below to receive tenders, invoices, or any
+        other EDI document here for review. This is a receiving dock, not a live SPS connection:
+        every document lands below for a human to check before anything is created from it, and
+        outbound responses are queued, not transmitted, until this account's SPS outbound transport
+        and credentials are configured.
+      </p>
+
+      <div className="rounded-lg border border-border p-3 space-y-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground w-16 shrink-0">URL</span>
+          <code className="flex-1 truncate bg-surface-2 rounded px-2 py-1 text-xs">{url}</code>
+          <button onClick={() => copy(url)} className="text-muted-foreground hover:text-foreground">
+            <Copy className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground w-16 shrink-0">Token</span>
+          <code className="flex-1 truncate bg-surface-2 rounded px-2 py-1 text-xs">
+            {token ?? "— none generated yet —"}
+          </code>
+          {token && (
+            <button
+              onClick={() => copy(token)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        <button
+          onClick={rotate}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-surface-2 disabled:opacity-50"
+        >
+          <RefreshCw className="h-3 w-3" /> {token ? "Rotate token" : "Generate token"}
+        </button>
+      </div>
+
+      <div className="rounded-lg border border-border overflow-hidden">
+        <div className="px-3 py-2 border-b border-border text-xs font-medium text-muted-foreground">
+          Incoming documents ({inbound.length})
+        </div>
+        {inbound.length === 0 ? (
+          <div className="px-3 py-4 text-sm text-muted-foreground">Nothing received yet.</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {inbound.map((d) => (
+              <div key={d.id} className="px-3 py-2 flex items-center justify-between gap-3 text-sm">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-medium">{d.transaction_set}</span>
+                    <span className="text-xs text-muted-foreground">{d.trading_partner}</span>
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
+                      {d.status}
+                    </span>
+                  </div>
+                  {d.parsed && (
+                    <div className="text-xs text-muted-foreground truncate">
+                      {Object.entries(d.parsed)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(" · ")}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {d.status === "NEEDS_REVIEW" && (
+                    <>
+                      <button
+                        onClick={() => review(d, "REVIEWED")}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-surface-2"
+                      >
+                        <Check className="h-3 w-3" /> Reviewed
+                      </button>
+                      <button
+                        onClick={() => review(d, "IGNORED")}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-surface-2"
+                      >
+                        <X className="h-3 w-3" /> Ignore
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => queueResponse(d)}
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-surface-2"
+                  >
+                    <Send className="h-3 w-3" /> Queue response
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -243,7 +403,6 @@ function TrackingActivitySection() {
     </section>
   );
 }
-
 
 function GeofenceSection() {
   const { data: geofences, isLoading, refetch } = useGeofences();

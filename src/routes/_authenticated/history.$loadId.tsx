@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Clock, Link2 } from "lucide-react";
+import { ArrowLeft, Clock, Link2, FileText } from "lucide-react";
 import { StatusChip, LocationChip } from "@/components/Chips";
+import { LoadDocumentsPanel } from "@/components/LoadDocumentsPanel";
 import { guard } from "@/lib/route-guard";
 
 // get_tracking_by_token/ensure_tracking_token aren't in the generated
@@ -85,6 +86,13 @@ function HistoryDetail() {
             >
               <Link2 className="h-3.5 w-3.5" /> {copying ? "Copying…" : "Copy tracking link"}
             </button>
+            <Link
+              to="/bol/$loadId"
+              params={{ loadId }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium hover:bg-surface-2"
+            >
+              <FileText className="h-3.5 w-3.5" /> Bill of lading
+            </Link>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -137,6 +145,8 @@ function HistoryDetail() {
           )}
         </ol>
       </div>
+
+      <LoadDocumentsPanel loadId={loadId} companyId={l.company_id} />
     </div>
   );
 }
