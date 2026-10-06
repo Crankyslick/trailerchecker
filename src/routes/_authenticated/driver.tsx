@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin, WifiOff } from "lucide-react";
+import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin, WifiOff, ClipboardCheck } from "lucide-react";
 import {
   enqueue,
   flushQueue,
@@ -24,7 +25,11 @@ import {
   useDriverSession,
   logDriverActivity,
   sendDriverLocation,
+  useHasPassingPretripDvir,
+  submitDvir,
+  DVIR_CHECKLIST_ITEMS,
   type MyLoad,
+  type DvirItemKey,
 } from "@/hooks/use-driver";
 
 export const Route = createFileRoute("/_authenticated/driver")({
@@ -181,11 +186,24 @@ function LoadCard({ load, sessionId }: { load: MyLoad; sessionId: string | null 
   const [sendingLoc, setSendingLoc] = useState(false);
   const [showException, setShowException] = useState(false);
   const [showPod, setShowPod] = useState(false);
+  const [showDvir, setShowDvir] = useState<"PRE_TRIP" | "POST_TRIP" | null>(null);
+  const { data: hasPassingPretrip } = useHasPassingPretripDvir(load.id);
 
   const isDone = load.status === "Delivered" || load.status === "Completed";
   const next = NEXT_STATUS[load.status];
+  // DOT pre-trip gate before departure; the server enforces it too.
+  const requiresPretripGate = next === "Heading To DC" && !hasPassingPretrip;
 
   async function advance() {
+    if (!next) return;
+    if (requiresPretripGate) {
+      setShowDvir("PRE_TRIP");
+      return;
+    }
+    await doAdvance();
+  }
+
+  async function doAdvance() {
     if (!next) return;
     setBusy(true);
     try {
@@ -264,7 +282,7 @@ function LoadCard({ load, sessionId }: { load: MyLoad; sessionId: string | null 
               disabled={busy}
               className="flex-1 min-w-[140px] rounded-md bg-primary text-primary-foreground py-2.5 text-sm font-medium disabled:opacity-50"
             >
-              {busy ? "Updating…" : `Mark: ${next}`}
+              {busy ? "Updating…" : requiresPretripGate ? "Pre-trip inspection →" : `Mark: ${next}`}
             </button>
           )}
           {load.status === "En Route" && (
@@ -283,6 +301,12 @@ function LoadCard({ load, sessionId }: { load: MyLoad; sessionId: string | null 
             <MapPin className="h-4 w-4" /> {sendingLoc ? "Sending…" : "Send Location"}
           </button>
           <button
+            onClick={() => setShowDvir("POST_TRIP")}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2.5 text-sm font-medium"
+          >
+            <ClipboardCheck className="h-4 w-4" /> Inspection
+          </button>
+          <button
             onClick={() => setShowException(true)}
             className="rounded-md border border-danger/40 text-danger px-3 py-2.5 text-sm font-medium"
           >
@@ -299,6 +323,15 @@ function LoadCard({ load, sessionId }: { load: MyLoad; sessionId: string | null 
         />
       )}
       {showPod && <PodForm load={load} sessionId={sessionId} onClose={() => setShowPod(false)} />}
+      {showDvir && (
+        <DvirForm
+          loadId={load.id}
+          inspectionType={showDvir}
+          sessionId={sessionId}
+          onClose={() => setShowDvir(null)}
+          onPassed={showDvir === "PRE_TRIP" ? () => void doAdvance() : undefined}
+        />
+      )}
     </div>
   );
 }
@@ -527,6 +560,165 @@ function PodForm({
             className="flex-1 rounded-md bg-success text-white py-2 text-sm font-medium disabled:opacity-50"
           >
             {saving ? "Saving…" : "Confirm delivery"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DvirForm({
+  loadId,
+  inspectionType,
+  sessionId,
+  onClose,
+  onPassed,
+}: {
+  loadId: string;
+  inspectionType: "PRE_TRIP" | "POST_TRIP";
+  sessionId: string | null;
+  onClose: () => void;
+  onPassed?: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [items, setItems] = useState<Record<DvirItemKey, boolean>>(
+    () =>
+      Object.fromEntries(DVIR_CHECKLIST_ITEMS.map((i) => [i.key, true])) as Record<
+        DvirItemKey,
+        boolean
+      >,
+  );
+  const [odometer, setOdometer] = useState("");
+  const [defectNotes, setDefectNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const failingItems = DVIR_CHECKLIST_ITEMS.filter((i) => !items[i.key]);
+  const hasDefects = failingItems.length > 0;
+
+  async function submit() {
+    if (hasDefects && !defectNotes.trim()) {
+      toast.error("Describe the defect for each item marked not OK");
+      return;
+    }
+    setSaving(true);
+    try {
+      await submitDvir({
+        loadId,
+        inspectionType,
+        items,
+        odometerMiles: odometer.trim() ? Number(odometer) : null,
+        defectNotes: hasDefects ? defectNotes.trim() : null,
+      });
+      void queryClient.invalidateQueries({ queryKey: ["dvir", "pretrip-passing", loadId] });
+      if (sessionId) {
+        void logDriverActivity({
+          sessionId,
+          activityType: "status_update",
+          loadId,
+          metadata: { dvir: inspectionType, passed: !hasDefects },
+        });
+      }
+      if (hasDefects) {
+        toast.error("Defects recorded. Dispatch has been notified — this load cannot depart yet.");
+        onClose();
+        return;
+      }
+      toast.success(
+        inspectionType === "PRE_TRIP"
+          ? "Pre-trip inspection passed"
+          : "Post-trip inspection recorded",
+      );
+      onClose();
+      onPassed?.();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to record inspection");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-4">
+      <div className="w-full max-w-sm rounded-lg border border-border bg-surface shadow-xl p-4 space-y-3 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold text-sm">
+            {inspectionType === "PRE_TRIP" ? "Pre-trip inspection" : "Post-trip inspection"}
+          </h2>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Standard 9-point DOT check. Mark anything that isn't OK — this load can't depart with an
+          open pre-trip defect.
+        </p>
+        <div className="space-y-1.5">
+          {DVIR_CHECKLIST_ITEMS.map((item) => (
+            <label
+              key={item.key}
+              className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+            >
+              <span>{item.label}</span>
+              <span className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setItems((cur) => ({ ...cur, [item.key]: true }))}
+                  className={`rounded-md px-2 py-1 text-xs font-medium ${
+                    items[item.key]
+                      ? "bg-success text-white"
+                      : "border border-border text-muted-foreground"
+                  }`}
+                >
+                  OK
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setItems((cur) => ({ ...cur, [item.key]: false }))}
+                  className={`rounded-md px-2 py-1 text-xs font-medium ${
+                    !items[item.key]
+                      ? "bg-danger text-white"
+                      : "border border-border text-muted-foreground"
+                  }`}
+                >
+                  Not OK
+                </button>
+              </span>
+            </label>
+          ))}
+        </div>
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">Odometer (miles)</label>
+          <input
+            type="number"
+            min="0"
+            className="w-full rounded-md border border-border bg-surface px-2 py-2 text-sm"
+            value={odometer}
+            onChange={(e) => setOdometer(e.target.value)}
+          />
+        </div>
+        {hasDefects && (
+          <div>
+            <label className="block text-xs text-danger mb-1">
+              Defect details * ({failingItems.map((i) => i.label).join(", ")})
+            </label>
+            <textarea
+              className="w-full rounded-md border border-danger/40 bg-surface px-2 py-2 text-sm min-h-[70px]"
+              placeholder="Describe each defect marked not OK…"
+              value={defectNotes}
+              onChange={(e) => setDefectNotes(e.target.value)}
+            />
+          </div>
+        )}
+        <div className="flex gap-2 pt-1">
+          <button onClick={onClose} className="flex-1 rounded-md border border-border py-2 text-sm">
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            className={`flex-1 rounded-md py-2 text-sm font-medium disabled:opacity-50 ${
+              hasDefects ? "bg-danger text-white" : "bg-success text-white"
+            }`}
+          >
+            {saving ? "Saving…" : hasDefects ? "Submit with defects" : "Pass & submit"}
           </button>
         </div>
       </div>
