@@ -22,6 +22,13 @@
       "when": 1791077606549,
       "tag": "0002_zero_login_tender_dvir_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791336609462,
+      "tag": "0003_fleet_documents_edi",
+      "breakpoints": true
     }
   ]
 }
