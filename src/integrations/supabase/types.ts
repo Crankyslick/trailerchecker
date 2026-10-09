@@ -72,6 +72,13 @@ export type Database = {
             foreignKeyName: "accessorials_load_id_fkey"
             columns: ["load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "accessorials_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -109,6 +116,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_state_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
           },
           {
             foreignKeyName: "alert_state_load_id_fkey"
@@ -253,6 +267,13 @@ export type Database = {
           settlement_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "carrier_settlement_lines_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
           {
             foreignKeyName: "carrier_settlement_lines_load_id_fkey"
             columns: ["load_id"]
@@ -539,6 +560,8 @@ export type Database = {
           business_model: string
           company_id: string
           created_at: string
+          operating_dot_number: string | null
+          operating_mc_number: string | null
           updated_at: string
           yard_critical_hours: number
           yard_deadline_hours: number
@@ -547,6 +570,8 @@ export type Database = {
           business_model?: string
           company_id: string
           created_at?: string
+          operating_dot_number?: string | null
+          operating_mc_number?: string | null
           updated_at?: string
           yard_critical_hours?: number
           yard_deadline_hours?: number
@@ -555,6 +580,8 @@ export type Database = {
           business_model?: string
           company_id?: string
           created_at?: string
+          operating_dot_number?: string | null
+          operating_mc_number?: string | null
           updated_at?: string
           yard_critical_hours?: number
           yard_deadline_hours?: number
@@ -858,6 +885,13 @@ export type Database = {
             foreignKeyName: "customer_invoice_lines_load_id_fkey"
             columns: ["load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "customer_invoice_lines_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -976,6 +1010,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_activity_log_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
           },
           {
             foreignKeyName: "driver_activity_log_load_id_fkey"
@@ -1167,6 +1208,13 @@ export type Database = {
             foreignKeyName: "dvir_inspections_load_id_fkey"
             columns: ["load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "dvir_inspections_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -1235,6 +1283,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "edi_documents"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edi_documents_related_load_id_fkey"
+            columns: ["related_load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
           },
           {
             foreignKeyName: "edi_documents_related_load_id_fkey"
@@ -1535,6 +1590,13 @@ export type Database = {
             foreignKeyName: "exception_cases_load_company_fk"
             columns: ["load_id", "company_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id", "company_id"]
+          },
+          {
+            foreignKeyName: "exception_cases_load_company_fk"
+            columns: ["load_id", "company_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id", "company_id"]
           },
@@ -1580,6 +1642,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "geofences"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geofence_presence_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
           },
           {
             foreignKeyName: "geofence_presence_load_id_fkey"
@@ -1865,6 +1934,13 @@ export type Database = {
             foreignKeyName: "load_documents_load_id_fkey"
             columns: ["load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "load_documents_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -2085,15 +2161,90 @@ export type Database = {
           },
         ]
       }
+      order_parties: {
+        Row: {
+          client_id: string | null
+          company_id: string
+          created_at: string
+          dot_number: string | null
+          email: string | null
+          id: string
+          mc_number: string | null
+          name: string
+          order_id: string
+          party_role: string
+          phone: string | null
+          reference_number: string | null
+          source: string
+        }
+        Insert: {
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          dot_number?: string | null
+          email?: string | null
+          id?: string
+          mc_number?: string | null
+          name: string
+          order_id: string
+          party_role: string
+          phone?: string | null
+          reference_number?: string | null
+          source?: string
+        }
+        Update: {
+          client_id?: string | null
+          company_id?: string
+          created_at?: string
+          dot_number?: string | null
+          email?: string | null
+          id?: string
+          mc_number?: string | null
+          name?: string
+          order_id?: string
+          party_role?: string
+          phone?: string | null
+          reference_number?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_parties_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_parties_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_parties_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          bol_number: string | null
           client_id: string | null
           commodity_description: string | null
           company_id: string
           created_at: string
           created_by: string | null
+          customer_reference: string | null
+          equipment_type: string | null
+          external_load_number: string | null
           id: string
           order_number: string
+          po_number: string | null
           ready_datetime: string | null
           requested_delivery_datetime: string | null
           root_id: string
@@ -2107,13 +2258,18 @@ export type Database = {
           version: number
         }
         Insert: {
+          bol_number?: string | null
           client_id?: string | null
           commodity_description?: string | null
           company_id?: string
           created_at?: string
           created_by?: string | null
+          customer_reference?: string | null
+          equipment_type?: string | null
+          external_load_number?: string | null
           id?: string
           order_number: string
+          po_number?: string | null
           ready_datetime?: string | null
           requested_delivery_datetime?: string | null
           root_id?: string
@@ -2127,13 +2283,18 @@ export type Database = {
           version?: number
         }
         Update: {
+          bol_number?: string | null
           client_id?: string | null
           commodity_description?: string | null
           company_id?: string
           created_at?: string
           created_by?: string | null
+          customer_reference?: string | null
+          equipment_type?: string | null
+          external_load_number?: string | null
           id?: string
           order_number?: string
+          po_number?: string | null
           ready_datetime?: string | null
           requested_delivery_datetime?: string | null
           root_id?: string
@@ -2246,6 +2407,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proof_of_delivery_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
           },
           {
             foreignKeyName: "proof_of_delivery_load_id_fkey"
@@ -2489,6 +2657,149 @@ export type Database = {
             columns: ["rate_agreement_id"]
             isOneToOne: false
             referencedRelation: "rate_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_confirmation_imports: {
+        Row: {
+          business_key: string | null
+          client_id: string | null
+          company_id: string
+          confidence: Json
+          created_at: string
+          duplicate_of_import_id: string | null
+          extracted_at: string | null
+          extracted_data: Json | null
+          extraction_status: string
+          failed_at: string | null
+          failure_reason: string | null
+          file_hash: string
+          final_data: Json | null
+          id: string
+          import_status: string
+          leg_ids: string[] | null
+          normalized_data: Json | null
+          order_id: string | null
+          original_filename: string
+          overrides: Json
+          processed_at: string | null
+          shipment_id: string | null
+          source_type: string
+          storage_path: string
+          trailer_load_id: string | null
+          updated_at: string
+          uploaded_by_user_id: string | null
+          validation_errors: Json
+        }
+        Insert: {
+          business_key?: string | null
+          client_id?: string | null
+          company_id?: string
+          confidence?: Json
+          created_at?: string
+          duplicate_of_import_id?: string | null
+          extracted_at?: string | null
+          extracted_data?: Json | null
+          extraction_status?: string
+          failed_at?: string | null
+          failure_reason?: string | null
+          file_hash: string
+          final_data?: Json | null
+          id?: string
+          import_status?: string
+          leg_ids?: string[] | null
+          normalized_data?: Json | null
+          order_id?: string | null
+          original_filename: string
+          overrides?: Json
+          processed_at?: string | null
+          shipment_id?: string | null
+          source_type?: string
+          storage_path: string
+          trailer_load_id?: string | null
+          updated_at?: string
+          uploaded_by_user_id?: string | null
+          validation_errors?: Json
+        }
+        Update: {
+          business_key?: string | null
+          client_id?: string | null
+          company_id?: string
+          confidence?: Json
+          created_at?: string
+          duplicate_of_import_id?: string | null
+          extracted_at?: string | null
+          extracted_data?: Json | null
+          extraction_status?: string
+          failed_at?: string | null
+          failure_reason?: string | null
+          file_hash?: string
+          final_data?: Json | null
+          id?: string
+          import_status?: string
+          leg_ids?: string[] | null
+          normalized_data?: Json | null
+          order_id?: string | null
+          original_filename?: string
+          overrides?: Json
+          processed_at?: string | null
+          shipment_id?: string | null
+          source_type?: string
+          storage_path?: string
+          trailer_load_id?: string | null
+          updated_at?: string
+          uploaded_by_user_id?: string | null
+          validation_errors?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_confirmation_imports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_confirmation_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_confirmation_imports_duplicate_of_import_id_fkey"
+            columns: ["duplicate_of_import_id"]
+            isOneToOne: false
+            referencedRelation: "rate_confirmation_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_confirmation_imports_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_confirmation_imports_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rate_confirmation_imports_trailer_load_id_fkey"
+            columns: ["trailer_load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "rate_confirmation_imports_trailer_load_id_fkey"
+            columns: ["trailer_load_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
         ]
@@ -2760,6 +3071,13 @@ export type Database = {
             foreignKeyName: "status_propagation_log_cause_load_id_fkey"
             columns: ["cause_load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "status_propagation_log_cause_load_id_fkey"
+            columns: ["cause_load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -2774,7 +3092,13 @@ export type Database = {
       }
       stops: {
         Row: {
+          address1: string | null
+          address2: string | null
+          city: string | null
           company_id: string
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
           created_at: string
           earliest_datetime: string | null
           id: string
@@ -2782,13 +3106,21 @@ export type Database = {
           location_code: string | null
           location_name: string | null
           notes: string | null
+          postal_code: string | null
           shipment_id: string
+          state: string | null
           status: string
           stop_sequence: number
           stop_type: Database["public"]["Enums"]["stop_type"]
         }
         Insert: {
+          address1?: string | null
+          address2?: string | null
+          city?: string | null
           company_id?: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
           created_at?: string
           earliest_datetime?: string | null
           id?: string
@@ -2796,13 +3128,21 @@ export type Database = {
           location_code?: string | null
           location_name?: string | null
           notes?: string | null
+          postal_code?: string | null
           shipment_id: string
+          state?: string | null
           status?: string
           stop_sequence: number
           stop_type: Database["public"]["Enums"]["stop_type"]
         }
         Update: {
+          address1?: string | null
+          address2?: string | null
+          city?: string | null
           company_id?: string
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
           created_at?: string
           earliest_datetime?: string | null
           id?: string
@@ -2810,7 +3150,9 @@ export type Database = {
           location_code?: string | null
           location_name?: string | null
           notes?: string | null
+          postal_code?: string | null
           shipment_id?: string
+          state?: string | null
           status?: string
           stop_sequence?: number
           stop_type?: Database["public"]["Enums"]["stop_type"]
@@ -3144,6 +3486,13 @@ export type Database = {
             foreignKeyName: "tracking_events_load_id_fkey"
             columns: ["load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "tracking_events_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -3384,6 +3733,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "trailer_events_load_id_fkey1"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
           {
             foreignKeyName: "trailer_events_load_id_fkey1"
             columns: ["load_id"]
@@ -3706,6 +4062,13 @@ export type Database = {
             foreignKeyName: "trailer_loads_superseded_by_id_fkey"
             columns: ["superseded_by_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_superseded_by_id_fkey"
+            columns: ["superseded_by_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -3829,6 +4192,13 @@ export type Database = {
             foreignKeyName: "yard_check_ins_inbound_load_id_fkey"
             columns: ["inbound_load_id"]
             isOneToOne: false
+            referencedRelation: "load_party_roles"
+            referencedColumns: ["load_id"]
+          },
+          {
+            foreignKeyName: "yard_check_ins_inbound_load_id_fkey"
+            columns: ["inbound_load_id"]
+            isOneToOne: false
             referencedRelation: "trailer_loads"
             referencedColumns: ["id"]
           },
@@ -3876,8 +4246,104 @@ export type Database = {
         }
         Relationships: []
       }
+      load_party_roles: {
+        Row: {
+          bill_to_client_id: string | null
+          bill_to_name: string | null
+          broker_mc_number: string | null
+          broker_name: string | null
+          company_id: string | null
+          customer_name: string | null
+          driver_id: string | null
+          driver_name: string | null
+          latest_tender_status: string | null
+          leg_id: string | null
+          load_id: string | null
+          operating_carrier_mc_number: string | null
+          operating_carrier_name: string | null
+          operating_mode: string | null
+          order_id: string | null
+          outbound_trailer: string | null
+          rate_confirmation_import_id: string | null
+          return_trailer: string | null
+          schedule_id: string | null
+          shipment_id: string | null
+          shipper_name: string | null
+          tendered_carrier_id: string | null
+          tendered_carrier_name: string | null
+          tractor_id: string | null
+          tractor_number: string | null
+          trailer_equipment_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trailer_loads_carrier_id_fkey"
+            columns: ["tendered_carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_client_id_fkey"
+            columns: ["bill_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "trailer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_equipment_id_fkey"
+            columns: ["trailer_equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_leg_id_fkey"
+            columns: ["leg_id"]
+            isOneToOne: false
+            referencedRelation: "legs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trailer_loads_tractor_id_fkey"
+            columns: ["tractor_id"]
+            isOneToOne: false
+            referencedRelation: "tractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      _jsonb_deep_merge: { Args: { a: Json; b: Json }; Returns: Json }
       _log_status_propagation: {
         Args: {
           p_company: string
@@ -3888,6 +4354,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _rc_business_key: { Args: { p_data: Json }; Returns: string }
+      _rc_digits: { Args: { p: string }; Returns: string }
+      _rc_map_equipment_type: { Args: { p_type: string }; Returns: string }
+      _rc_validate: { Args: { p_company: string; p_data: Json }; Returns: Json }
       add_shipment_leg: {
         Args: {
           p_destination_stop_id: string
@@ -4641,6 +5111,7 @@ export type Database = {
       }
       get_edi_inbound_token: { Args: never; Returns: string }
       get_inbound_token: { Args: never; Returns: string }
+      get_load_source_document: { Args: { p_load_id: string }; Returns: Json }
       get_tender_by_token: {
         Args: { p_token: string }
         Returns: {
@@ -4690,6 +5161,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      import_rate_confirmation: {
+        Args: { p_force?: boolean; p_import_id: string; p_override_data?: Json }
+        Returns: Json
       }
       ingest_tracking_event: {
         Args: {
@@ -4957,6 +5432,14 @@ export type Database = {
         Args: { p_shipment_id: string }
         Returns: undefined
       }
+      register_rate_confirmation_upload: {
+        Args: {
+          p_file_hash: string
+          p_filename: string
+          p_storage_path: string
+        }
+        Returns: Json
+      }
       reject_accessorial: {
         Args: { p_accessorial_id: string; p_reason: string }
         Returns: {
@@ -4980,6 +5463,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      reject_rate_confirmation_import: {
+        Args: { p_import_id: string; p_reason?: string }
+        Returns: Json
       }
       resolve_exception: {
         Args: { p_load_id: string; p_resolution_note: string }
@@ -5201,6 +5688,16 @@ export type Database = {
       }
       rotate_edi_inbound_token: { Args: never; Returns: string }
       rotate_inbound_token: { Args: never; Returns: string }
+      save_rate_confirmation_extraction: {
+        Args: {
+          p_confidence?: Json
+          p_error?: string
+          p_extracted: Json
+          p_import_id: string
+          p_normalized: Json
+        }
+        Returns: Json
+      }
       set_load_financials: {
         Args: {
           p_carrier_pay: number
@@ -5367,6 +5864,14 @@ export type Database = {
       tenant_has_product: {
         Args: { _product: Database["public"]["Enums"]["product_key"] }
         Returns: boolean
+      }
+      update_rate_confirmation_review: {
+        Args: { p_import_id: string; p_override_data: Json }
+        Returns: Json
+      }
+      validate_rate_confirmation_import: {
+        Args: { p_import_id: string }
+        Returns: Json
       }
       yard_check_in: {
         Args: {
