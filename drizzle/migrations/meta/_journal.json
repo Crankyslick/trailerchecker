@@ -29,6 +29,13 @@
       "when": 1791336609462,
       "tag": "0003_fleet_documents_edi",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791514683811,
+      "tag": "0004_rate_confirmation_import",
+      "breakpoints": true
     }
   ]
 }
