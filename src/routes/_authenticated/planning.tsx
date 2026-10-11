@@ -31,6 +31,7 @@ import {
 } from "@/hooks/use-orders";
 import { useDrivers } from "@/hooks/use-drivers";
 import { buildTenderMailto, buildTenderResponseUrl, validateOfferedRate } from "@/lib/brokerage";
+import { RateConfirmationImport } from "@/components/RateConfirmationImport";
 
 export const Route = createFileRoute("/_authenticated/planning")({
   beforeLoad: guard({ product: "trailer" }),
@@ -44,6 +45,7 @@ function PlanningPage() {
   const { data: equipment } = useEquipment();
   const { data: carriers } = useCarriers();
   const [onlyUnplanned, setOnlyUnplanned] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
 
   const rows = (legs ?? []).filter((leg) => {
     if (!onlyUnplanned) return true;
@@ -63,16 +65,25 @@ function PlanningPage() {
             do not contact carriers; use the email draft or another channel and log the reply.
           </p>
         </div>
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={onlyUnplanned}
-            onChange={(e) => setOnlyUnplanned(e.target.checked)}
-            className="rounded border-border"
-          />
-          Only show unplanned legs
-        </label>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+          >
+            <FileText className="h-4 w-4" /> Import rate con
+          </button>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={onlyUnplanned}
+              onChange={(e) => setOnlyUnplanned(e.target.checked)}
+              className="rounded border-border"
+            />
+            Only show unplanned legs
+          </label>
+        </div>
       </div>
+      {importOpen && <RateConfirmationImport onClose={() => setImportOpen(false)} />}
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && rows.length === 0 && (
