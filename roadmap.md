@@ -111,3 +111,8 @@ safety was achieved with a shadow-then-flip inside one database.
 - [x] One role type from the database enum + capability helpers; role tests.
 - [x] loadAccess() surfaces query errors; guards no longer redirect on error.
 - [x] Product toggles relabelled internal provisioning; plans marked invoiced.
+
+# Rate confirmation import
+- [x] Schema + private storage (adapted to existing tractors)
+- [ ] Upload/review UI on Load Planning
+- [ ] Review uploaded gap-fixes.patch, sql.zip, 01_check_database.sql
