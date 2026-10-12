@@ -41,6 +41,9 @@ export const Route = createFileRoute("/api/public/edi/sps")({
 
         const rawBody = await request.text();
         if (!rawBody.trim()) return json({ error: "Empty body" }, 400);
+        // Every document is stored verbatim, so cap what one request can write.
+        if (rawBody.length > MAX_BODY_CHARS)
+          return json({ error: "Body too large (max 2 MB)" }, 413);
 
         let transactionSet: string;
         let payloadForParsing = rawBody;
@@ -94,6 +97,8 @@ export const Route = createFileRoute("/api/public/edi/sps")({
     },
   },
 });
+
+const MAX_BODY_CHARS = 2_000_000;
 
 function json(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {

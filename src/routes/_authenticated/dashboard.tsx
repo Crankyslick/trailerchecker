@@ -59,7 +59,6 @@ type ActiveTrailer = {
 
 const YARDS: ActiveTrailer["yard"][] = ["Yard 91", "Yard 301", "Paterson Yard"];
 
-
 /* -------------------- 1s ticker -------------------- */
 
 function useSecondTick() {
@@ -158,7 +157,7 @@ function ControlTower() {
 
   const tomorrow = estDateParts(1);
   const today = estDateParts(0);
-  const allLoads = Array.isArray(loads) ? loads : [];
+  const allLoads = useMemo(() => (Array.isArray(loads) ? loads : []), [loads]);
   const todaysLoads = allLoads.filter((l) => (l?.schedule_date ?? l?.cutoff_date) === today).length;
   const tomorrowsLoads = allLoads.filter((l) => (l?.schedule_date ?? l?.cutoff_date) === tomorrow);
   const driversMissing = tomorrowsLoads.filter((l) => !l?.driver).length;

@@ -22,7 +22,10 @@ async function readWebhookUrl(
   return (data as { webhook_url: string | null } | null)?.webhook_url ?? null;
 }
 
-async function stampSynced(supabaseAdmin: import("@supabase/supabase-js").SupabaseClient, company: string) {
+async function stampSynced(
+  supabaseAdmin: import("@supabase/supabase-js").SupabaseClient,
+  company: string,
+) {
   await supabaseAdmin
     .from("trailer_sync_config")
     .update({ last_synced_at: new Date().toISOString(), last_sync_status: "ok" })

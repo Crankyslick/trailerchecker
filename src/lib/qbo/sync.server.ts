@@ -62,7 +62,11 @@ async function mappingsFor(companyId: string) {
   return map;
 }
 
-async function syncOne(conn: QboConnection, inv: InvoiceRow, lines: LineRow[]): Promise<SyncResult> {
+async function syncOne(
+  conn: QboConnection,
+  inv: InvoiceRow,
+  lines: LineRow[],
+): Promise<SyncResult> {
   const client = inv.trailer_clients;
   if (!client) {
     return {
@@ -224,10 +228,9 @@ export async function pullPaymentStatus(companyId: string) {
   if (rows.length === 0) return { checked: 0, paid: 0 };
 
   const ids = rows.map((r) => `'${r.qbo_invoice_id.replace(/'/g, "''")}'`).join(",");
-  const res = await queryQbo<{ QueryResponse?: { Invoice?: Array<{ Id: string; Balance: number }> } }>(
-    conn,
-    `select Id, Balance from Invoice where Id in (${ids})`,
-  );
+  const res = await queryQbo<{
+    QueryResponse?: { Invoice?: Array<{ Id: string; Balance: number }> };
+  }>(conn, `select Id, Balance from Invoice where Id in (${ids})`);
   const balances = new Map((res.QueryResponse?.Invoice ?? []).map((i) => [i.Id, i.Balance]));
 
   let paid = 0;

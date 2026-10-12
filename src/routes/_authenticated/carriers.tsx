@@ -51,8 +51,6 @@ const carrierSchema = z.object({
 });
 type CarrierFormValues = z.infer<typeof carrierSchema>;
 
-
-
 function CarriersPage() {
   const { data: carriers, isLoading } = useCarriers();
   const [modal, setModal] = useState<"add" | Carrier | null>(null);
@@ -68,7 +66,6 @@ function CarriersPage() {
       toast.error(e instanceof Error ? e.message : "Failed to update carrier");
     }
   }
-
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -192,7 +189,6 @@ function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClo
       }
       await qc.invalidateQueries({ queryKey: ["carriers"] });
       onClose();
-
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save carrier");
     }
@@ -254,7 +250,6 @@ function CarrierFormModal({ carrier, onClose }: { carrier: Carrier | null; onClo
               />
             </Field>
           </div>
-
         </div>
         <div className="flex justify-end gap-2 px-4 py-3 border-t border-border">
           <button

@@ -159,7 +159,7 @@ function ContainersPage() {
     initialData: [] as { id: string; name: string }[],
   });
 
-  const rows = containers.data ?? [];
+  const rows = useMemo(() => containers.data ?? [], [containers.data]);
   const stats = useMemo(() => {
     const open = rows.filter((r) => r.status !== "Completed" && r.status !== "Returned");
     const atRisk = open.filter((r) => {

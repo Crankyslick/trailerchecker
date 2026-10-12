@@ -678,12 +678,12 @@ function Onboarding() {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="teammate@company.com"
-                className={`flex-1 ${inputClass}`}
+                className={`min-w-0 flex-1 sm:min-w-[16rem] ${inputClass}`}
               />
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as AppRole)}
-                className={inputClass}
+                className={`${inputClass} sm:w-52 sm:shrink-0`}
               >
                 {INVITE_ROLES.map((r) => (
                   <option key={r.id} value={r.id}>

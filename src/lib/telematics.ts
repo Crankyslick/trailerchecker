@@ -80,9 +80,13 @@ export function detectProvider(body: unknown, hintHeader?: string | null): Telem
 
   if (isObj(body)) {
     if ("eventType" in body && isObj(body["data"]) && "eventId" in body) return "samsara";
-    if (isObj(body["data"]) && (isObj((body["data"] as Json)["vehicle"]) || isObj((body["data"] as Json)["asset"])))
+    if (
+      isObj(body["data"]) &&
+      (isObj((body["data"] as Json)["vehicle"]) || isObj((body["data"] as Json)["asset"]))
+    )
       return "samsara";
-    if (isObj(body["vehicle"]) && isObj((body["vehicle"] as Json)["current_location"])) return "motive";
+    if (isObj(body["vehicle"]) && isObj((body["vehicle"] as Json)["current_location"]))
+      return "motive";
     if (isObj(body["asset"]) && isObj((body["asset"] as Json)["current_location"])) return "motive";
     if ("action" in body && "typeName" in body) return "geotab";
     if (Array.isArray(body["LogRecords"]) || "deviceSerialNumber" in body) return "geotab";
@@ -91,7 +95,8 @@ export function detectProvider(body: unknown, hintHeader?: string | null): Telem
 }
 
 function motive(body: Json): NormalizedPing[] {
-  const node = (isObj(body["vehicle"]) && (body["vehicle"] as Json)) ||
+  const node =
+    (isObj(body["vehicle"]) && (body["vehicle"] as Json)) ||
     (isObj(body["asset"]) && (body["asset"] as Json)) ||
     body;
   const loc = (isObj(node["current_location"]) && (node["current_location"] as Json)) || node;
@@ -106,7 +111,10 @@ function motive(body: Json): NormalizedPing[] {
         str(node["vehicle_id"]) ??
         str(body["external_id"]) ??
         "",
-      asset_type: assetTypeFrom(node["asset_type"] ?? node["type"], isObj(body["asset"]) ? "trailer" : "tractor"),
+      asset_type: assetTypeFrom(
+        node["asset_type"] ?? node["type"],
+        isObj(body["asset"]) ? "trailer" : "tractor",
+      ),
       latitude: num(loc["lat"]) ?? num(loc["latitude"]),
       longitude: num(loc["lon"]) ?? num(loc["lng"]) ?? num(loc["longitude"]),
       // Motive reports speed in mph
@@ -209,7 +217,10 @@ function generic(body: Json): NormalizedPing[] {
         str(ev["driver"]) ??
         str(ev["asset_id"]) ??
         "",
-      asset_type: assetTypeFrom(ev["asset_type"], ev["driver"] && !ev["external_id"] ? "driver" : "unknown"),
+      asset_type: assetTypeFrom(
+        ev["asset_type"],
+        ev["driver"] && !ev["external_id"] ? "driver" : "unknown",
+      ),
       latitude: num(ev["latitude"]) ?? num(ev["lat"]),
       longitude: num(ev["longitude"]) ?? num(ev["lng"]) ?? num(ev["lon"]),
       speed_mph: speed === null ? null : Math.round(speed * 10) / 10,

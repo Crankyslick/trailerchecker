@@ -52,7 +52,11 @@ export const Route = createFileRoute("/api/public/tracking")({
 
         let raw: unknown;
         try {
-          raw = await request.json();
+          const text = await request.text();
+          if (text.length > MAX_BODY_CHARS) {
+            return json({ error: "Body too large (max 1 MB)" }, 413);
+          }
+          raw = JSON.parse(text);
         } catch (e) {
           return json(
             { error: "Invalid JSON", detail: e instanceof Error ? e.message : String(e) },
@@ -61,9 +65,7 @@ export const Route = createFileRoute("/api/public/tracking")({
         }
 
         const hint =
-          request.headers.get("x-telematics-provider") ??
-          request.headers.get("user-agent") ??
-          null;
+          request.headers.get("x-telematics-provider") ?? request.headers.get("user-agent") ?? null;
         const { provider, events } = normalizeTelematics(raw, hint);
 
         if (events.length === 0) {
@@ -110,6 +112,8 @@ export const Route = createFileRoute("/api/public/tracking")({
     },
   },
 });
+
+const MAX_BODY_CHARS = 1_000_000;
 
 function json(body: unknown, status: number) {
   return new Response(JSON.stringify(body), {

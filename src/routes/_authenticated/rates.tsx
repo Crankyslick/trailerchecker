@@ -67,7 +67,9 @@ function RatesPage() {
                 <td className="px-3 py-2">
                   {clientName(r.client_id)}
                   {r.contract_number && (
-                    <span className="block text-[11px] text-muted-foreground">#{r.contract_number}</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      #{r.contract_number}
+                    </span>
                   )}
                 </td>
                 <td className="px-3 py-2 text-xs">

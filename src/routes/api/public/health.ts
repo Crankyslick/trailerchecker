@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-
 /**
  * Readiness probe: reports whether the app can reach the database.
  * Public on purpose (no data is returned) so uptime monitors can poll it.

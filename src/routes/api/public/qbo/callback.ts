@@ -34,9 +34,8 @@ export const Route = createFileRoute("/api/public/qbo/callback")({
             return back("expired");
           }
 
-          const { exchangeCode, qboRedirectUri, qboEnvironment, qboApi } = await import(
-            "@/lib/qbo/qbo.server"
-          );
+          const { exchangeCode, qboRedirectUri, qboEnvironment, qboApi } =
+            await import("@/lib/qbo/qbo.server");
           const tokens = await exchangeCode(code, qboRedirectUri(url.origin));
           const accessExpires = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
