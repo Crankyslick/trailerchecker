@@ -58,7 +58,6 @@ export function stopsCompletedBy(status: LoadStatus): {
   return { origin, destination };
 }
 
-
 /** A shipment is complete only when every one of its legs is done. */
 export function rollUpShipmentStatus(
   current: ShipmentStatus,

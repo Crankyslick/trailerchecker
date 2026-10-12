@@ -80,6 +80,25 @@ export const Route = createFileRoute("/api/alerts/notify")({
             return json({ ok: true, sent: [] }, 200);
           }
 
+          // The load was read with the service client, so confirm it belongs
+          // to the caller's own company before texting or emailing anyone.
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("tenant_id")
+            .eq("id", claims.claims.sub)
+            .maybeSingle();
+          const { data: company } = profile?.tenant_id
+            ? await supabaseAdmin
+                .from("companies")
+                .select("id")
+                .eq("id", load.company_id)
+                .eq("tenant_id", profile.tenant_id)
+                .maybeSingle()
+            : { data: null };
+          if (!company) {
+            return json({ error: "forbidden" }, 403);
+          }
+
           const dedupeKey = `${body.type}:${load.id}`;
           if (!shouldSend(dedupeKey)) {
             return json({ ok: true, sent: [], skipped: "duplicate_within_cooldown" }, 200);

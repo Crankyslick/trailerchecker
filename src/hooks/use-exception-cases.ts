@@ -25,13 +25,7 @@ export const CASE_STATUSES = [
 ] as const;
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
-export const RESPONSIBLE_PARTIES = [
-  "UNKNOWN",
-  "SHIPPER",
-  "CARRIER",
-  "BROKER",
-  "SHARED",
-] as const;
+export const RESPONSIBLE_PARTIES = ["UNKNOWN", "SHIPPER", "CARRIER", "BROKER", "SHARED"] as const;
 export type ResponsibleParty = (typeof RESPONSIBLE_PARTIES)[number];
 
 export const TRAILER_ROLES = ["NOT_APPLICABLE", "OUTBOUND", "RETURN"] as const;
@@ -287,7 +281,7 @@ export async function updateExceptionCase(id: string, input: Partial<CaseInput>)
 }
 
 function safeFileName(name: string): string {
-  const cleaned = name.replace(/[^\w.\-]+/g, "_").replace(/^\.+/, "");
+  const cleaned = name.replace(/[^\w.-]+/g, "_").replace(/^\.+/, "");
   return cleaned.length > 0 ? cleaned.slice(0, 120) : "evidence";
 }
 

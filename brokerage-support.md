@@ -25,10 +25,10 @@ The broker margin tile is an estimate over the recent loads currently loaded in 
 
 ## Current boundaries / next phase
 
-This is an operational broker MVP, not a connected carrier network. There is **no automatic email or SMS sending, carrier portal, external carrier acceptance link, EDI tender/response, rate negotiation, FMCSA/insurance verification, accounting sync, or automated load-to-carrier matching**. Carrier replies are manually recorded by staff. Broker/3PL users share the existing dispatcher/admin permission model.
+This is an operational broker MVP, not a connected carrier network. Since this note was first written, offers carry a zero-login carrier response link (`/tenders/respond?token=…`), inbound EDI documents land for review (`/api/public/edi/sps`), and invoices can sync to QuickBooks Online. There is still **no automatic offer email or SMS, carrier portal, outbound EDI tender/response, rate negotiation, FMCSA/insurance verification, or automated load-to-carrier matching**. Carriers without the link are still recorded by staff. Broker/3PL users share the existing dispatcher/admin permission model.
 
 The previously prepared market-analysis report was framed around asset-controlling trucking/yard operators. This app expansion does **not** revise that report's broker-segment market size or competitive analysis; those claims should not be generalized to asset-light freight brokers without a separate evidence-backed update.
 
 ## Deployment note
 
-The code package includes `supabase/migrations/20260930000100_broker_operating_model.sql`. Apply that additive migration to the target Supabase project using the normal controlled deployment path **before** saving a non-default business profile. It adds a constrained `company_settings.business_model` field and extends the current settings audit trail. No hosted database was changed by this sandbox implementation.
+The code package includes `supabase/migrations/20260930085005_78ceaf88-d005-46e9-8a5b-435b829a1488.sql` (the broker operating model). Apply that additive migration to the target Supabase project using the normal controlled deployment path **before** saving a non-default business profile. It adds a constrained `company_settings.business_model` field and extends the current settings audit trail. No hosted database was changed by this sandbox implementation.

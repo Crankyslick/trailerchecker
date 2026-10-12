@@ -51,6 +51,32 @@ async function gwFetch(path: string, init: RequestInit = {}): Promise<Response> 
 
 const NOT_CONFIGURED = "Google Sheet not configured — set the Spreadsheet ID in Settings.";
 
+type RpcClient = {
+  rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+};
+
+/**
+ * Confirms the caller is dispatcher/admin staff and returns their company.
+ * The company always comes from the caller's own session, never the request,
+ * so these service-role sheet reads and writes only ever touch the caller's
+ * own spreadsheet.
+ */
+async function requireSheetCompany(supabase: unknown): Promise<string> {
+  const client = supabase as RpcClient;
+  const { data: allowed } = await client.rpc("is_dispatcher_or_admin");
+  if (allowed !== true) throw new Error("You need dispatcher or admin access to use the sheet.");
+  const { data: companyId } = await client.rpc("current_company_id");
+  if (typeof companyId !== "string" || !companyId) {
+    throw new Error("Your account is not linked to a company yet.");
+  }
+  return companyId;
+}
+
+/** A1 range for a sheet tab, quoted so names with spaces or punctuation work. */
+function a1(sheetName: string, cells: string): string {
+  return encodeURIComponent(`'${sheetName.replace(/'/g, "''")}'!${cells}`);
+}
+
 /**
  * Daily dispatch columns that have a fixed position in the Target layout.
  * Used only when the header row does not spell the column out (renamed or
@@ -78,15 +104,16 @@ type Headers = {
 };
 
 /** Returns the sheet target for a company, or null when none is configured. */
-async function readConfig(companyId?: string | null): Promise<SheetConfig | null> {
+async function readConfig(companyId: string): Promise<SheetConfig | null> {
   // Sheet settings are admin-only under RLS; this server-side read uses the
   // service client and returns nothing but the spreadsheet target.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let q = supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("trailer_sync_config")
-    .select("spreadsheet_id, sheet_name, company_id");
-  if (companyId) q = q.eq("company_id", companyId);
-  const { data, error } = await q.limit(1).maybeSingle();
+    .select("spreadsheet_id, sheet_name, company_id")
+    .eq("company_id", companyId)
+    .limit(1)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   const row = data as { spreadsheet_id: string | null; sheet_name: string | null } | null;
   if (!row?.spreadsheet_id) return null;
@@ -96,8 +123,7 @@ async function readConfig(companyId?: string | null): Promise<SheetConfig | null
 /** Internal: read + index the header row for a known config. */
 async function fetchHeaders(cfg: SheetConfig): Promise<Headers> {
   const { spreadsheet_id, sheet_name } = cfg;
-  const range = `${sheet_name}!A1:Z1`;
-  const res = await gwFetch(`/spreadsheets/${spreadsheet_id}/values/${range}`);
+  const res = await gwFetch(`/spreadsheets/${spreadsheet_id}/values/${a1(sheet_name, "A1:Z1")}`);
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`Sheets header read failed [${res.status}]: ${body}`);
@@ -116,29 +142,32 @@ async function fetchHeaders(cfg: SheetConfig): Promise<Headers> {
 }
 
 /** Read header row and return { normalized -> {index, letter} }. */
-export const getSheetHeaders = createServerFn({ method: "GET" }).handler(async () => {
-  const cfg = await readConfig();
-  if (!cfg) {
-    return {
-      map: {} as HeaderMap,
-      headers: [] as string[],
-      warnings: [NOT_CONFIGURED],
-      sheet_name: "",
-      spreadsheet_id: "",
-      configured: false,
-    };
-  }
-  return fetchHeaders(cfg);
-});
+export const getSheetHeaders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const cfg = await readConfig(await requireSheetCompany(context.supabase));
+    if (!cfg) {
+      return {
+        map: {} as HeaderMap,
+        headers: [] as string[],
+        warnings: [NOT_CONFIGURED],
+        sheet_name: "",
+        spreadsheet_id: "",
+        configured: false,
+      };
+    }
+    return fetchHeaders(cfg);
+  });
 
 /**
  * Look up a set of column names in the header row. Missing headers are
  * returned in `missing` rather than thrown — callers decide fatal-ness.
  */
 export const resolveColumns = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { names: string[] }) => data)
-  .handler(async ({ data }) => {
-    const cfg = await readConfig();
+  .handler(async ({ data, context }) => {
+    const cfg = await readConfig(await requireSheetCompany(context.supabase));
     if (!cfg) return { found: {}, missing: data.names, sheet_name: "" };
     const headers = await fetchHeaders(cfg);
     const found: Record<string, { index: number; letter: string }> = {};
@@ -167,7 +196,7 @@ async function findRow(
       row: null as number | null,
       reason: `Match column "${matchColumn}" not found in sheet.`,
     };
-  const colRange = `${cfg.sheet_name}!${matchCol.letter}2:${matchCol.letter}`;
+  const colRange = a1(cfg.sheet_name, `${matchCol.letter}2:${matchCol.letter}`);
   const colRes = await gwFetch(`/spreadsheets/${cfg.spreadsheet_id}/values/${colRange}`);
   if (!colRes.ok) {
     const body = await colRes.text();
@@ -237,7 +266,7 @@ async function doWriteCells(
       continue;
     }
     dataRanges.push({
-      range: `${cfg.sheet_name}!${col.letter}${located.row}`,
+      range: `'${cfg.sheet_name.replace(/'/g, "''")}'!${col.letter}${located.row}`,
       values: [[val == null ? "" : String(val)]],
     });
   }
@@ -269,7 +298,7 @@ async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
     row[col.index] = v == null ? "" : String(v);
   }
   const appendRes = await gwFetch(
-    `/spreadsheets/${cfg.spreadsheet_id}/values/${cfg.sheet_name}!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    `/spreadsheets/${cfg.spreadsheet_id}/values/${a1(cfg.sheet_name, "A1")}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
     { method: "POST", body: JSON.stringify({ values: [row] }) },
   );
   if (!appendRes.ok) {
@@ -286,9 +315,10 @@ async function doAppendRow(cfg: SheetConfig, record: UpdateMap) {
  * (e.g. `matchColumn: "Load ID", matchValue: "75253901"`).
  */
 export const writeCellsByHeader = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { matchColumn: string; matchValue: string; updates: UpdateMap }) => data)
-  .handler(async ({ data }) => {
-    const cfg = await readConfig();
+  .handler(async ({ data, context }) => {
+    const cfg = await readConfig(await requireSheetCompany(context.supabase));
     if (!cfg) return { ok: false, matched: false, reason: NOT_CONFIGURED };
     return doWriteCells(cfg, data);
   });
@@ -299,9 +329,10 @@ export const writeCellsByHeader = createServerFn({ method: "POST" })
  * shifts). Used by guard-shack check-in.
  */
 export const appendRowByHeader = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: { record: UpdateMap }) => data)
-  .handler(async ({ data }) => {
-    const cfg = await readConfig();
+  .handler(async ({ data, context }) => {
+    const cfg = await readConfig(await requireSheetCompany(context.supabase));
     if (!cfg) return { ok: false, updatedRange: null, warnings: [NOT_CONFIGURED] };
     return doAppendRow(cfg, data.record);
   });
@@ -311,12 +342,13 @@ export const appendRowByHeader = createServerFn({ method: "POST" })
  * DLM bulk parser to writeback trailer/driver/status per Load ID in one call.
  */
 export const batchWriteByHeader = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(
     (data: { matchColumn: string; rows: Array<{ matchValue: string; updates: UpdateMap }> }) =>
       data,
   )
-  .handler(async ({ data }) => {
-    const cfg = await readConfig();
+  .handler(async ({ data, context }) => {
+    const cfg = await readConfig(await requireSheetCompany(context.supabase));
     if (!cfg) {
       return {
         ok: false,
@@ -329,7 +361,7 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
     const matchCol = headers.map[normalizeHeader(data.matchColumn)];
     if (!matchCol) throw new Error(`Match column "${data.matchColumn}" not found.`);
 
-    const colRange = `${cfg.sheet_name}!${matchCol.letter}2:${matchCol.letter}`;
+    const colRange = a1(cfg.sheet_name, `${matchCol.letter}2:${matchCol.letter}`);
     const colRes = await gwFetch(`/spreadsheets/${cfg.spreadsheet_id}/values/${colRange}`);
     if (!colRes.ok) {
       const body = await colRes.text();
@@ -366,7 +398,7 @@ export const batchWriteByHeader = createServerFn({ method: "POST" })
           continue;
         }
         dataRanges.push({
-          range: `${cfg.sheet_name}!${col.letter}${rowNum}`,
+          range: `'${cfg.sheet_name.replace(/'/g, "''")}'!${col.letter}${rowNum}`,
           values: [[val == null ? "" : String(val)]],
         });
       }
@@ -443,8 +475,7 @@ export async function drainSheetOutbox(
   if (error) throw new Error(error.message);
 
   const rows = (claimed ?? []) as OutboxRow[];
-  if (rows.length === 0)
-    return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
+  if (rows.length === 0) return { processed: 0, done: 0, failed: 0, retrying: 0, configured: true };
 
   const release = async (row: OutboxRow, patch: Record<string, unknown>) => {
     await db

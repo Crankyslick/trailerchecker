@@ -59,7 +59,10 @@ export function activeYardPolicy(): YardPolicy {
 
 export function yardHours(yardArrivalAt: string | null): number | null {
   if (!yardArrivalAt) return null;
-  return (Date.now() - new Date(yardArrivalAt).getTime()) / 3_600_000;
+  const t = new Date(yardArrivalAt).getTime();
+  // An unparseable timestamp must not read as "critical" (NaN fails every < check).
+  if (Number.isNaN(t)) return null;
+  return (Date.now() - t) / 3_600_000;
 }
 
 export function yardTier(

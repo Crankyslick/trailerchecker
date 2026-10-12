@@ -47,9 +47,9 @@ describe("role capabilities", () => {
 
 describe("route access", () => {
   it("allows an owner into an admin screen of a subscribed product", () => {
-    expect(checkAccess(access(["owner"]), { roles: ["owner", "admin"], product: "trailer" })).toEqual(
-      { ok: true },
-    );
+    expect(
+      checkAccess(access(["owner"]), { roles: ["owner", "admin"], product: "trailer" }),
+    ).toEqual({ ok: true });
   });
 
   it("blocks a screen for a product the organization has not subscribed to", () => {

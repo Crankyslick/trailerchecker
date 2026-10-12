@@ -43,7 +43,11 @@ export function CustomerAccountPanel({
             <div className="text-xs text-muted-foreground">Customer account</div>
             <div className="font-semibold">{customer.name}</div>
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="text-muted-foreground hover:text-foreground"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -53,7 +57,9 @@ export function CustomerAccountPanel({
               key={t}
               onClick={() => setTab(t)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize ${
-                tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-surface-2"
+                tab === t
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-surface-2"
               }`}
             >
               {t === "terms" ? "Terms & credit" : t}
@@ -108,14 +114,21 @@ function Contacts({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        {contacts.length === 0 && <div className="text-sm text-muted-foreground">No contacts yet.</div>}
+        {contacts.length === 0 && (
+          <div className="text-sm text-muted-foreground">No contacts yet.</div>
+        )}
         {contacts.map((c) => (
-          <div key={c.id} className="rounded-md border border-border p-2.5 text-sm flex items-start justify-between gap-2">
+          <div
+            key={c.id}
+            className="rounded-md border border-border p-2.5 text-sm flex items-start justify-between gap-2"
+          >
             <div>
               <div className="font-medium flex items-center gap-1.5">
                 {c.name}
                 {c.is_primary && (
-                  <span className="chip border bg-primary/10 text-primary border-primary/30 text-[10px]">Primary</span>
+                  <span className="chip border bg-primary/10 text-primary border-primary/30 text-[10px]">
+                    Primary
+                  </span>
                 )}
               </div>
               {c.title && <div className="text-xs text-muted-foreground">{c.title}</div>}
@@ -125,11 +138,19 @@ function Contacts({ clientId }: { clientId: string }) {
             </div>
             <div className="flex gap-1">
               {!c.is_primary && (
-                <button title="Make primary" onClick={() => run(() => setPrimaryContact(clientId, c.id))} className="p-1 text-muted-foreground hover:text-primary">
+                <button
+                  title="Make primary"
+                  onClick={() => run(() => setPrimaryContact(clientId, c.id))}
+                  className="p-1 text-muted-foreground hover:text-primary"
+                >
                   <Star className="h-4 w-4" />
                 </button>
               )}
-              <button title="Remove" onClick={() => run(() => deleteClientContact(c.id))} className="p-1 text-muted-foreground hover:text-danger">
+              <button
+                title="Remove"
+                onClick={() => run(() => deleteClientContact(c.id))}
+                className="p-1 text-muted-foreground hover:text-danger"
+              >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
@@ -139,16 +160,44 @@ function Contacts({ clientId }: { clientId: string }) {
       <div className="rounded-md border border-border p-3 space-y-2">
         <div className="text-xs font-semibold">Add contact</div>
         <div className="grid grid-cols-2 gap-2">
-          <input className={input} placeholder="Name *" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-          <input className={input} placeholder="Title" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
-          <input className={input} placeholder="Email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-          <input className={input} placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
+          <input
+            className={input}
+            placeholder="Name *"
+            value={f.name}
+            onChange={(e) => setF({ ...f, name: e.target.value })}
+          />
+          <input
+            className={input}
+            placeholder="Title"
+            value={f.title}
+            onChange={(e) => setF({ ...f, title: e.target.value })}
+          />
+          <input
+            className={input}
+            placeholder="Email"
+            value={f.email}
+            onChange={(e) => setF({ ...f, email: e.target.value })}
+          />
+          <input
+            className={input}
+            placeholder="Phone"
+            value={f.phone}
+            onChange={(e) => setF({ ...f, phone: e.target.value })}
+          />
         </div>
         <label className="flex items-center gap-2 text-xs">
-          <input type="checkbox" checked={f.primary} onChange={(e) => setF({ ...f, primary: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={f.primary}
+            onChange={(e) => setF({ ...f, primary: e.target.checked })}
+          />
           Primary contact
         </label>
-        <button onClick={add} disabled={busy} className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium disabled:opacity-50">
+        <button
+          onClick={add}
+          disabled={busy}
+          className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+        >
           {busy ? "Saving…" : "Add contact"}
         </button>
       </div>
@@ -175,15 +224,30 @@ function Activity({ clientId }: { clientId: string }) {
     <div className="space-y-4">
       <div className="rounded-md border border-border p-3 space-y-2">
         <div className="flex gap-2">
-          <select className={`${input} w-32`} value={type} onChange={(e) => setType(e.target.value as typeof type)}>
+          <select
+            className={`${input} w-32`}
+            value={type}
+            onChange={(e) => setType(e.target.value as typeof type)}
+          >
             <option value="call">Call</option>
             <option value="email">Email</option>
             <option value="meeting">Meeting</option>
             <option value="note">Note</option>
           </select>
-          <input className={input} placeholder="What happened?" value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => e.key === "Enter" && log()} />
+          <input
+            className={input}
+            placeholder="What happened?"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && log()}
+          />
         </div>
-        <button onClick={log} className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium">Log activity</button>
+        <button
+          onClick={log}
+          className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium"
+        >
+          Log activity
+        </button>
       </div>
       <ol className="space-y-2">
         {items.length === 0 && <li className="text-sm text-muted-foreground">No activity yet.</li>}
@@ -219,9 +283,11 @@ function Terms({ clientId }: { clientId: string }) {
 
   async function save() {
     const t = Number(terms);
-    if (!Number.isInteger(t) || t < 0 || t > 365) return toast.error("Payment terms must be 0–365 days");
+    if (!Number.isInteger(t) || t < 0 || t > 365)
+      return toast.error("Payment terms must be 0–365 days");
     const l = limit.trim() === "" ? null : Number(limit);
-    if (l != null && (Number.isNaN(l) || l < 0)) return toast.error("Credit limit must be a positive number");
+    if (l != null && (Number.isNaN(l) || l < 0))
+      return toast.error("Credit limit must be a positive number");
     try {
       await updateClientTerms(clientId, { paymentTermsDays: t, creditLimit: l });
       await refetch();
@@ -240,12 +306,23 @@ function Terms({ clientId }: { clientId: string }) {
       </div>
       <div>
         <label className="block text-xs text-muted-foreground mb-1">Credit limit ($)</label>
-        <input className={input} placeholder="No limit" value={limit} onChange={(e) => setLimit(e.target.value)} />
+        <input
+          className={input}
+          placeholder="No limit"
+          value={limit}
+          onChange={(e) => setLimit(e.target.value)}
+        />
         <p className="text-[11px] text-muted-foreground mt-1">
-          New invoices are blocked if they would push open (sent or disputed) balances over this amount.
+          New invoices are blocked if they would push open (sent or disputed) balances over this
+          amount.
         </p>
       </div>
-      <button onClick={save} className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium">Save terms</button>
+      <button
+        onClick={save}
+        className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium"
+      >
+        Save terms
+      </button>
     </div>
   );
 }

@@ -170,10 +170,7 @@ export async function requeueOutboxEntry(id: string) {
 
 /** Reset every failed entry for another pass. */
 export async function requeueAllFailed() {
-  const { error } = await supabase
-    .from("sheet_sync_outbox")
-    .update(RESET())
-    .eq("status", "failed");
+  const { error } = await supabase.from("sheet_sync_outbox").update(RESET()).eq("status", "failed");
   if (error) throw new Error(error.message);
 }
 

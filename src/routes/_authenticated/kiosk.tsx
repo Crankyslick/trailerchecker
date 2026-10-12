@@ -43,7 +43,7 @@ function Kiosk() {
   const [loadId, setLoadId] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const rows = Array.isArray(active) ? active : [];
+  const rows = useMemo(() => (Array.isArray(active) ? active : []), [active]);
   const matches = useMemo(() => {
     const q = trailer.trim().toUpperCase();
     if (!q) return rows;

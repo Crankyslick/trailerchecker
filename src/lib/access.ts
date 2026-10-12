@@ -11,7 +11,8 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 export const isOwner = (roles: AppRole[]) => roles.includes("owner");
 /** Owners are administrators too — the database treats them the same way. */
 export const canAdminister = (roles: AppRole[]) => isOwner(roles) || roles.includes("admin");
-export const canDispatch = (roles: AppRole[]) => canAdminister(roles) || roles.includes("dispatcher");
+export const canDispatch = (roles: AppRole[]) =>
+  canAdminister(roles) || roles.includes("dispatcher");
 export const canCheckInTrailers = (roles: AppRole[]) =>
   canDispatch(roles) || roles.includes("guard");
 export const canManageBilling = (roles: AppRole[]) =>
@@ -82,7 +83,9 @@ export function checkAccess(
     return { ok: false, reason: "product" };
   if (opts.roles?.length) {
     // Owners satisfy any admin-level requirement.
-    const required = opts.roles.includes("admin") ? [...opts.roles, "owner" as AppRole] : opts.roles;
+    const required = opts.roles.includes("admin")
+      ? [...opts.roles, "owner" as AppRole]
+      : opts.roles;
     const privileged = access.roles.some((r) => required.includes(r));
     if (!privileged) return { ok: false, reason: "role" };
   }

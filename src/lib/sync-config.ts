@@ -38,9 +38,7 @@ export const SYNC_CONFIG_TABLE = "trailer_sync_config" as const;
 export async function readSyncConfig(): Promise<SyncConfig | null> {
   const { data, error } = await supabase
     .from(SYNC_CONFIG_TABLE)
-    .select(
-      "id, company_id, spreadsheet_id, sheet_name, last_synced_at, last_sync_status",
-    )
+    .select("id, company_id, spreadsheet_id, sheet_name, last_synced_at, last_sync_status")
     .limit(1)
     .maybeSingle();
   if (error) {
@@ -74,9 +72,7 @@ export async function saveSyncConfig(patch: {
   const current = await readAdminSyncConfig();
   const args = {
     p_spreadsheet_id:
-      patch.spreadsheet_id !== undefined
-        ? patch.spreadsheet_id
-        : (current?.spreadsheet_id ?? null),
+      patch.spreadsheet_id !== undefined ? patch.spreadsheet_id : (current?.spreadsheet_id ?? null),
     p_sheet_name:
       patch.sheet_name !== undefined ? patch.sheet_name : (current?.sheet_name ?? "Sheet1"),
     p_webhook_url:

@@ -25,6 +25,8 @@ export function useYardPolicy() {
 
   useEffect(() => {
     setActiveYardPolicy(policy);
+    // Keyed on the numbers, not the object, so a refetch with equal values is a no-op.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [policy.deadlineHours, policy.criticalHours]);
 
   return {

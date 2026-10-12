@@ -176,11 +176,7 @@ function ClaimCases() {
         })}
       </div>
 
-      <ExceptionCaseModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        existing={editing}
-      />
+      <ExceptionCaseModal open={modalOpen} onClose={() => setModalOpen(false)} existing={editing} />
     </div>
   );
 }

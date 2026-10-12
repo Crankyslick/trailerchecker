@@ -281,8 +281,8 @@ function ProductsCard() {
       </h2>
       <p className="text-xs text-muted-foreground">
         Internal provisioning — this is not a purchase. Switching a product on unlocks its boards
-        for everyone in your organization and is billed on your next invoice. Switching off hides
-        it — your data stays.
+        for everyone in your organization and is billed on your next invoice. Switching off hides it
+        — your data stays.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {PRODUCTS.map((p) => {

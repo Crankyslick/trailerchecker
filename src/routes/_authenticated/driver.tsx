@@ -2,10 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, BellRing, PackageCheck, Truck, MapPin, WifiOff, ClipboardCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  BellRing,
+  PackageCheck,
+  Truck,
+  MapPin,
+  WifiOff,
+  ClipboardCheck,
+} from "lucide-react";
 import {
   enqueue,
   flushQueue,
+  setQueueOwner,
   isLikelyOffline,
   onQueueChanged,
   queueSize,
@@ -73,7 +82,12 @@ function DriverPage() {
   const [pending, setPending] = useState(0);
   const [offline, setOffline] = useState(false);
 
+  const ownerId = profile?.id ?? null;
+
   useEffect(() => {
+    // Only replay this driver's queued actions; wait until we know who is signed in.
+    if (!ownerId) return;
+    setQueueOwner(ownerId);
     setPending(queueSize());
     setOffline(!navigator.onLine);
     const unsub = onQueueChanged(() => setPending(queueSize()));
@@ -91,7 +105,7 @@ function DriverPage() {
       window.removeEventListener("online", goOnline);
       window.removeEventListener("offline", goOffline);
     };
-  }, [refetch]);
+  }, [refetch, ownerId]);
 
   const assignments = (notifications ?? []).filter((n) => n.type === "load_assigned");
   const unreadAssignments = assignments.filter((n) => !n.read_at);
@@ -164,8 +178,6 @@ function DriverPage() {
           </span>
         </div>
       )}
-
-
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && (loads ?? []).length === 0 && (

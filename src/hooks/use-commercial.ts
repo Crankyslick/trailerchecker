@@ -82,7 +82,10 @@ export async function updateRateExtras(
 ) {
   const { error } = await sb
     .from("rate_agreements")
-    .update({ contract_number: input.contractNumber, additional_stop_rate: input.additionalStopRate })
+    .update({
+      contract_number: input.contractNumber,
+      additional_stop_rate: input.additionalStopRate,
+    })
     .eq("id", id);
   throwIf(error);
 }
@@ -150,7 +153,9 @@ export function usePendingAccessorials() {
     queryFn: async (): Promise<PendingAccessorial[]> => {
       const { data, error } = await sb
         .from("accessorials")
-        .select("id, code, description, amount, billable_to, created_at, trailer_loads ( schedule_id )")
+        .select(
+          "id, code, description, amount, billable_to, created_at, trailer_loads ( schedule_id )",
+        )
         .eq("status", "PENDING")
         .order("created_at", { ascending: false });
       throwIf(error);

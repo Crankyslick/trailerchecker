@@ -246,7 +246,6 @@ function Landing() {
         </div>
       </header>
 
-
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden border-b border-border">
