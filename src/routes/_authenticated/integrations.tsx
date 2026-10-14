@@ -51,7 +51,7 @@ function IntegrationsPage() {
 
 function EdiSection() {
   const { data: token, refetch } = useEdiInboundToken();
-  const { data: documents } = useEdiDocuments();
+  const { data: documents, refetch: refetchDocuments } = useEdiDocuments();
   const [busy, setBusy] = useState(false);
   const url =
     typeof window !== "undefined"

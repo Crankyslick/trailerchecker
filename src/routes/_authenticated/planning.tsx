@@ -292,6 +292,7 @@ function RateConfirmationModal({
   const [rcNumber, setRcNumber] = useState("");
   const [totalRate, setTotalRate] = useState("");
   const [busy, setBusy] = useState(false);
+  const queryClient = useQueryClient();
 
   async function submit() {
     setBusy(true);
