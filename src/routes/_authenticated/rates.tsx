@@ -10,7 +10,7 @@ import { CustomerModal } from "@/components/CustomerModal";
 import { RateDetailModal } from "@/components/RateDetailModal";
 
 export const Route = createFileRoute("/_authenticated/rates")({
-  beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
+  beforeLoad: guard({ roles: ["owner", "admin", "dispatcher", "billing"], product: "trailer" }),
   head: () => ({ meta: [{ title: "Rates — Me Do Logistics" }] }),
   component: RatesPage,
 });

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import {
   readYardPolicy,
   saveYardPolicy,
@@ -59,8 +60,13 @@ export function useBusinessModel() {
 
 export function useSaveBusinessModel() {
   const qc = useQueryClient();
+  const router = useRouter();
   return useMutation({
     mutationFn: (model: BusinessModel) => saveBusinessModel(model),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["company-settings"] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["company-settings"] });
+      // The operating profile decides the sidebar and route guards.
+      await router.invalidate();
+    },
   });
 }

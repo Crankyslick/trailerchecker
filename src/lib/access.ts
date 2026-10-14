@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ProductKey } from "@/lib/products";
 import { isProductEntitled } from "@/lib/products";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeBusinessModel, type BusinessModel } from "@/lib/brokerage";
 
 /** The one role list — generated straight from the database enum. */
 export type AppRole = Database["public"]["Enums"]["app_role"];
@@ -34,7 +35,7 @@ export function roleLabel(roles: AppRole[]): string {
   return best ? ROLE_LABELS[best] : "No role";
 }
 
-export type Access = { roles: AppRole[]; products: ProductKey[] };
+export type Access = { roles: AppRole[]; products: ProductKey[]; model: BusinessModel };
 /** `error` is set when the permission lookup itself failed (backend outage). */
 export type AccessResult = Access & { error: string | null };
 
@@ -47,10 +48,18 @@ export type AccessResult = Access & { error: string | null };
  * "no permissions", so a backend outage never looks like a closed account.
  */
 export async function loadAccess(): Promise<AccessResult> {
-  const [rolesRes, productsRes] = await Promise.all([
+  const [rolesRes, productsRes, settingsRes] = await Promise.all([
     supabase.from("user_roles").select("role"),
     supabase.from("tenant_products").select("product, status, trial_ends_at"),
+    // Operating profile; an older database without the column falls back to
+    // the asset-carrier default rather than failing the whole lookup.
+    supabase.from("company_settings").select("business_model").limit(1).maybeSingle(),
   ]);
+  const model = normalizeBusinessModel(
+    settingsRes.error
+      ? null
+      : (settingsRes.data as { business_model?: unknown } | null)?.business_model,
+  );
 
   const error = rolesRes.error?.message ?? productsRes.error?.message ?? null;
 
@@ -65,7 +74,7 @@ export async function loadAccess(): Promise<AccessResult> {
     .filter(isProductEntitled)
     .map((p) => p.product);
 
-  return { roles, products, error };
+  return { roles, products, model, error };
 }
 
 export type GuardOptions = {

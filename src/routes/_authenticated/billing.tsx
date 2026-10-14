@@ -20,7 +20,7 @@ import {
 } from "@/hooks/use-billing";
 
 export const Route = createFileRoute("/_authenticated/billing")({
-  beforeLoad: guard({ roles: ["owner", "admin", "dispatcher"], product: "trailer" }),
+  beforeLoad: guard({ roles: ["owner", "admin", "dispatcher", "billing"], product: "trailer" }),
   head: () => ({ meta: [{ title: "Billing — Me Do Logistics" }] }),
   component: BillingPage,
 });
