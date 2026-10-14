@@ -25,6 +25,7 @@ import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedKioskRouteImport } from './routes/_authenticated/kiosk'
 import { Route as AuthenticatedLoadsRouteImport } from './routes/_authenticated/loads'
+import { Route as AuthenticatedNoAccessRouteImport } from './routes/_authenticated/no-access'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedPlanningRouteImport } from './routes/_authenticated/planning'
@@ -130,6 +131,11 @@ const AuthenticatedKioskRoute = AuthenticatedKioskRouteImport.update({
 const AuthenticatedLoadsRoute = AuthenticatedLoadsRouteImport.update({
   id: '/loads',
   path: '/loads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNoAccessRoute = AuthenticatedNoAccessRouteImport.update({
+  id: '/no-access',
+  path: '/no-access',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -282,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
+  '/no-access': typeof AuthenticatedNoAccessRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/planning': typeof AuthenticatedPlanningRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/kiosk': typeof AuthenticatedKioskRoute
   '/loads': typeof AuthenticatedLoadsRoute
+  '/no-access': typeof AuthenticatedNoAccessRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/planning': typeof AuthenticatedPlanningRoute
@@ -370,6 +378,7 @@ export interface FileRoutesById {
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/kiosk': typeof AuthenticatedKioskRoute
   '/_authenticated/loads': typeof AuthenticatedLoadsRoute
+  '/_authenticated/no-access': typeof AuthenticatedNoAccessRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/planning': typeof AuthenticatedPlanningRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/kiosk'
     | '/loads'
+    | '/no-access'
     | '/onboarding'
     | '/orders'
     | '/planning'
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/integrations'
     | '/kiosk'
     | '/loads'
+    | '/no-access'
     | '/onboarding'
     | '/orders'
     | '/planning'
@@ -502,6 +513,7 @@ export interface FileRouteTypes {
     | '/_authenticated/integrations'
     | '/_authenticated/kiosk'
     | '/_authenticated/loads'
+    | '/_authenticated/no-access'
     | '/_authenticated/onboarding'
     | '/_authenticated/orders'
     | '/_authenticated/planning'
@@ -657,6 +669,13 @@ declare module '@tanstack/react-router' {
       path: '/loads'
       fullPath: '/loads'
       preLoaderRoute: typeof AuthenticatedLoadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/no-access': {
+      id: '/_authenticated/no-access'
+      path: '/no-access'
+      fullPath: '/no-access'
+      preLoaderRoute: typeof AuthenticatedNoAccessRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -858,6 +877,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedKioskRoute: typeof AuthenticatedKioskRoute
   AuthenticatedLoadsRoute: typeof AuthenticatedLoadsRoute
+  AuthenticatedNoAccessRoute: typeof AuthenticatedNoAccessRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPlanningRoute: typeof AuthenticatedPlanningRoute
@@ -891,6 +911,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedKioskRoute: AuthenticatedKioskRoute,
   AuthenticatedLoadsRoute: AuthenticatedLoadsRoute,
+  AuthenticatedNoAccessRoute: AuthenticatedNoAccessRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPlanningRoute: AuthenticatedPlanningRoute,
