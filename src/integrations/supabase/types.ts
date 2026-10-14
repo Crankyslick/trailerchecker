@@ -4665,6 +4665,98 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      clear_load_parties: {
+        Args: {
+          p_clear_broker?: boolean
+          p_clear_tractor?: boolean
+          p_load_id: string
+        }
+        Returns: {
+          alert_status: string | null
+          arrival_date: string | null
+          arrival_day: string | null
+          arrival_time: string | null
+          broker_id: string | null
+          carrier_comments: string | null
+          carrier_id: string | null
+          carrier_pay: number | null
+          category: string | null
+          client_id: string | null
+          comments: string | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_rate: number | null
+          cutoff_date: string | null
+          cutoff_day: string | null
+          cutoff_time: string | null
+          delivery_defect_reason: string | null
+          delivery_sequence: number | null
+          driver: string | null
+          driver_id: string | null
+          equipment_id: string | null
+          eta_at: string | null
+          eta_source: string | null
+          exception_at: string | null
+          exception_reason: string | null
+          exception_resolved_at: string | null
+          exception_resolved_note: string | null
+          expected_delivery: string | null
+          expected_pickup: string | null
+          fuel_surcharge_amount: number
+          has_sweep: boolean
+          haul_type: string | null
+          id: string
+          invoice_status: string
+          invoiced: boolean | null
+          is_exception: boolean
+          leg_id: string
+          legacy_load_id: string | null
+          order_id: string
+          origin_id: string | null
+          origin_name: string | null
+          outbound_trailer: string | null
+          pickup_defect_reason: string | null
+          pro_number: string | null
+          rate_confirmation_id: string | null
+          return_trailer: string | null
+          return_trailer_location:
+            | Database["public"]["Enums"]["trailer_location"]
+            | null
+          root_id: string
+          schedule_date: string | null
+          schedule_id: string
+          settlement_status: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["trailer_load_status"]
+          str_name: string | null
+          str_number: string | null
+          str_return_trailer_started_at: string | null
+          str_trl_location: string | null
+          superseded_by_id: string | null
+          target_load_id: string | null
+          total_distance: string | null
+          tracking_token: string | null
+          tractor_id: string | null
+          trip_id: string | null
+          trl_location_code: string | null
+          unload_date: string | null
+          unload_day: string | null
+          unload_time: string | null
+          unload_type: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+          yard_arrival_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trailer_loads"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_order_with_shipment: {
         Args: {
           p_client_id: string
