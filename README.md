@@ -539,8 +539,13 @@ bun install                     # local, may update bun.lock
 bun run dev
 ```
 
-Checks run in CI: `bun run lint`, `bunx tsgo --noEmit`, `bun run test`,
-`bun run build`.
+Checks run in CI (`.github/workflows/ci.yml`, on every push to `main` and every
+pull request): `bun run lint`, `bunx tsc --noEmit`, the unit tests and
+`bun run build`. A second job runs the live security tests (`rls.test.ts`,
+`rpc-privileges.test.ts`), which check with the publishable key that anonymous
+callers still can't read tenant data. CI rewrites `bun.lock` to the public npm
+registry for its own run because the committed lockfile points at Lovable's
+private mirror.
 
 ### Health checks
 
