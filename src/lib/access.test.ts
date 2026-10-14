@@ -11,6 +11,7 @@ import {
 const access = (roles: AppRole[], products: ("trailer" | "drayage")[] = ["trailer"]) => ({
   roles,
   products,
+  model: "ASSET_BASED_3PL" as const,
 });
 
 describe("role capabilities", () => {
