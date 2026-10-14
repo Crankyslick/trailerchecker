@@ -742,3 +742,17 @@ export async function assignLoadParties(input: {
   });
   if (error) throw new Error(error.message);
 }
+
+/** Removes the tractor and/or broker from a load. */
+export async function clearLoadParties(input: {
+  loadId: string;
+  tractor?: boolean;
+  broker?: boolean;
+}) {
+  const { error } = await sb.rpc("clear_load_parties", {
+    p_load_id: input.loadId,
+    p_clear_tractor: !!input.tractor,
+    p_clear_broker: !!input.broker,
+  });
+  if (error) throw new Error(error.message);
+}

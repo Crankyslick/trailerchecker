@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   User,
@@ -25,6 +26,7 @@ import {
   createTender,
   respondToTender,
   assignLoadParties,
+  clearLoadParties,
   createRateConfirmation,
   type PlanningLeg,
   type Carrier,
@@ -178,13 +180,16 @@ function FleetDetailsControls({ load }: { load: PlanningLeg["loads"][number] }) 
   const { data: brokers } = useBrokers();
   const { data: rateConfirmations } = useRateConfirmations();
   const [rcModalOpen, setRcModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const currentRc = rateConfirmations?.find((rc) => rc.id === load.rate_confirmation_id);
 
   async function setTractor(tractorId: string) {
     try {
-      await assignLoadParties({ loadId: load.id, tractorId: tractorId || null });
-      toast.success("Tractor assigned");
+      if (tractorId) await assignLoadParties({ loadId: load.id, tractorId });
+      else await clearLoadParties({ loadId: load.id, tractor: true });
+      toast.success(tractorId ? "Tractor assigned" : "Tractor removed");
+      void queryClient.invalidateQueries();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to assign tractor");
     }
@@ -192,8 +197,10 @@ function FleetDetailsControls({ load }: { load: PlanningLeg["loads"][number] }) 
 
   async function setBroker(brokerId: string) {
     try {
-      await assignLoadParties({ loadId: load.id, brokerId: brokerId || null });
-      toast.success("Broker assigned");
+      if (brokerId) await assignLoadParties({ loadId: load.id, brokerId });
+      else await clearLoadParties({ loadId: load.id, broker: true });
+      toast.success(brokerId ? "Broker assigned" : "Broker removed");
+      void queryClient.invalidateQueries();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to assign broker");
     }
@@ -296,6 +303,7 @@ function RateConfirmationModal({
       });
       await assignLoadParties({ loadId: load.id, rateConfirmationId: id });
       toast.success("Rate confirmation created and attached");
+      await queryClient.invalidateQueries();
       onClose();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to create rate confirmation");
